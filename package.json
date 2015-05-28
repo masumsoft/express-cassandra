@@ -1,0 +1,28 @@
+{
+  "name": "express-cassandra",
+  "version": "0.1.0",
+  "dependencies": {
+    "apollo-cassandra": "https://github.com/masumsoft/apollo-cassandra/tarball/master",
+    "async": "^1.0.0",
+    "cassandra-driver": "^2.1.0",
+    "lodash": "^3.9.3"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "author": {
+    "name": "Mahafuzur Rahman",
+    "url": "https://www.codinglogs.com"
+  },
+  "description": "Framework for cassandra object models in express",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/masumsoft/express-cassandra.git"
+  },
+  "main": "index.js",
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/masumsoft/express-cassandra/issues"
+  },
+  "homepage": "https://github.com/masumsoft/express-cassandra",
+  "engine": "node >= 0.10.x"
+}
