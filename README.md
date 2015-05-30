@@ -418,6 +418,28 @@ models.instance.Person.execute_query(query, params, function(err, people){
 
 ```
 
+## Batch Query
+
+You can get the batch query interface from cassandra nodejs-driver using the `execute_batch` method.
+
+```js
+
+var queries = [
+    {
+        query: "...",
+        params: [...]
+    },
+    {
+        query: "...",
+        params: [...]
+    }
+];
+models.instance.Person.execute_batch(queries, function(err){
+
+});
+
+```
+
 ## Note
 
 All queries except schema definition related queries (i.e. create table etc.) are prepared by default. So you don't
