@@ -123,18 +123,22 @@ What does the above code means?
 When you instantiate a model, every field you defined in schema is automatically a property of your instances. So, you can write:
 
 ```js
+
 john.age = 25;
 console.log(john.name); //John
 console.log(john.complete_name); // undefined.
+
 ```
 __note__: `john.complete_name` is undefined in the newly created instance but will be populated when the instance is saved because it has a default value in schema definition
 
 Ok, we are done with John, let's delete it:
 
 ```js
+
 john.delete(function(err){
     //...
 });
+
 ```
 
 ### A few handy tools for your model
@@ -152,6 +156,7 @@ Express cassandra exposes some node driver methods for convenience. To generate 
 Your model could have some fields which are not saved on database. You can define them as `virtual`
 
 ```js
+
 module.exports = {
     "fields": {
         "id"     : { "type": "uuid", "default": {"$db_function": "uuid()"} },
@@ -170,6 +175,7 @@ module.exports = {
         }
     }
 }
+
 ```
 
 A virtual field is simply defined adding a `virtual` key in field description. Virtuals can have a `get` and a `set` function, both optional (you should define at least one of them!).
@@ -180,6 +186,7 @@ A virtual field is simply defined adding a `virtual` key in field description. V
 Every time you set a property for an instance of your model, an internal type validator checks that the value is valid. If not an error is thrown. But how to add a custom validator? You need to provide your custom validator in the schema definition. For example, if you want to check age to be a number greater than zero:
 
 ```js
+
 module.exports = {
     //... other properties hidden for clarity
     age: {
@@ -187,12 +194,14 @@ module.exports = {
         rule : function(value){ return value > 0; }
     }
 }
+
 ```
 
 your validator must return a boolean. If someone will try to assign `john.age = -15;` an error will be thrown.
 You can also provide a message for validation error in this way
 
 ```js
+
 module.exports = {
     //... other properties hidden for clarity
     age: {
@@ -203,11 +212,13 @@ module.exports = {
         }
     }
 }
+
 ```
 
 then the error will have your message. Message can also be a function; in that case it must return a string:
 
 ```js
+
 module.exports = {
     //... other properties hidden for clarity
     age: {
@@ -218,6 +229,7 @@ module.exports = {
         }
     }
 }
+
 ```
 
 The error message will be `Age must be greater than 0. You provided -15`
@@ -226,6 +238,7 @@ Note that default values _are_ validated if defined either by value or as a java
 If you need to exclude defaults from being checked you can pass an extra flag:
 
 ```js
+
 module.exports = {
     //... other properties hidden for clarity
     email: {
@@ -237,6 +250,7 @@ module.exports = {
         }
     }
 }
+
 ```
 
 ## Querying your data
@@ -246,23 +260,28 @@ Ok, now you have a bunch of people on db. How do I retrieve them?
 ### Find
 
 ```js
+
 models.instance.Person.find({name: 'John'}, function(err, people){
     if(err) throw err;
     console.log('Found ', people);
 });
+
 ```
 
 In the above example it will perform the query `SELECT * FROM person WHERE name='john'` but `find()` allows you to perform even more complex queries on cassandra.  You should be aware of how to query cassandra. Every error will be reported to you in the `err` argument, while in `people` you'll find instances of `Person`. If you don't want apollo to cast results to instances of your model you can use the `raw` option as in the following example:
 
 ```js
+
 models.instance.Person.find({name: 'John'}, { raw: true }, function(err, people){
     //people is an array of plain objects
 });
+
 ```
 
-Let's see a complex query
+### Let's see a complex query
 
 ```js
+
 var query = {
     name: 'John', // stays for name='john' 
     age : { '$gt':10 }, // stays for age>10 You can also use $gte, $lt, $lte
@@ -271,8 +290,135 @@ var query = {
     $limit: 10 //limit result set
 
 }
+
+models.instance.Person.find(query, function(err, people){
+    //people is an array of plain objects
+});
+
+```
+
+If you want to set allow filtering option, you may do that like this:
+
+```js
+
+models.instance.Person.find(query, {allow_filtering: true}, function(err, people){
+    //people is an array of plain objects
+});
+
 ```
 
 Note that all query clauses must be Cassandra compliant. You cannot, for example, use $in operator for a key which is not the partition key. Querying in Cassandra is very basic but could be confusing at first. Take a look at this <a href="http://mechanics.flite.com/blog/2013/11/05/breaking-down-the-cql-where-clause/" target="_blank">post</a> and, obvsiouly, at the <a href="http://www.datastax.com/documentation/cql/3.1/cql/cql_using/about_cql_c.html" target="_blank">documentation</a>
 
 
+## Create / Update / Delete
+
+### Create
+
+```js
+
+var alex = new models.instance.Person({name: "Alex", surname: "Rubiks", age: 32});
+alex.save(function(err){
+    if(err) console.log(err);
+    else console.log('Yuppiie!');
+});
+
+```
+
+The save function also takes optional parameters. By default cassandra will update the row if the primary key
+already exists. If you want to avoid on duplicate key updates, you may set if_not_exist:true.
+
+```js
+
+alex.save({if_not_exist: true}, function(err){
+    if(err) console.log(err);
+    else console.log('Yuppiie!');
+});
+
+```
+
+You can also set an expiry ttl for the saved row if you want. In that case the row will be removed by cassandra
+automatically after the time to live has expired.
+
+```js
+
+//The row will be removed after 86400 seconds or one day
+alex.save({ttl: 86400}, function(err){
+    if(err) console.log(err);
+    else console.log('Yuppiie!');
+});
+
+```
+
+### Update
+
+The update function takes the following forms, (options are optional):
+
+```js
+
+/*
+UPDATE person
+    USING TTL 86400
+    SET email='abc@gmail.com'
+WHERE username= 'abc'
+    IF EXISTS
+*/
+
+var query_object = {username: 'abc'};
+var update_values_object = {email: 'abc@gmail.com'};
+var options = {ttl: 86400, if_exists: true};
+models.instance.Person.update(query_object, update_values_object, options, function(err){
+    if(err) console.log(err);
+    else console.log('Yuppiie!');
+});
+
+
+/*
+UPDATE person
+    SET email='abc@gmail.com'
+WHERE username= 'abc'
+    IF email='typo@gmail.com'
+*/
+var query_object = {username: 'abc'};
+var update_values_object = {email: 'abc@gmail.com'};
+var options = {conditions: {email: 'typo@gmail.com'}};
+models.instance.Person.update(query_object, update_values_object, options, function(err){
+    if(err) console.log(err);
+    else console.log('Yuppiie!');
+});
+
+```
+
+### Delete
+
+The delete function takes the following form:
+
+```js
+
+//DELETE FROM person WHERE username='abc';
+var query_object = {username: 'abc'};
+models.instance.Person.delete(query_object, function(err){
+    if(err) console.log(err);
+    else console.log('Yuppiie!');
+});
+
+```
+
+
+## Raw Query
+
+You can get the raw query interface from cassandra nodejs-driver using the `execute_query` method.
+
+```js
+
+var query = "Select * from user where gender=? and age > ? limit ?";
+var params = ['male', 18, 10];
+models.instance.Person.execute_query(query, params, function(err, people){
+    //people is an array of plain objects
+});
+
+```
+
+## Note
+
+All queries except schema definition related queries (i.e. create table etc.) are prepared by default. So you don't
+need to set `prepare=true`, the orm takes care of it automatically.
