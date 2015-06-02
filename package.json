@@ -1,6 +1,6 @@
 {
   "name": "express-cassandra",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "dependencies": {
     "apollo-cassandra": "https://github.com/masumsoft/apollo-cassandra/tarball/master",
     "async": "^1.0.0",
