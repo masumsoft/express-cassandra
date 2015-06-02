@@ -11,7 +11,7 @@ This module uses datastax <a href="https://github.com/datastax/nodejs-driver">ca
     $ npm install express-cassandra
 
 ## Usage
-	
+    
 
 ```js
 var models = require('express-cassandra');
@@ -83,9 +83,12 @@ alex.save(function(err){
 
 ```js
 
-models.instance.Person.find({name: 'jhon'}, function(err, people){
+models.instance.Person.find({name: 'jhon'}, function(err, john){
     if(err) throw err;
-    console.log('Found ', people);
+
+    //Note that returned variable john here is an instance of your model,
+    //so you can also do john.delete(), john.save() type operations on the instance.
+    console.log('Found ' + john.name + ' to be ' + john.age + ' years old!');
 });
 
 ```
@@ -268,12 +271,24 @@ models.instance.Person.find({name: 'John'}, function(err, people){
 
 ```
 
-In the above example it will perform the query `SELECT * FROM person WHERE name='john'` but `find()` allows you to perform even more complex queries on cassandra.  You should be aware of how to query cassandra. Every error will be reported to you in the `err` argument, while in `people` you'll find instances of `Person`. If you don't want apollo to cast results to instances of your model you can use the `raw` option as in the following example:
+In the above example it will perform the query `SELECT * FROM person WHERE name='john'` but `find()` allows you to perform even more complex queries on cassandra.  You should be aware of how to query cassandra. Every error will be reported to you in the `err` argument, while in `people` you'll find instances of `Person`.
+
+If you don't want apollo to cast results to instances of your model you can use the `raw` option as in the following example:
 
 ```js
 
 models.instance.Person.find({name: 'John'}, { raw: true }, function(err, people){
     //people is an array of plain objects
+});
+
+```
+
+You can also select particular columns using the select key in the options object like the following example:
+
+```js
+
+models.instance.Person.find({name: 'John'}, { raw: true, select: ['name','age'] }, function(err, people){
+    //people is an array of plain objects with only name and age
 });
 
 ```
@@ -291,7 +306,7 @@ var query = {
 
 }
 
-models.instance.Person.find(query, function(err, people){
+models.instance.Person.find(query, {raw: true}, function(err, people){
     //people is an array of plain objects
 });
 
@@ -301,7 +316,7 @@ If you want to set allow filtering option, you may do that like this:
 
 ```js
 
-models.instance.Person.find(query, {allow_filtering: true}, function(err, people){
+models.instance.Person.find(query, {raw:true, allow_filtering: true}, function(err, people){
     //people is an array of plain objects
 });
 
