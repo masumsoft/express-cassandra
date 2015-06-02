@@ -13,6 +13,7 @@
     "name": "Mahafuzur Rahman",
     "url": "https://www.codinglogs.com"
   },
+  "license": "LGPL-3.0",
   "description": "Framework for cassandra object models in express",
   "repository": {
     "type": "git",
