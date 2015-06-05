@@ -1,9 +1,9 @@
 {
   "name": "express-cassandra",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "dependencies": {
-    "apollo-cassandra": "https://github.com/masumsoft/apollo-cassandra/tarball/master",
     "async": "^1.0.0",
+    "check-types": "^1.4.0",
     "cassandra-driver": "^2.1.0",
     "lodash": "^3.9.3"
   },
@@ -21,6 +21,7 @@
   },
   "main": "index.js",
   "readmeFilename": "README.md",
+  "homepage": "https://github.com/masumsoft/express-cassandra",
   "bugs": {
     "url": "https://github.com/masumsoft/express-cassandra/issues"
   },

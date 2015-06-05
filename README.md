@@ -3,7 +3,7 @@ express-cassandra
 
 This is one of the steps needed to transform expressjs into a complete MVC framework, by adding Models-support. No more hassling with code in your models. express-cassandra automatically loads your models and provides you with object oriented mapping with your cassandra tables like a standard ORM.
 
-This module uses datastax <a href="https://github.com/datastax/nodejs-driver">cassandra-driver</a> for node and most of the orm features are wrapper over a modified version of <a href="https://github.com/3logic/apollo-cassandra">apollo-cassandra</a> module. The documentation here is largely copied from apollo-cassandra orm with appropriate changes to fit the criteria of this module.
+This module uses datastax <a href="https://github.com/datastax/nodejs-driver">cassandra-driver</a> for node and many of the orm features are wrapper over a modified version of <a href="https://github.com/3logic/apollo-cassandra">apollo-cassandra</a> module. The modifications made to the orm library was necessary to support missing features in the orm and to make it compatible with requirements of this module.
 
 
 ## Installation
