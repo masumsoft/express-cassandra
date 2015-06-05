@@ -107,7 +107,15 @@ module.exports = {
         "created"     : {"type": "timestamp", "default" : {"$db_function": "now()"} }
     },
     "key" : [["id"],"created"],
-    "indexes": ["name"]
+    "indexes": ["name"],
+    "custom_index": {
+        on: '...',
+        using: '...',
+        options: {
+            option1 : '...',
+            option2: '...'
+        }
+    }
 }
 
 ```
@@ -121,7 +129,7 @@ What does the above code means?
     + `created`, like uuid(), will be evaluated from cassandra using the `now()` function.
 - `key`: here is where you define the key of your table. As you can imagine, the first value of the array is the `partition key` and the others are the `clustering keys`. The `partition key` can be an array defining a `compound key`. Read more about keys on the <a href="http://www.datastax.com/documentation/cql/3.1/cql/cql_using/use_compound_keys_t.html" target="_blank">documentation</a>
 - `indexes` are the index of your table. It's always an array of field names. You can read more on the <a href="http://www.datastax.com/documentation/cql/3.1/cql/ddl/ddl_primary_index_c.html" target="_blank">documentation</a>
-
+- `custom_index` provides the ability to define custom indexes with cassandra. Cassandra upto version 2.1.x supports only one custom index per table. 
 
 When you instantiate a model, every field you defined in schema is automatically a property of your instances. So, you can write:
 
