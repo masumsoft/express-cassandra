@@ -162,6 +162,28 @@ Express cassandra exposes some node driver methods for convenience. To generate 
     returns a type 1 (time-based) uuid, suitable for Cassandra `timeuuid` fields, as a string
 
 
+### Support for Composite Data Types
+
+Cassandra composite data types (`map`, `list` & `set`) are supported in model schema definitions. An additional `typeDef` attribute is used to define the composite type.
+
+```js
+
+module.exports = {
+
+    "fields": {
+
+        info: {
+            type: "map",
+            typeDef: "<varchar, text>"
+        }
+
+    }
+
+}
+
+```
+
+
 ## Virtual fields
 
 Your model could have some fields which are not saved on database. You can define them as `virtual`
