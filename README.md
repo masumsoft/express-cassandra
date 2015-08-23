@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/masumsoft/express-cassandra.svg)](https://travis-ci.org/masumsoft/express-cassandra)
+[![npm version](https://badge.fury.io/js/express-cassandra.svg)](http://badge.fury.io/js/express-cassandra)
+
 express-cassandra
 ===================
 
