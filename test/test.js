@@ -30,7 +30,7 @@ describe('Unit Tests', function(){
 
     describe('#save',function(){
         it('should save data to without errors', function(done) {
-            var alex = new models.instance.Person({userID:1234, Name: "Mahafuzur", age: 32, info: "{'hello':'world'}", phones: "['123456','234567']", emails: "{'a@b.com','c@d.com'}"});
+            var alex = new models.instance.Person({userID:1234, Name:"Mahafuzur", age:32, info:{'hello':'world'}, phones:['123456','234567'], emails:['a@b.com','c@d.com']});
             alex.save(function(err){
                 if(err) throw err;
                 else done();
@@ -40,7 +40,7 @@ describe('Unit Tests', function(){
 
     describe('#find',function(){
         it('should find data as saved without errors', function(done) {
-            models.instance.Person.find({userID: 1234,age:32}, function(err, people){
+            models.instance.Person.find({userID:1234, age:32}, function(err, people){
                 if(err) throw err;
                 people[0].Name.should.equal('Mahafuzur');
                 people[0].info.hello.should.equal('world');
@@ -53,7 +53,7 @@ describe('Unit Tests', function(){
 
     describe('#update',function(){
         it('should update data on db without errors', function(done) {
-            models.instance.Person.update({userID:1234,age:32}, {Name:"Stupid",info: "info + {'new':'addition'}",phones: "['56788']+phones",emails:"emails - {'a@b.com'}"}, function(err){
+            models.instance.Person.update({userID:1234, age:32}, {Name:"Stupid", info:{'new':'addition'}, phones:['56788'], emails:['c@d.com']}, function(err){
                 if(err) throw err; 
                 done();
             });
@@ -66,7 +66,7 @@ describe('Unit Tests', function(){
                 if(err) throw err;
                 people[0].Name.should.equal('Stupid');
                 people[0].info.new.should.equal('addition');
-                people[0].phones[1].should.equal('123456');
+                people[0].phones[0].should.equal('56788');
                 people[0].emails[0].should.equal('c@d.com');
                 people[0].emails.length.should.equal(1);
                 done();
@@ -76,7 +76,7 @@ describe('Unit Tests', function(){
 
     describe('#delete',function(){
         it('should delete data from db without errors', function(done) {
-            models.instance.Person.delete({userID:1234,age:32}, function(err){
+            models.instance.Person.delete({userID:1234, age:32}, function(err){
                 if(err) throw err;
                 done();
             });
