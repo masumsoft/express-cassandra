@@ -1,6 +1,6 @@
 {
   "name": "express-cassandra",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "dependencies": {
     "async": "^1.0.0",
     "check-types": "^1.4.0",
