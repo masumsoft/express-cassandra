@@ -183,6 +183,35 @@ module.exports = {
 
 ```
 
+When saving or updating composite types, use the string representation of the value like the following:
+
+```
+
+var person = new models.instance.Person({
+
+    info: "{'key1':'val1','key2': 'val2'}"
+
+});
+
+person.save(function(err){
+
+});
+
+```
+
+You may also use composite expressions supported by cassandra like the following:
+
+```
+
+models.instance.Dictionary.update({},{
+
+    info: "info + {'hello':'world'}"
+
+},{},function(err){});
+
+
+```
+
 
 ## Virtual fields
 
