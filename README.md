@@ -127,7 +127,7 @@ What does the above code means?
 - `fields` are the columns of your table. For each column name the value can be a string representing the type or an object containing more specific informations. i.e.
     + ` "id"     : { "type": "uuid", "default": {"$db_function": "uuid()"} },` in this example id type is `uuid` and the default value is a cassandra function (so it will be executed from the database). 
     + `"name"   : { "type": "varchar", "default": "no name provided"},` in this case name is a varchar and, if no value will be provided, it will have a default value of `no name provided`. The same goes for `surname`.
-    + `complete_name` the default values is calculated from others field. When apollo processes you model instances, the `complete_name` will be the result of the function you defined. In the function `this` is bound to the current model instance.
+    + `complete_name` the default values is calculated from others field. When the orm processes your model instances, the `complete_name` will be the result of the function you defined. In the function `this` is bound to the current model instance.
     + `age` no default is provided and we could write it just as `"age": "int"`.
     + `created`, like uuid(), will be evaluated from cassandra using the `now()` function.
 - `key`: here is where you define the key of your table. As you can imagine, the first value of the array is the `partition key` and the others are the `clustering keys`. The `partition key` can be an array defining a `compound key`. Read more about keys on the <a href="http://www.datastax.com/documentation/cql/3.1/cql/cql_using/use_compound_keys_t.html" target="_blank">documentation</a>
@@ -332,7 +332,7 @@ models.instance.Person.find({name: 'John'}, function(err, people){
 
 In the above example it will perform the query `SELECT * FROM person WHERE name='john'` but `find()` allows you to perform even more complex queries on cassandra.  You should be aware of how to query cassandra. Every error will be reported to you in the `err` argument, while in `people` you'll find instances of `Person`.
 
-If you don't want apollo to cast results to instances of your model you can use the `raw` option as in the following example:
+If you don't want the orm to cast results to instances of your model you can use the `raw` option as in the following example:
 
 ```js
 
