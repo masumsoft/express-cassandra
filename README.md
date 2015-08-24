@@ -107,7 +107,7 @@ module.exports = {
         "surname"   : { "type": "varchar", "default": "no surname provided"},
         "complete_name" : { "type": "varchar", "default": function(){ return this.name + ' ' + this.surname;}},
         "age"    :  { "type": "int" },
-        "created"     : {"type": "timestamp", "default" : {"$db_function": "now()"} }
+        "created"     : {"type": "timestamp", "default" : {"$db_function": "dateOf(now())"} }
     },
     "key" : [["id"],"created"],
     "indexes": ["name"],
