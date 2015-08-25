@@ -33,7 +33,7 @@ describe('Unit Tests', function(){
             var alex = new models.instance.Person({userID:1234, Name:"Mahafuzur", age:-32, info:{'hello':'world'}, phones:['123456','234567'], emails:['a@b.com','c@d.com']});
             alex.save(function(err){
                 if(err) {
-                    err.name.should.equal('apollo.model.set.invalidvalue');
+                    err.name.should.equal('apollo.model.save.invalidvalue');
                     alex.age = 32;
                     alex.save(function(err){
                         if(err) throw err;
@@ -61,9 +61,15 @@ describe('Unit Tests', function(){
 
     describe('#update',function(){
         it('should update data on db without errors', function(done) {
-            models.instance.Person.update({userID:1234, age:32}, {Name:"Stupid", info:{'new':'addition'}, phones:['56788'], emails:['c@d.com']}, function(err){
-                if(err) throw err; 
-                done();
+            models.instance.Person.update({userID:1234, age:32}, {Name:1, info:{'new':'addition'}, phones:['56788'], emails:['c@d.com']}, function(err){
+                if(err) {
+                    err.name.should.equal('apollo.model.update.invalidvalue');
+                    models.instance.Person.update({userID:1234, age:32}, {Name:"Stupid", info:{'new':'addition'}, phones:['56788'], emails:['c@d.com']}, function(err){
+                        if(err) throw err;
+                        done();
+                    });
+                }
+                else done(new Error("validation rule is not working properly"));
             });
         });
     });
@@ -102,4 +108,3 @@ describe('Unit Tests', function(){
         });
     });
 });
-
