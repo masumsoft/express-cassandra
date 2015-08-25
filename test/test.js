@@ -30,10 +30,17 @@ describe('Unit Tests', function(){
 
     describe('#save',function(){
         it('should save data to without errors', function(done) {
-            var alex = new models.instance.Person({userID:1234, Name:"Mahafuzur", age:32, info:{'hello':'world'}, phones:['123456','234567'], emails:['a@b.com','c@d.com']});
+            var alex = new models.instance.Person({userID:1234, Name:"Mahafuzur", age:-32, info:{'hello':'world'}, phones:['123456','234567'], emails:['a@b.com','c@d.com']});
             alex.save(function(err){
-                if(err) throw err;
-                else done();
+                if(err) {
+                    err.name.should.equal('apollo.model.set.invalidvalue');
+                    alex.age = 32;
+                    alex.save(function(err){
+                        if(err) throw err;
+                        done();
+                    });
+                }
+                else done(new Error("validation rule is not working properly"));
             });
         });
     });
@@ -42,6 +49,7 @@ describe('Unit Tests', function(){
         it('should find data as saved without errors', function(done) {
             models.instance.Person.find({userID:1234, age:32}, function(err, people){
                 if(err) throw err;
+                people.length.should.equal(1);
                 people[0].Name.should.equal('Mahafuzur');
                 people[0].info.hello.should.equal('world');
                 people[0].phones[1].should.equal('234567');
@@ -64,6 +72,7 @@ describe('Unit Tests', function(){
         it('should find data as updated without errors', function(done) {
             models.instance.Person.find({userID: 1234,age:32}, function(err, people){
                 if(err) throw err;
+                people.length.should.equal(1);
                 people[0].Name.should.equal('Stupid');
                 people[0].info.new.should.equal('addition');
                 people[0].phones[0].should.equal('56788');

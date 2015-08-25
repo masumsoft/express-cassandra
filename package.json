@@ -18,7 +18,7 @@
     "url": "https://www.codinglogs.com"
   },
   "scripts": {
-    "test": "node_modules/.bin/mocha"
+    "test": "node_modules/.bin/mocha --bail"
   },
   "license": "LGPL-3.0",
   "description": "Framework for cassandra object models in express",

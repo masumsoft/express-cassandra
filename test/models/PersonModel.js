@@ -4,7 +4,12 @@ module.exports = {
         "Name": { "type": "varchar", "default": "no name provided"},
         "surname": { "type": "varchar", "default": "no surname provided"},
         "completeName": { "type": "varchar", "default": function(){ return this.Name + ' ' + this.surname;}},
-        "age": { "type": "int" },
+        "age": {
+            "type": "int",
+            "rule" : {
+                "validator": function(value){ return (value > 0);  }
+            }
+        },
         "info": { "type": "map", typeDef:"<varchar,varchar>" },
         "phones": { "type": "list", typeDef:"<varchar>" },
         "emails": { "type": "set", typeDef:"<varchar>" },
