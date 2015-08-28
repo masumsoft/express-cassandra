@@ -45,7 +45,7 @@ describe('Unit Tests', function(){
         });
     });
 
-    describe('#find',function(){
+    describe('#find after save',function(){
         it('should find data as saved without errors', function(done) {
             models.instance.Person.find({userID:1234, age:32}, function(err, people){
                 if(err) throw err;
@@ -54,6 +54,26 @@ describe('Unit Tests', function(){
                 people[0].info.hello.should.equal('world');
                 people[0].phones[1].should.equal('234567');
                 people[0].emails[1].should.equal('c@d.com');
+                done();
+            });
+        });
+    });
+
+    describe('#find with $gt operator',function(){
+        it('should find data as saved without errors', function(done) {
+            models.instance.Person.find({userID:1234, age:{'$gt':31}}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
+                done();
+            });
+        });
+    });
+
+    describe('#find with $in operator',function(){
+        it('should find data as saved without errors', function(done) {
+            models.instance.Person.find({userID:{'$in':[1234,1235]}, age:32}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
                 done();
             });
         });
@@ -74,7 +94,7 @@ describe('Unit Tests', function(){
         });
     });
 
-    describe('#find',function(){
+    describe('#find after update',function(){
         it('should find data as updated without errors', function(done) {
             models.instance.Person.find({userID: 1234,age:32}, function(err, people){
                 if(err) throw err;
@@ -98,7 +118,7 @@ describe('Unit Tests', function(){
         });
     });
 
-    describe('#find',function(){
+    describe('#find after delete',function(){
         it('should find data as deleted', function(done) {
             models.instance.Person.find({userID: 1234}, function(err, people){
                 if(err) throw err;
