@@ -384,9 +384,11 @@ models.instance.Person.find(query, {raw:true, allow_filtering: true}, function(e
 Note that all query clauses must be Cassandra compliant. You cannot, for example, use $in operator for a key which is not the partition key. Querying in Cassandra is very basic but could be confusing at first. Take a look at this <a href="http://mechanics.flite.com/blog/2013/11/05/breaking-down-the-cql-where-clause/" target="_blank">post</a> and, obvsiouly, at the <a href="http://www.datastax.com/documentation/cql/3.1/cql/cql_using/about_cql_c.html" target="_blank">documentation</a>
 
 
-## Create / Update / Delete
+## Save / Update / Delete
 
-### Create
+### Save
+
+The save operation on a model instance will insert a new record with the attribute values mentioned when creating the model object. It will update the record if it already exists in the database. A record is updated or inserted based on the primary key definition. If the primary key values are same as an existing record, then the record will be updated and otherwise it will be inserted as new record. 
 
 ```js
 
@@ -396,6 +398,21 @@ alex.save(function(err){
     else console.log('Yuppiie!');
 });
 
+```
+
+You can use the find query to get an object and modify it and save it like the following:
+
+```js
+models.instance.Person.find({name: 'John'}, function(err, people){
+    if(err) throw err;
+    if(people.length > 0) {
+        people[0].age = 30;
+        people[0].save(function(err){
+            if(err) console.log(err);
+            else console.log('Yuppiie!');
+        });
+    }
+});
 ```
 
 The save function also takes optional parameters. By default cassandra will update the row if the primary key
@@ -425,7 +442,7 @@ alex.save({ttl: 86400}, function(err){
 
 ### Update
 
-The update function takes the following forms, (options are optional):
+Use the update function if your requirements are not satisfied with the `save()` function or you directly want to update records without reading them from the db. The update function takes the following forms, (options are optional):
 
 ```js
 
