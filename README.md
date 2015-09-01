@@ -74,8 +74,8 @@ otherwise it won't be treated as a model class.
 
 ```js
 
-var alex = new models.instance.Person({name: "John", surname: "Doe", age: 32});
-alex.save(function(err){
+var john = new models.instance.Person({name: "John", surname: "Doe", age: 32});
+john.save(function(err){
     if(err) console.log(err);
     else console.log('Yuppiie!');
 });
