@@ -59,6 +59,19 @@ describe('Unit Tests', function(){
         });
     });
 
+    describe('#findOne after save',function(){
+        it('should find a single data object without errors', function(done) {
+            models.instance.Person.findOne({userID:1234, age:32}, function(err, user){
+                if(err) throw err;
+                user.Name.should.equal('Mahafuzur');
+                user.info.hello.should.equal('world');
+                user.phones[1].should.equal('234567');
+                user.emails[1].should.equal('c@d.com');
+                done();
+            });
+        });
+    });
+
     describe('#find with $gt operator',function(){
         it('should find data as saved without errors', function(done) {
             models.instance.Person.find({userID:1234, age:{'$gt':31}}, function(err, people){

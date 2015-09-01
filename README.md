@@ -14,12 +14,12 @@ This module uses datastax <a href="https://github.com/datastax/nodejs-driver">ca
     $ npm install express-cassandra
 
 ## Usage
-    
+
 
 ```js
 var models = require('express-cassandra');
 
-//Tell express-cassandra to use the models-directory, and 
+//Tell express-cassandra to use the models-directory, and
 //use bind() to load the models using cassandra configurations.
 
 //If your keyspace doesn't exist it will be created automatically
@@ -56,13 +56,13 @@ models.setDirectory( __dirname + '/models').bind(
 
 ```js
 
-module.exports = { 
+module.exports = {
     fields:{
         name    : "text",
         surname : "text",
         age     : "int"
-    }, 
-    key:["name"] 
+    },
+    key:["name"]
 }
 
 ```
@@ -74,7 +74,7 @@ otherwise it won't be treated as a model class.
 
 ```js
 
-var alex = new models.instance.Person({name: "Alex", surname: "Rubiks", age: 32});
+var alex = new models.instance.Person({name: "John", surname: "Doe", age: 32});
 alex.save(function(err){
     if(err) console.log(err);
     else console.log('Yuppiie!');
@@ -86,7 +86,7 @@ alex.save(function(err){
 
 ```js
 
-models.instance.Person.find({name: 'jhon'}, function(err, john){
+models.instance.Person.findOne({name: 'John'}, function(err, john){
     if(err) throw err;
 
     //Note that returned variable john here is an instance of your model,
@@ -125,14 +125,14 @@ module.exports = {
 
 What does the above code means?
 - `fields` are the columns of your table. For each column name the value can be a string representing the type or an object containing more specific informations. i.e.
-    + ` "id"     : { "type": "uuid", "default": {"$db_function": "uuid()"} },` in this example id type is `uuid` and the default value is a cassandra function (so it will be executed from the database). 
+    + ` "id"     : { "type": "uuid", "default": {"$db_function": "uuid()"} },` in this example id type is `uuid` and the default value is a cassandra function (so it will be executed from the database).
     + `"name"   : { "type": "varchar", "default": "no name provided"},` in this case name is a varchar and, if no value will be provided, it will have a default value of `no name provided`. The same goes for `surname`.
     + `complete_name` the default values is calculated from others field. When the orm processes your model instances, the `complete_name` will be the result of the function you defined. In the function `this` is bound to the current model instance.
     + `age` no default is provided and we could write it just as `"age": "int"`.
     + `created`, like uuid(), will be evaluated from cassandra using the `now()` function.
 - `key`: here is where you define the key of your table. As you can imagine, the first value of the array is the `partition key` and the others are the `clustering keys`. The `partition key` can be an array defining a `compound key`. Read more about keys on the <a href="http://www.datastax.com/documentation/cql/3.1/cql/cql_using/use_compound_keys_t.html" target="_blank">documentation</a>
 - `indexes` are the index of your table. It's always an array of field names. You can read more on the <a href="http://www.datastax.com/documentation/cql/3.1/cql/ddl/ddl_primary_index_c.html" target="_blank">documentation</a>
-- `custom_index` provides the ability to define custom indexes with cassandra. Cassandra upto version 2.1.x supports only one custom index per table. 
+- `custom_index` provides the ability to define custom indexes with cassandra. Cassandra upto version 2.1.x supports only one custom index per table.
 
 When you instantiate a model, every field you defined in schema is automatically a property of your instances. So, you can write:
 
@@ -325,7 +325,16 @@ Ok, now you have a bunch of people on db. How do I retrieve them?
 
 models.instance.Person.find({name: 'John'}, function(err, people){
     if(err) throw err;
+    //people is an array of model instances containing the persons with name `John`
     console.log('Found ', people);
+});
+
+//If you specifically expect only a single object after find, you may do this
+models.instance.Person.findOne({name: 'John'}, function(err, john){
+    if(err) throw err;
+    //The variable `john` is a model instance containing the person named `John`
+    //`john` will be undefined if no person named `John` was found
+    console.log('Found ', john.name);
 });
 
 ```
@@ -357,16 +366,15 @@ models.instance.Person.find({name: 'John'}, { raw: true, select: ['name','age'] 
 ```js
 
 var query = {
-    name: 'John', // stays for name='john' 
+    name: 'John', // stays for name='john'
     age : { '$gt':10 }, // stays for age>10 You can also use $gte, $lt, $lte
     surname : { '$in': ['Doe','Smith'] }, //This is an IN clause
-    $orderby:{'$asc' :'age'} }, //Order results by age in ascending order. Also allowed $desc and complex order like $orderby:{'$asc' : ['k1','k2'] } }
+    $orderby:{'$asc' :'age'}, //Order results by age in ascending order. Also allowed $desc and complex order like $orderby:{'$asc' : ['k1','k2'] }
     $limit: 10 //limit result set
-
 }
 
 models.instance.Person.find(query, {raw: true}, function(err, people){
-    //people is an array of plain objects
+    //people is an array of plain objects satisfying the query conditions above
 });
 
 ```
@@ -388,12 +396,12 @@ Note that all query clauses must be Cassandra compliant. You cannot, for example
 
 ### Save
 
-The save operation on a model instance will insert a new record with the attribute values mentioned when creating the model object. It will update the record if it already exists in the database. A record is updated or inserted based on the primary key definition. If the primary key values are same as an existing record, then the record will be updated and otherwise it will be inserted as new record. 
+The save operation on a model instance will insert a new record with the attribute values mentioned when creating the model object. It will update the record if it already exists in the database. A record is updated or inserted based on the primary key definition. If the primary key values are same as an existing record, then the record will be updated and otherwise it will be inserted as new record.
 
 ```js
 
-var alex = new models.instance.Person({name: "Alex", surname: "Rubiks", age: 32});
-alex.save(function(err){
+var john = new models.instance.Person({name: 'John', surname: 'Doe', age: 32});
+john.save(function(err){
     if(err) console.log(err);
     else console.log('Yuppiie!');
 });
@@ -403,16 +411,18 @@ alex.save(function(err){
 You can use the find query to get an object and modify it and save it like the following:
 
 ```js
-models.instance.Person.find({name: 'John'}, function(err, people){
+
+models.instance.Person.findOne({name: 'John'}, function(err, john){
     if(err) throw err;
-    if(people.length > 0) {
-        people[0].age = 30;
-        people[0].save(function(err){
+    if(john){
+        john.age = 30;
+        john.save(function(err){
             if(err) console.log(err);
             else console.log('Yuppiie!');
         });
     }
 });
+
 ```
 
 The save function also takes optional parameters. By default cassandra will update the row if the primary key
@@ -420,7 +430,7 @@ already exists. If you want to avoid on duplicate key updates, you may set if_no
 
 ```js
 
-alex.save({if_not_exist: true}, function(err){
+john.save({if_not_exist: true}, function(err){
     if(err) console.log(err);
     else console.log('Yuppiie!');
 });
@@ -433,7 +443,7 @@ automatically after the time to live has expired.
 ```js
 
 //The row will be removed after 86400 seconds or one day
-alex.save({ttl: 86400}, function(err){
+john.save({ttl: 86400}, function(err){
     if(err) console.log(err);
     else console.log('Yuppiie!');
 });
