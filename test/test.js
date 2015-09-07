@@ -72,9 +72,9 @@ describe('Unit Tests', function(){
         });
     });
 
-    describe('#find with $gt operator',function(){
+    describe('#find with $gt and $lt operator',function(){
         it('should find data as saved without errors', function(done) {
-            models.instance.Person.find({userID:1234, age:{'$gt':31}}, function(err, people){
+            models.instance.Person.find({userID:1234, age:{'$gt':31,'$lt':35}}, function(err, people){
                 if(err) throw err;
                 people.length.should.equal(1);
                 done();
@@ -85,6 +85,16 @@ describe('Unit Tests', function(){
     describe('#find with $in operator',function(){
         it('should find data as saved without errors', function(done) {
             models.instance.Person.find({userID:{'$in':[1234,1235]}, age:32}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
+                done();
+            });
+        });
+    });
+
+    describe('#find with $token operator',function(){
+        it('should find data as saved without errors', function(done) {
+            models.instance.Person.find({userID:{'$token':{'$gt':1235,'$lte':1234}},$limit:1}, function(err, people){
                 if(err) throw err;
                 people.length.should.equal(1);
                 done();

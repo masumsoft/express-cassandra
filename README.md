@@ -367,7 +367,7 @@ models.instance.Person.find({name: 'John'}, { raw: true, select: ['name','age'] 
 
 var query = {
     name: 'John', // stays for name='john'
-    age : { '$gt':10 }, // stays for age>10 You can also use $gte, $lt, $lte
+    age : { '$gt':10, '$lte':20 }, // stays for age>10 and age<=20 You can also use $gt, $gte, $lt, $lte, $eq
     surname : { '$in': ['Doe','Smith'] }, //This is an IN clause
     $orderby:{'$asc' :'age'}, //Order results by age in ascending order. Also allowed $desc and complex order like $orderby:{'$asc' : ['k1','k2'] }
     $limit: 10 //limit result set
@@ -387,6 +387,31 @@ models.instance.Person.find(query, {raw:true, allow_filtering: true}, function(e
     //people is an array of plain objects
 });
 
+```
+
+You can also use the `token` comparison function while querying a result set using the $token operator. This is specially useful for <a href="http://docs.datastax.com/en/cql/3.1/cql/cql_using/paging_c.html">paging through unordered partitioner results</a>.
+
+```js
+//consider the following situation
+var query = {
+    $limit:10
+};
+models.instance.Person.find(query, function(err, people){
+    //people is an array of first 10 persons
+
+    //Say your PRIMARY_KEY column is `name` and the 10th person has the name 'John'
+    //Now to get the next 10 results, you may use the $token operator like the following:
+    var query = {
+        name:{
+            '$token':{'$gt':'John'}
+        },
+        $limit:10
+    };
+    //The above query translates to `Select * from person where token(name) > token('John') limit 10`
+    models.instance.Person.find(query, function(err, people){
+        //people is an array of objects containing the 11th - 20th person
+    });
+});
 ```
 
 Note that all query clauses must be Cassandra compliant. You cannot, for example, use $in operator for a key which is not the partition key. Querying in Cassandra is very basic but could be confusing at first. Take a look at this <a href="http://mechanics.flite.com/blog/2013/11/05/breaking-down-the-cql-where-clause/" target="_blank">post</a> and, obvsiouly, at the <a href="http://www.datastax.com/documentation/cql/3.1/cql/cql_using/about_cql_c.html" target="_blank">documentation</a>
