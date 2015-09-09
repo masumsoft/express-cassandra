@@ -102,6 +102,18 @@ describe('Unit Tests', function(){
         });
     });
 
+    describe('#find with raw driver',function(){
+        it('should not through any errors', function(done) {
+            models.instance.Person.get_cql_client(function(err, client){
+                if(err) throw err;
+                client.eachRow('Select * from person limit 10', [], { autoPage : true }, function(n, row) {}, function(err, result){
+                    if(err) throw err;
+                    done();
+                });
+            });
+        });
+    });
+
     describe('#update',function(){
         it('should update data on db without errors', function(done) {
             models.instance.Person.update({userID:1234, age:32}, {Name:1, info:{'new':'addition'}, phones:['56788'], emails:['c@d.com']}, function(err){
