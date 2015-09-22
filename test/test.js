@@ -1,6 +1,6 @@
 var models = require('../index');
 var chai = require('chai');
-chai.should();
+var should = chai.should();
 
 describe('Unit Tests', function(){
     describe('#modelsync',function(done){
@@ -46,7 +46,7 @@ describe('Unit Tests', function(){
     });
 
     describe('#find after save',function(){
-        it('should find data as saved without errors', function(done) {
+        it('should find data as model instances without errors', function(done) {
             models.instance.Person.find({userID:1234, age:32}, function(err, people){
                 if(err) throw err;
                 people.length.should.equal(1);
@@ -54,6 +54,22 @@ describe('Unit Tests', function(){
                 people[0].info.hello.should.equal('world');
                 people[0].phones[1].should.equal('234567');
                 people[0].emails[1].should.equal('c@d.com');
+                should.exist(people[0]._validators);
+                done();
+            });
+        });
+    });
+
+    describe('#find with raw set to true',function(){
+        it('should find raw data as saved without errors', function(done) {
+            models.instance.Person.find({userID:1234, age:32}, {raw: true}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
+                people[0].Name.should.equal('Mahafuzur');
+                people[0].info.hello.should.equal('world');
+                people[0].phones[1].should.equal('234567');
+                people[0].emails[1].should.equal('c@d.com');
+                should.not.exist(people[0]._validators);
                 done();
             });
         });

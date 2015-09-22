@@ -580,5 +580,10 @@ models.instance.Person.get_cql_client(function(err, client){
 
 ## Note
 
-All queries except schema definition related queries (i.e. create table etc.) are prepared by default. So you don't
-need to set `prepare=true`, the orm takes care of it automatically.
+All queries except schema definition related queries (i.e. create table etc.) are prepared by default. If you don't want to prepare queries, just set `prepare=false` in the options object.
+
+```
+models.instance.Person.find(query, {prepare: false}, function(err, people){
+    //people is an array of plain objects
+});
+```
