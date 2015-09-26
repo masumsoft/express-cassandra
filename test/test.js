@@ -52,6 +52,10 @@ describe('Unit Tests', function(){
                 people.length.should.equal(1);
                 people[0].Name.should.equal('Mahafuzur');
                 people[0].info.hello.should.equal('world');
+		// test virtual field
+                people[0].ageString.should.equal('32');
+                people[0].ageString = '50';
+                people[0].age.should.equal(50);
                 people[0].phones[1].should.equal('234567');
                 people[0].emails[1].should.equal('c@d.com');
                 should.exist(people[0]._validators);

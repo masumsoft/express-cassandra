@@ -10,6 +10,17 @@ module.exports = {
                 "validator": function(value){ return (value > 0);  }
             }
         },
+	"ageString": {
+            "type": "text",
+            "virtual" : {
+                get: function() {
+                    return this.age.toString();
+                },
+                set: function(value) {
+                    this.age = parseInt(value);
+                }
+            }
+        },
         "info": { "type": "map", typeDef:"<varchar,varchar>" },
         "phones": { "type": "list", typeDef:"<varchar>" },
         "emails": { "type": "set", typeDef:"<varchar>" },
