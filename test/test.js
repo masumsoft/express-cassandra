@@ -1,6 +1,7 @@
 var models = require('../index');
 var chai = require('chai');
 var should = chai.should();
+var expect = chai.expect;
 
 describe('Unit Tests', function(){
     describe('#modelsync',function(done){
@@ -30,7 +31,20 @@ describe('Unit Tests', function(){
 
     describe('#save',function(){
         it('should save data to without errors', function(done) {
-            var alex = new models.instance.Person({userID:1234, Name:"Mahafuzur", age:-32, info:{'hello':'world'}, phones:['123456','234567'], emails:['a@b.com','c@d.com']});
+            var alex = new models.instance.Person({
+                userID:1234,
+                Name:"Mahafuzur",
+                age:-32,
+                info:{'hello':'world'},
+                phones:['123456','234567'],
+                emails:['a@b.com','c@d.com'],
+                intMap: {'one':1, 'two':2, 'three':3},
+                stringMap: {'one':'1', 'two':'2', 'three':'3'},
+                intList: [1, 2, 3],
+                stringList: ['one', 'two', 'three'],
+                intSet: [1, 2, 3, 3],
+                stringSet: ['one', 'two', 'three', 'three']
+            });
             alex.save(function(err){
                 if(err) {
                     err.name.should.equal('apollo.model.save.invalidvalue');
@@ -52,12 +66,19 @@ describe('Unit Tests', function(){
                 people.length.should.equal(1);
                 people[0].Name.should.equal('Mahafuzur');
                 people[0].info.hello.should.equal('world');
-		// test virtual field
+                people[0].phones[1].should.equal('234567');
+                people[0].emails[1].should.equal('c@d.com');
+                // test virtual field
                 people[0].ageString.should.equal('32');
                 people[0].ageString = '50';
                 people[0].age.should.equal(50);
-                people[0].phones[1].should.equal('234567');
-                people[0].emails[1].should.equal('c@d.com');
+                // test composite types
+                people[0].intMap.should.deep.equal({"one": 1, "two": 2, "three": 3});
+                people[0].stringMap.should.deep.equal({"one": '1', "two": '2', "three": '3'});
+                expect(people[0].intList).to.have.members([1, 2, 3]);
+                expect(people[0].stringList).to.have.members(['one', 'two', 'three']);
+                expect(people[0].intSet).to.have.members([1, 2, 3]);
+                expect(people[0].stringSet).to.have.members(['one', 'two', 'three']);
                 should.exist(people[0]._validators);
                 done();
             });

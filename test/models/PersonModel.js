@@ -10,7 +10,7 @@ module.exports = {
                 "validator": function(value){ return (value > 0);  }
             }
         },
-	"ageString": {
+        "ageString": {
             "type": "text",
             "virtual" : {
                 get: function() {
@@ -21,6 +21,30 @@ module.exports = {
                 }
             }
         },
+        "intMap": {
+            type: "map",
+            typeDef: "<text, int>"
+        },
+        "stringMap": {
+            type: "map",
+            typeDef: "<text, text>"
+        },
+        "intList": {
+            type: "list",
+            typeDef: "<int>"
+        },
+        "stringList": {
+            type: "list",
+            typeDef: "<text>"
+        },
+        "intSet": {
+            type: "set",
+            typeDef: "<int>"
+        },
+        "stringSet": {
+            type: "set",
+            typeDef: "<text>"
+        },
         "info": { "type": "map", typeDef:"<varchar,varchar>" },
         "phones": { "type": "list", typeDef:"<varchar>" },
         "emails": { "type": "set", typeDef:"<varchar>" },
@@ -29,4 +53,3 @@ module.exports = {
     "key" : [["userID"],"age"],
     "indexes": ["Name"]
 }
-
