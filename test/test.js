@@ -35,6 +35,7 @@ describe('Unit Tests', function(){
                 userID:1234,
                 Name:"Mahafuzur",
                 age:-32,
+                uniId: models.uuid(),
                 info:{'hello':'world'},
                 phones:['123456','234567'],
                 emails:['a@b.com','c@d.com'],
@@ -68,6 +69,8 @@ describe('Unit Tests', function(){
                 people[0].info.hello.should.equal('world');
                 people[0].phones[1].should.equal('234567');
                 people[0].emails[1].should.equal('c@d.com');
+                expect(people[0].uniId.toString().length).to.be.equal(36);
+                expect(people[0].createdAt).to.exist;
                 // test virtual field
                 people[0].ageString.should.equal('32');
                 people[0].ageString = '50';
