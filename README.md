@@ -130,7 +130,7 @@ What does the above code means?
     + `complete_name` the default values is calculated from others field. When the orm processes your model instances, the `complete_name` will be the result of the function you defined. In the function `this` is bound to the current model instance.
     + `age` no default is provided and we could write it just as `"age": "int"`.
     + `created`, like uuid(), will be evaluated from cassandra using the `now()` function.
-- `key`: here is where you define the key of your table. As you can imagine, the first value of the array is the `partition key` and the others are the `clustering keys`. The `partition key` can be an array defining a `compound key`. Read more about keys on the <a href="http://www.datastax.com/documentation/cql/3.1/cql/cql_using/use_compound_keys_t.html" target="_blank">documentation</a>
+- `key`: here is where you define the key of your table. As you can imagine, the array defines a `compound primary key` and the first value of the array is the `partition key` and the others are the `clustering keys`. The `partition key` itself can be an array with multiple fields making it a `composite key`. Read more about compound keys on the <a href="http://docs.datastax.com/en/cql/3.1/cql/ddl/ddl_compound_keys_c.html" target="_blank">documentation</a>
 - `indexes` are the index of your table. It's always an array of field names. You can read more on the <a href="http://www.datastax.com/documentation/cql/3.1/cql/ddl/ddl_primary_index_c.html" target="_blank">documentation</a>
 - `custom_index` provides the ability to define custom indexes with cassandra. Cassandra upto version 2.1.x supports only one custom index per table.
 
@@ -163,6 +163,8 @@ Express cassandra exposes some node driver methods for convenience. To generate 
     returns a type 3 (random) uuid, suitable for Cassandra `uuid` fields, as a string
 *   `models.timeuuid()`  
     returns a type 1 (time-based) uuid, suitable for Cassandra `timeuuid` fields, as a string
+*   `models.consistencies`
+    this object contains all the available consistency enums defined by cassandra driver, so you can for example use models.consistencies.one, models.consistencies.quorum etc.
 
 
 ### Support for Composite Data Types
@@ -576,6 +578,16 @@ models.instance.Person.get_cql_client(function(err, client){
     client.eachRow('Select * from person limit 10', [], { autoPage : true }, function(n, row) {}, function(err, result){});
 });
 
+```
+
+## Closing connections to cassandra
+
+You can close all orm connections to cassandra by using the following function:
+
+```js
+models.close(function(err){
+    if(err) throw err;
+});
 ```
 
 ## Note

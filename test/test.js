@@ -239,4 +239,13 @@ describe('Unit Tests', function(){
             });
         });
     });
+
+    describe('#close cassandra connection',function(){
+        it('should close connection to cassandra without errors', function(done) {
+            models.close(function(err){
+                if(err) throw err;
+                done();
+            });
+        });
+    });
 });
