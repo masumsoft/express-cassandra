@@ -188,8 +188,41 @@ describe('Unit Tests', function(){
         });
     });
 
+    describe('#instance update after find',function(){
+        it('should find and update single data object without errors', function(done) {
+            models.instance.Person.findOne({userID:1234, age:32}, function(err, user){
+                if(err) throw err;
+                user.Name = "Updated Stupid";
+                user.save(function(err){
+                    if(err) throw err;
+                    models.instance.Person.findOne({userID:1234, age:32}, function(err, user_new){
+                        if(err) throw err;
+                        user_new.Name.should.equal('Updated Stupid');
+                        done();
+                    });
+                });
+            });
+        });
+    });
+
+    describe('#instance delete after find',function(){
+        it('should find and delete single data object without errors', function(done) {
+            models.instance.Person.findOne({userID:1234, age:32}, function(err, user){
+                if(err) throw err;
+                user.delete(function(err){
+                    if(err) throw err;
+                    models.instance.Person.findOne({userID:1234, age:32}, function(err, user_new){
+                        if(err) throw err;
+                        expect(user_new).to.not.exist;
+                        done();
+                    });
+                });
+            });
+        });
+    });
+
     describe('#delete',function(){
-        it('should delete data from db without errors', function(done) {
+        it('should cleanup the db without errors', function(done) {
             models.instance.Person.delete({userID:1234, age:32}, function(err){
                 if(err) throw err;
                 done();
@@ -198,7 +231,7 @@ describe('Unit Tests', function(){
     });
 
     describe('#find after delete',function(){
-        it('should find data as deleted', function(done) {
+        it('should find all data as deleted', function(done) {
             models.instance.Person.find({userID: 1234}, function(err, people){
                 if(err) throw err;
                 people.length.should.equal(0);
