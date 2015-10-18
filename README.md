@@ -164,8 +164,28 @@ Express cassandra exposes some node driver methods for convenience. To generate 
 *   `models.timeuuid()`  
     returns a type 1 (time-based) uuid, suitable for Cassandra `timeuuid` fields, as a string
 *   `models.consistencies`
-    this object contains all the available consistency enums defined by cassandra driver, so you can for example use models.consistencies.one, models.consistencies.quorum etc.
+    this object contains all the available consistency enums defined by node cassandra driver, so you can for example use models.consistencies.one, models.consistencies.quorum etc.
+*   `models.datatypes`
+    this object contains all the available datatypes defined by node cassandra driver, so you can for example use
+    models.datatypes.Long to deal with the cassandra bigint or counter field types.
 
+### Counter Column Operations
+
+Cassandra counter column increment and decrement operations are supported via the update operation. To increment/decrement a counter, you can use the following types of update operation:
+
+```js
+//Say your model name is StatsModel that has a user_id as the primary key and visit_count as a counter column.
+
+models.instance.Stats.update({user_id:1234}, {visit_count:2}, function(err){
+    //visit_count will be incremented by 2
+});
+
+models.instance.Stats.update({user_id:1234}, {visit_count:-1}, function(err){
+    //visit_count will be decremented by 1
+});
+```
+
+Please note that counter columns has special limitations, to know more about the counter column usage, see the <a href="http://docs.datastax.com/en/cql/3.1/cql/cql_using/use_counter_t.html">cassandra docs</a>.
 
 ### Support for Composite Data Types
 

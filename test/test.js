@@ -240,6 +240,29 @@ describe('Unit Tests', function(){
         });
     });
 
+    describe('#update counter column',function(){
+        it('should increment the counter to 2', function(done) {
+            models.instance.Counter.update({user_id:1234}, {visit_count:2}, function(err){
+                if(err) throw err;
+                models.instance.Counter.findOne({user_id:1234}, function(err, stats){
+                    if(err) throw err;
+                    stats.visit_count.toString().should.equal('2');
+                    done();
+                });
+            });
+        });
+        it('should decrement the counter to 0', function(done) {
+            models.instance.Counter.update({user_id:1234}, {visit_count:-2}, function(err){
+                if(err) throw err;
+                models.instance.Counter.findOne({user_id:1234}, function(err, stats){
+                    if(err) throw err;
+                    stats.visit_count.toString().should.equal('0');
+                    done();
+                });
+            });
+        });
+    });
+
     describe('#close cassandra connection',function(){
         it('should close connection to cassandra without errors', function(done) {
             models.close(function(err){
