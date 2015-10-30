@@ -2,6 +2,7 @@ module.exports = {
     "fields": {
         "userID": { "type": "int" },
         "uniId": {"type": "uuid", "default":{"$db_function": "uuid()"}},
+        "timeId": {"type": "timeuuid"},
         "Name": { "type": "varchar", "default": "no name provided"},
         "surname": { "type": "varchar", "default": "no surname provided"},
         "completeName": { "type": "varchar", "default": function(){ return this.Name + ' ' + this.surname;}},

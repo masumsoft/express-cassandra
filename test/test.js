@@ -36,6 +36,7 @@ describe('Unit Tests', function(){
                 Name:"Mahafuzur",
                 age:-32,
                 uniId: models.uuid(),
+                timeId: models.timeuuid(),
                 info:{'hello':'world'},
                 phones:['123456','234567'],
                 emails:['a@b.com','c@d.com'],
@@ -70,6 +71,7 @@ describe('Unit Tests', function(){
                 people[0].phones[1].should.equal('234567');
                 people[0].emails[1].should.equal('c@d.com');
                 expect(people[0].uniId.toString().length).to.be.equal(36);
+                expect(people[0].timeId.toString().length).to.be.equal(36);
                 expect(people[0].createdAt).to.exist;
                 // test virtual field
                 people[0].ageString.should.equal('32');
@@ -163,7 +165,7 @@ describe('Unit Tests', function(){
             models.instance.Person.update({userID:1234, age:32}, {Name:1, info:{'new':'addition'}, phones:['56788'], emails:['c@d.com']}, function(err){
                 if(err) {
                     err.name.should.equal('apollo.model.update.invalidvalue');
-                    models.instance.Person.update({userID:1234, age:32}, {Name:"Stupid", info:{'new':'addition'}, phones:['56788'], emails:['c@d.com']}, function(err){
+                    models.instance.Person.update({userID:1234, age:32}, {Name:"Stupid", timeId:models.timeuuid(), info:{'new':'addition'}, phones:['56788'], emails:['c@d.com']}, function(err){
                         if(err) throw err;
                         done();
                     });
@@ -183,6 +185,7 @@ describe('Unit Tests', function(){
                 people[0].phones[0].should.equal('56788');
                 people[0].emails[0].should.equal('c@d.com');
                 people[0].emails.length.should.equal(1);
+                expect(people[0].timeId.toString().length).to.be.equal(36);
                 done();
             });
         });
@@ -193,11 +196,13 @@ describe('Unit Tests', function(){
             models.instance.Person.findOne({userID:1234, age:32}, function(err, user){
                 if(err) throw err;
                 user.Name = "Updated Stupid";
+                user.timeId = models.timeuuid();
                 user.save(function(err){
                     if(err) throw err;
                     models.instance.Person.findOne({userID:1234, age:32}, function(err, user_new){
                         if(err) throw err;
                         user_new.Name.should.equal('Updated Stupid');
+                        expect(user_new.timeId.toString().length).to.be.equal(36);
                         done();
                     });
                 });
