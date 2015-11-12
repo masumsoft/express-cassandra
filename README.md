@@ -161,6 +161,8 @@ Express cassandra exposes some node driver methods for convenience. To generate 
 
 *   `models.uuid()`  
     returns a type 3 (random) uuid, suitable for Cassandra `uuid` fields, as a string
+*   `models.uuidFromString(str)`  
+    returns a type 3 uuid from input string, suitable for Cassandra `uuid` fields
 *   `models.timeuuid()`  
     returns a type 1 (time-based) uuid, suitable for Cassandra `timeuuid` fields, as a string
 *   `models.consistencies`
