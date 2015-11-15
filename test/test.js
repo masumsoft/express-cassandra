@@ -2,10 +2,13 @@ var models = require('../index');
 var chai = require('chai');
 var should = chai.should();
 var expect = chai.expect;
+var current_time = Date.now();
 
 describe('Unit Tests', function(){
     describe('#modelsync',function(done){
         it('should connect and sync with db without errors', function(done) {
+            this.timeout(5000);
+            this.slow(1000);
             models.setDirectory( __dirname + '/models').bind(
             {
                 clientOptions: {
@@ -31,6 +34,9 @@ describe('Unit Tests', function(){
 
     describe('#save',function(){
         it('should save data to without errors', function(done) {
+            var revtimeMap = {};
+            revtimeMap[current_time] = 'one';
+            revtimeMap['2014-10-2 12:00'] = 'two';
             var alex = new models.instance.Person({
                 userID:1234,
                 Name:"Mahafuzur",
@@ -40,10 +46,14 @@ describe('Unit Tests', function(){
                 info:{'hello':'world'},
                 phones:['123456','234567'],
                 emails:['a@b.com','c@d.com'],
+                timeMap: {'one':current_time, 'two':'2014-10-2 12:00'},
+                revtimeMap: revtimeMap,
                 intMap: {'one':1, 'two':2, 'three':3},
                 stringMap: {'one':'1', 'two':'2', 'three':'3'},
+                timeList: [current_time, '2014-10-2 12:00'],
                 intList: [1, 2, 3],
                 stringList: ['one', 'two', 'three'],
+                timeSet: [current_time],
                 intSet: [1, 2, 3, 3],
                 stringSet: ['one', 'two', 'three', 'three']
             });
@@ -78,6 +88,10 @@ describe('Unit Tests', function(){
                 people[0].ageString = '50';
                 people[0].age.should.equal(50);
                 // test composite types
+                people[0].timeMap.one.should.deep.equal(new Date(current_time));
+                expect(people[0].revtimeMap[new Date(current_time).toString()]).to.equal('one');
+                people[0].timeList[0].should.deep.equal(new Date(current_time));
+                people[0].timeSet.should.have.deep.members([new Date(current_time)]);
                 people[0].intMap.should.deep.equal({"one": 1, "two": 2, "three": 3});
                 people[0].stringMap.should.deep.equal({"one": '1', "two": '2', "three": '3'});
                 expect(people[0].intList).to.have.members([1, 2, 3]);
@@ -197,11 +211,13 @@ describe('Unit Tests', function(){
                 if(err) throw err;
                 user.Name = "Updated Stupid";
                 user.timeId = models.timeuuid();
+                user.timeMap['three'] = current_time;
                 user.save(function(err){
                     if(err) throw err;
                     models.instance.Person.findOne({userID:1234, age:32}, function(err, user_new){
                         if(err) throw err;
                         user_new.Name.should.equal('Updated Stupid');
+                        user_new.timeMap.three.should.deep.equal(new Date(current_time));
                         expect(user_new.timeId.toString().length).to.be.equal(36);
                         done();
                     });
@@ -262,6 +278,30 @@ describe('Unit Tests', function(){
                 models.instance.Counter.findOne({user_id:1234}, function(err, stats){
                     if(err) throw err;
                     stats.visit_count.toString().should.equal('0');
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('#batch queries',function(){
+        it('should insert data properly', function(done) {
+            var queries = [
+                {
+                    query: "INSERT INTO event (email, id, body) VALUES (?, ?, ?)",
+                    params: ['hello1@h.com', models.timeuuid(), 'hello1']
+                },
+                {
+                    query: "INSERT INTO event (email, id, body) VALUES (?, ?, ?)",
+                    params: ['hello2@h.com', models.timeuuid(), 'hello2']
+                }
+            ];
+
+            models.instance.Event.get_cql_client(function(err, client){
+                client.batch(queries, { prepare: true }, function(err) {
+                    if(err){
+                        throw err;
+                    }
                     done();
                 });
             });

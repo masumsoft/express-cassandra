@@ -23,6 +23,14 @@ module.exports = {
                 }
             }
         },
+        "timeMap": {
+            type: "map",
+            typeDef: "<text, timestamp>"
+        },
+        "revtimeMap": {
+            type: "map",
+            typeDef: "<timestamp, text>"
+        },
         "intMap": {
             type: "map",
             typeDef: "<text, int>"
@@ -31,6 +39,10 @@ module.exports = {
             type: "map",
             typeDef: "<text, text>"
         },
+        "timeList": {
+            type: "list",
+            typeDef: "<timestamp>"
+        },
         "intList": {
             type: "list",
             typeDef: "<int>"
@@ -38,6 +50,10 @@ module.exports = {
         "stringList": {
             type: "list",
             typeDef: "<text>"
+        },
+        "timeSet": {
+            type: "set",
+            typeDef: "<timestamp>"
         },
         "intSet": {
             type: "set",
