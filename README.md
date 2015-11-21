@@ -570,7 +570,7 @@ models.instance.Person.execute_query(query, params, function(err, people){
 
 ## Batching ORM Operations
 
-You can batch any number of save, update and delete operations using the `models.doBatch` function. To use those functions a a batch operation, you need to tell each of the save/update/delete functions that you want to get the final built query from the orm instead of executing it immediately. You can do that by adding a `return_query` parameter in the options object of the corresponding function and build an array of batch operations like the following:
+You can batch any number of save, update and delete operations using the `models.doBatch` function. To use more than one of those functions as a combined batch operation, you need to tell each of the save/update/delete functions, that you want to get the final built query from the orm instead of executing it immediately. You can do that by adding a `return_query` parameter in the options object of the corresponding function and build an array of operations to execute atomically like the following:
 
 ```js
 var queries = [];
