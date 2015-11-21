@@ -285,7 +285,7 @@ describe('Unit Tests', function(){
         });
     });
 
-    describe('#batch queries',function(){
+    describe('#raw batch queries',function(){
         it('should insert data properly', function(done) {
             var queries = [
                 {
@@ -294,7 +294,7 @@ describe('Unit Tests', function(){
                 },
                 {
                     query: "INSERT INTO event (email, id, body) VALUES (?, ?, ?)",
-                    params: ['hello2@h.com', models.timeuuid(), 'hello2']
+                    params: ['hello2@h.com', event_id, 'hello2']
                 }
             ];
 
@@ -309,13 +309,56 @@ describe('Unit Tests', function(){
         });
     });
 
-    describe('#find after batch events',function(){
+    describe('#find after raw batch events',function(){
         it('should find the event with timeuuid in query', function(done) {
             models.instance.Event.findOne({email: 'hello1@h.com', id: event_id}, function(err, event){
                 if(err) throw err;
                 models.instance.Event.findOne({email: 'hello1@h.com', id: event.id}, function(err, event){
                     if(err) throw err;
                     event.body.should.equal('hello1');
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('#orm batch queries',function(){
+        it('should save, update and delete data properly', function(done) {
+            var queries = [];
+
+            var event = new models.instance.Event({
+                email: 'hello3@h.com',
+                id: event_id,
+                body: 'hello3'
+            });
+
+            queries.push(event.save({return_query: true}));
+            queries.push(models.instance.Event.update({email: 'hello1@h.com', id: event_id}, {body:'hello1 updated'}, {return_query: true}));
+            queries.push(models.instance.Event.delete({email: 'hello2@h.com', id: event_id}, {return_query: true}));
+
+            models.doBatch(queries, function(err){
+                if(err) throw err;
+                done();
+            });
+        });
+    });
+
+    describe('#find after orm batch events',function(){
+        it('should find updated events', function(done) {
+            models.instance.Event.find({'$limit':10}, function(err, events){
+                if(err) throw err;
+                events.length.should.equal(2);
+                events[0].body.should.equal('hello1 updated');
+                events[1].body.should.equal('hello3');
+
+                var queries = [];
+
+                for(var i=0;i<events.length;i++) {
+                    queries.push(events[i].delete({return_query: true}));
+                }
+
+                models.doBatch(queries, function(err){
+                    if(err) throw err;
                     done();
                 });
             });
