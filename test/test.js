@@ -3,6 +3,7 @@ var chai = require('chai');
 var should = chai.should();
 var expect = chai.expect;
 var current_time = Date.now();
+var event_id = models.timeuuid();
 
 describe('Unit Tests', function(){
     describe('#modelsync',function(done){
@@ -289,7 +290,7 @@ describe('Unit Tests', function(){
             var queries = [
                 {
                     query: "INSERT INTO event (email, id, body) VALUES (?, ?, ?)",
-                    params: ['hello1@h.com', models.timeuuid(), 'hello1']
+                    params: ['hello1@h.com', event_id, 'hello1']
                 },
                 {
                     query: "INSERT INTO event (email, id, body) VALUES (?, ?, ?)",
@@ -302,6 +303,19 @@ describe('Unit Tests', function(){
                     if(err){
                         throw err;
                     }
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('#find after batch events',function(){
+        it('should find the event with timeuuid in query', function(done) {
+            models.instance.Event.findOne({email: 'hello1@h.com', id: event_id}, function(err, event){
+                if(err) throw err;
+                models.instance.Event.findOne({email: 'hello1@h.com', id: event.id}, function(err, event){
+                    if(err) throw err;
+                    event.body.should.equal('hello1');
                     done();
                 });
             });
