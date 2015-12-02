@@ -273,7 +273,7 @@ describe('Unit Tests', function(){
                 });
             });
         });
-        it('should keep the counter same', function(done) {
+        it('should keep the counter unchanged', function(done) {
             models.instance.Counter.update({user_id:1234}, {visit_count:0}, function(err){
                 if(err) throw err;
                 models.instance.Counter.findOne({user_id:1234}, function(err, stats){
