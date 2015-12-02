@@ -303,6 +303,16 @@ describe('Unit Tests', function(){
                 });
             });
         });
+        it('should decrement the counter visitCount to 0', function(done) {
+            models.instance.Counter.update({user_id:1234}, {visitCount:-2}, function(err){
+                if(err) throw err;
+                models.instance.Counter.findOne({user_id:1234}, function(err, stats){
+                    if(err) throw err;
+                    stats.visitCount.toString().should.equal('0');
+                    done();
+                });
+            });
+        });
     });
 
     describe('#raw batch queries',function(){
