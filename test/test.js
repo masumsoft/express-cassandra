@@ -273,12 +273,32 @@ describe('Unit Tests', function(){
                 });
             });
         });
+        it('should keep the counter same', function(done) {
+            models.instance.Counter.update({user_id:1234}, {visit_count:0}, function(err){
+                if(err) throw err;
+                models.instance.Counter.findOne({user_id:1234}, function(err, stats){
+                    if(err) throw err;
+                    stats.visit_count.toString().should.equal('2');
+                    done();
+                });
+            });
+        });
         it('should decrement the counter to 0', function(done) {
             models.instance.Counter.update({user_id:1234}, {visit_count:-2}, function(err){
                 if(err) throw err;
                 models.instance.Counter.findOne({user_id:1234}, function(err, stats){
                     if(err) throw err;
                     stats.visit_count.toString().should.equal('0');
+                    done();
+                });
+            });
+        });
+        it('should increment the counter visitCount to 2', function(done) {
+            models.instance.Counter.update({user_id:1234}, {visitCount:2}, function(err){
+                if(err) throw err;
+                models.instance.Counter.findOne({user_id:1234}, function(err, stats){
+                    if(err) throw err;
+                    stats.visitCount.toString().should.equal('2');
                     done();
                 });
             });
