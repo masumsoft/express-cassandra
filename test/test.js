@@ -42,7 +42,6 @@ describe('Unit Tests', function(){
                 userID:1234,
                 Name:"Mahafuzur",
                 age:-32,
-                uniId: models.uuid(),
                 timeId: models.timeuuid(),
                 info:{'hello':'world'},
                 phones:['123456','234567'],
@@ -78,6 +77,8 @@ describe('Unit Tests', function(){
                 if(err) throw err;
                 people.length.should.equal(1);
                 people[0].Name.should.equal('Mahafuzur');
+                people[0].surname.should.equal('no surname provided');
+                people[0].completeName.should.equal('Mahafuzur');
                 people[0].info.hello.should.equal('world');
                 people[0].phones[1].should.equal('234567');
                 people[0].emails[1].should.equal('c@d.com');
@@ -100,6 +101,10 @@ describe('Unit Tests', function(){
                 expect(people[0].intSet).to.have.members([1, 2, 3]);
                 expect(people[0].stringSet).to.have.members(['one', 'two', 'three']);
                 should.exist(people[0]._validators);
+                //test composite defaults
+                people[0].intMapDefault.should.deep.equal({"one": 1, "two": 2});
+                expect(people[0].stringListDefault).to.have.members(['one', 'two']);
+                expect(people[0].intSetDefault).to.have.members([1, 2]);
                 done();
             });
         });

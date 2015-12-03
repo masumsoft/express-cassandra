@@ -5,7 +5,7 @@ module.exports = {
         "timeId": {"type": "timeuuid"},
         "Name": { "type": "varchar", "default": "no name provided"},
         "surname": { "type": "varchar", "default": "no surname provided"},
-        "completeName": { "type": "varchar", "default": function(){ return this.Name + ' ' + this.surname;}},
+        "completeName": { "type": "varchar", "default": function(){return this.Name + (this.surname ? (' ' + this.surname) : '');}},
         "age": {
             "type": "int",
             "rule" : {
@@ -35,6 +35,14 @@ module.exports = {
             type: "map",
             typeDef: "<text, int>"
         },
+        "intMapDefault": {
+            type: "map",
+            typeDef: "<text, int>",
+            default: {
+                'one': 1,
+                'two': 2
+            }
+        },
         "stringMap": {
             type: "map",
             typeDef: "<text, text>"
@@ -51,6 +59,11 @@ module.exports = {
             type: "list",
             typeDef: "<text>"
         },
+        "stringListDefault": {
+            type: "list",
+            typeDef: "<text>",
+            default: ['one','two']
+        },
         "timeSet": {
             type: "set",
             typeDef: "<timestamp>"
@@ -58,6 +71,11 @@ module.exports = {
         "intSet": {
             type: "set",
             typeDef: "<int>"
+        },
+        "intSetDefault": {
+            type: "set",
+            typeDef: "<int>",
+            default: [1,2]
         },
         "stringSet": {
             type: "set",
