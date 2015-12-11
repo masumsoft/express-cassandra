@@ -29,6 +29,10 @@ var models = require('express-cassandra');
 //the corresponding cassandra table will be dropped and recreated with
 //the new schema. Setting this to false will send an error message
 //in callback instead for any model attribute changes.
+//
+//If dontCreateKeyspace=true, then it won't be checked whether the
+//specified keyspace exists and, if not, it won't get created
+// automatically.
 models.setDirectory( __dirname + '/models').bind(
     {
         clientOptions: {
@@ -41,7 +45,8 @@ models.setDirectory( __dirname + '/models').bind(
                 class: 'SimpleStrategy',
                 replication_factor: 1
             },
-            dropTableOnSchemaChange: false
+            dropTableOnSchemaChange: false,
+            dontCreateKeyspace: false
         }
     },
     function(err) {
@@ -159,11 +164,11 @@ john.delete(function(err){
 
 Express cassandra exposes some node driver methods for convenience. To generate uuids e.g. in field defaults:
 
-*   `models.uuid()`  
+*   `models.uuid()`
     returns a type 3 (random) uuid, suitable for Cassandra `uuid` fields, as a string
-*   `models.uuidFromString(str)`  
+*   `models.uuidFromString(str)`
     returns a type 3 uuid from input string, suitable for Cassandra `uuid` fields
-*   `models.timeuuid()`  
+*   `models.timeuuid()`
     returns a type 1 (time-based) uuid, suitable for Cassandra `timeuuid` fields, as a string
 *   `models.consistencies`
     this object contains all the available consistency enums defined by node cassandra driver, so you can for example use models.consistencies.one, models.consistencies.quorum etc.
