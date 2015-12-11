@@ -37,6 +37,7 @@ models.setDirectory( __dirname + '/models').bind(
     {
         clientOptions: {
             contactPoints: ['127.0.0.1'],
+            protocolOptions: { port: 9042 },
             keyspace: 'mykeyspace',
             queryOptions: {consistency: models.consistencies.one}
         },
