@@ -4,7 +4,7 @@
   "dependencies": {
     "async": "^1.0.0",
     "check-types": "^1.4.0",
-    "cassandra-driver": "~2.1.0",
+    "cassandra-driver": "~2.2.2",
     "lodash": "^3.9.3"
   },
   "devDependencies": {
