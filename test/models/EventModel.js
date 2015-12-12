@@ -4,6 +4,6 @@ module.exports = {
         "id" : { "type": "timeuuid"},
         "body" : {"type": "text"}
     },
-    "key" : [["email"],"id"]
+    "key" : [["email"],"id"],
+    "clustering_order": {id: "DESC"}
 };
-

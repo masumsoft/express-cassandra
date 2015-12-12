@@ -116,6 +116,7 @@ module.exports = {
         "created"     : {"type": "timestamp", "default" : {"$db_function": "dateOf(now())"} }
     },
     "key" : [["id"],"created"],
+    "clustering_order": {"created": "DESC"},
     "indexes": ["name"],
     "custom_index": {
         on: '...',
@@ -137,6 +138,7 @@ What does the above code means?
     + `age` no default is provided and we could write it just as `"age": "int"`.
     + `created`, like uuid(), will be evaluated from cassandra using the `now()` function.
 - `key`: here is where you define the key of your table. As you can imagine, the array defines a `compound primary key` and the first value of the array is the `partition key` and the others are the `clustering keys`. The `partition key` itself can be an array with multiple fields making it a `composite key`. Read more about compound keys on the <a href="http://docs.datastax.com/en/cql/3.1/cql/ddl/ddl_compound_keys_c.html" target="_blank">documentation</a>
+- `clustering_order`: here you can define the clustering order of the clustering keys. If order is not defined, default value of ASC (ascending) is used.
 - `indexes` are the index of your table. It's always an array of field names. You can read more on the <a href="http://www.datastax.com/documentation/cql/3.1/cql/ddl/ddl_primary_index_c.html" target="_blank">documentation</a>
 - `custom_index` provides the ability to define custom indexes with cassandra. Cassandra upto version 2.1.x supports only one custom index per table.
 
