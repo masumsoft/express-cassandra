@@ -171,8 +171,10 @@ Express cassandra exposes some node driver methods for convenience. To generate 
     returns a type 3 (random) uuid, suitable for Cassandra `uuid` fields, as a string
 *   `models.uuidFromString(str)`
     returns a type 3 uuid from input string, suitable for Cassandra `uuid` fields
-*   `models.timeuuid()`
-    returns a type 1 (time-based) uuid, suitable for Cassandra `timeuuid` fields, as a string
+*   `models.timeuuid() / .maxTimeuuid() / .minTimeuuid()
+    returns a type 1 (time-based) uuid, suitable for Cassandra `timeuuid` fields, as a string. From the [Datastax documentation](https://docs.datastax.com/en/cql/3.0/cql/cql_reference/timeuuid_functions_r.html):
+    > The min/maxTimeuuid example selects all rows where the timeuuid column, t, is strictly later than 2013-01-01 00:05+0000 but strictly earlier than 2013-02-02 10:00+0000. The t >= maxTimeuuid('2013-01-01 00:05+0000') does not select a timeuuid generated exactly at 2013-01-01 00:05+0000 and is essentially equivalent to t > maxTimeuuid('2013-01-01 00:05+0000').
+    > The values returned by minTimeuuid and maxTimeuuid functions are not true UUIDs in that the values do not conform to the Time-Based UUID generation process specified by the RFC 4122. The results of these functions are deterministic, unlike the now function.
 *   `models.consistencies`
     this object contains all the available consistency enums defined by node cassandra driver, so you can for example use models.consistencies.one, models.consistencies.quorum etc.
 *   `models.datatypes`
