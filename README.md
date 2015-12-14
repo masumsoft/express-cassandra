@@ -397,6 +397,29 @@ models.instance.Person.find({name: 'John'}, { raw: true, select: ['name','age'] 
 
 ```
 
+Also, `DISTINCT` selects are possible:
+
+```js
+
+models.instance.Person.find({}, { select: ['name','age'], distinct: true }, function(err, people){
+    //people is a distinct array of plain objects with only name and age.
+});
+
+```
+
+**Remember** that your select needs to include all the partition key columns defined for your table!
+
+If your table structure looks like this:
+
+```sql
+CREATE TABLE IF NOT EXISTS mykeyspace.mytable (
+    PRIMARY KEY(("columnOne", "columnTwo", "columnThree"), "columnFour")
+) WITH CLUSTERING ORDER BY ("columnFour" DESC);
+```
+
+Then your `select`-array has to look like this: `select: ['columnOne', 'columnTwo', 'columnThree']`.
+
+
 ### Let's see a complex query
 
 ```js
