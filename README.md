@@ -29,10 +29,15 @@ var models = require('express-cassandra');
 //the corresponding cassandra table will be dropped and recreated with
 //the new schema. Setting this to false will send an error message
 //in callback instead for any model attribute changes.
+//
+//If dontCreateKeyspace=true, then it won't be checked whether the
+//specified keyspace exists and, if not, it won't get created
+// automatically.
 models.setDirectory( __dirname + '/models').bind(
     {
         clientOptions: {
             contactPoints: ['127.0.0.1'],
+            protocolOptions: { port: 9042 },
             keyspace: 'mykeyspace',
             queryOptions: {consistency: models.consistencies.one}
         },
@@ -41,7 +46,8 @@ models.setDirectory( __dirname + '/models').bind(
                 class: 'SimpleStrategy',
                 replication_factor: 1
             },
-            dropTableOnSchemaChange: false
+            dropTableOnSchemaChange: false,
+            dontCreateKeyspace: false
         }
     },
     function(err) {
@@ -161,12 +167,16 @@ john.delete(function(err){
 
 Express cassandra exposes some node driver methods for convenience. To generate uuids e.g. in field defaults:
 
-*   `models.uuid()`  
+*   `models.uuid()`
     returns a type 3 (random) uuid, suitable for Cassandra `uuid` fields, as a string
-*   `models.uuidFromString(str)`  
+*   `models.uuidFromString(str)`
     returns a type 3 uuid from input string, suitable for Cassandra `uuid` fields
-*   `models.timeuuid()`  
-    returns a type 1 (time-based) uuid, suitable for Cassandra `timeuuid` fields, as a string
+*   `models.timeuuid() / .maxTimeuuid() / .minTimeuuid()`
+    returns a type 1 (time-based) uuid, suitable for Cassandra `timeuuid` fields, as a string. From the [Datastax documentation](https://docs.datastax.com/en/cql/3.0/cql/cql_reference/timeuuid_functions_r.html):
+
+    > The min/maxTimeuuid example selects all rows where the timeuuid column, t, is strictly later than 2013-01-01 00:05+0000 but strictly earlier than 2013-02-02 10:00+0000. The t >= maxTimeuuid('2013-01-01 00:05+0000') does not select a timeuuid generated exactly at 2013-01-01 00:05+0000 and is essentially equivalent to t > maxTimeuuid('2013-01-01 00:05+0000').
+
+    > The values returned by minTimeuuid and maxTimeuuid functions are not true UUIDs in that the values do not conform to the Time-Based UUID generation process specified by the RFC 4122. The results of these functions are deterministic, unlike the now function.
 *   `models.consistencies`
     this object contains all the available consistency enums defined by node cassandra driver, so you can for example use models.consistencies.one, models.consistencies.quorum etc.
 *   `models.datatypes`
@@ -386,6 +396,29 @@ models.instance.Person.find({name: 'John'}, { raw: true, select: ['name','age'] 
 });
 
 ```
+
+Also, `DISTINCT` selects are possible:
+
+```js
+
+models.instance.Person.find({}, { select: ['name','age'], distinct: true }, function(err, people){
+    //people is a distinct array of plain objects with only name and age.
+});
+
+```
+
+**Remember** that your select needs to include all the partition key columns defined for your table!
+
+If your table structure looks like this:
+
+```sql
+CREATE TABLE IF NOT EXISTS mykeyspace.mytable (
+    PRIMARY KEY(("columnOne", "columnTwo", "columnThree"), "columnFour")
+) WITH CLUSTERING ORDER BY ("columnFour" DESC);
+```
+
+Then your `select`-array has to look like this: `select: ['columnOne', 'columnTwo', 'columnThree']`.
+
 
 ### Let's see a complex query
 
