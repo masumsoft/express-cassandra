@@ -378,6 +378,16 @@ describe('Unit Tests', function(){
         });
     });
 
+    describe('#find with distinct set to true',function(){
+        it('should find distinct data as saved without errors', function(done) {
+            models.instance.Event.find({}, {select: ['email'], distinct: true}, function(err, event){
+                if(err) throw err;
+                event.length.should.equal(2);
+                done();
+            });
+        });
+    });
+
     describe('#find after orm batch events',function(){
         it('should find updated events', function(done) {
             models.instance.Event.find({'$limit':10}, function(err, events){
