@@ -6,12 +6,20 @@ express-cassandra
 
 No more hassling with raw cql queries from your nodejs web frameworks. express-cassandra automatically loads your models and provides you with object oriented mapping to your cassandra tables like a standard ORM.
 
-This module uses datastax <a href="https://github.com/datastax/nodejs-driver">cassandra-driver</a> for node and many of the orm features are wrapper over a modified version of <a href="https://github.com/3logic/apollo-cassandra">apollo-cassandra</a> module. The modifications made to the orm library was necessary to support missing features in the orm and to make it compatible with requirements of this module.
+This module uses datastax <a href="https://github.com/datastax/nodejs-driver">cassandra-driver</a> for node and many of the orm features are wrapper over a largely modified version of <a href="https://github.com/3logic/apollo-cassandra">apollo-cassandra</a> module. The modifications made to the orm library was necessary to support missing features in the orm, keep it updated with the latest cassandra releases and to make it compatible with requirements of this module.
 
 
 ## Installation
 
-    $ npm install express-cassandra
+For cassandra version 3.x
+
+    npm install express-cassandra
+
+For older cassandra 2.x
+
+    npm install express-cassandra@0.5.4
+
+Please note that if you use the legacy cassandra 2.x compliant version then please use the corresponding README.md file for that version. The following documentation is for version 3.x only. The materialized view support and several other part of the documentation is strictly applicable for cassandra 3.x and will not work in earlier versions of cassandra.
 
 ## Usage
 
@@ -30,7 +38,7 @@ var models = require('express-cassandra');
 //the new schema. Setting this to false will send an error message
 //in callback instead for any model attribute changes.
 //
-//If dontCreateKeyspace=true, then it won't be checked whether the
+//If createKeyspace=false, then it won't be checked whether the
 //specified keyspace exists and, if not, it won't get created
 // automatically.
 models.setDirectory( __dirname + '/models').bind(
@@ -47,7 +55,7 @@ models.setDirectory( __dirname + '/models').bind(
                 replication_factor: 1
             },
             dropTableOnSchemaChange: false,
-            dontCreateKeyspace: false
+            createKeyspace: true
         }
     },
     function(err) {
@@ -102,23 +110,46 @@ models.instance.Person.findOne({name: 'John'}, function(err, john){
 
 ```
 
-## Model Schema in detail
+## Model Schema in detail by example
 
 ```js
 
 module.exports = {
-    "fields": {
-        "id"     : { "type": "uuid", "default": {"$db_function": "uuid()"} },
-        "name"   : { "type": "varchar", "default": "no name provided"},
-        "surname"   : { "type": "varchar", "default": "no surname provided"},
-        "complete_name" : { "type": "varchar", "default": function(){ return this.name + ' ' + this.surname;}},
-        "age"    :  { "type": "int" },
-        "created"     : {"type": "timestamp", "default" : {"$db_function": "dateOf(now())"} }
+    fields: {
+        id: {
+            type: "uuid",
+            default: {"$db_function": "uuid()"}
+        },
+        name: { type: "varchar", default: "no name provided"},
+        surname: { type: "varchar", default: "no surname provided"},
+        complete_name: {
+            type: "varchar",
+            default: function() {
+                return this.name + ' ' + this.surname;
+            }
+        },
+        age: "int",
+        active: "boolean",
+        created: {
+            type: "timestamp",
+            default: {"$db_function": "toTimestamp(now())"}
+        }
     },
-    "key" : [["id"],"created"],
-    "clustering_order": {"created": "DESC"},
-    "indexes": ["name"],
-    "custom_index": {
+    key : [["id"],"created"],
+    clustering_order: {"created": "desc"},
+    materialized_views: {
+        view_name1: {
+            select: ["name","age"],
+            key : ["age","created","id"],
+        },
+        view_name2: {
+            select: ["name","age","active"],
+            key : [["name", "id"],"created"],
+            clustering_order: {"created": "desc"}
+        }
+    },
+    indexes: ["name"],
+    custom_index: {
         on: '...',
         using: '...',
         options: {
@@ -131,16 +162,34 @@ module.exports = {
 ```
 
 What does the above code means?
+
 - `fields` are the columns of your table. For each column name the value can be a string representing the type or an object containing more specific informations. i.e.
     + ` "id"     : { "type": "uuid", "default": {"$db_function": "uuid()"} },` in this example id type is `uuid` and the default value is a cassandra function (so it will be executed from the database).
     + `"name"   : { "type": "varchar", "default": "no name provided"},` in this case name is a varchar and, if no value will be provided, it will have a default value of `no name provided`. The same goes for `surname`.
     + `complete_name` the default values is calculated from others field. When the orm processes your model instances, the `complete_name` will be the result of the function you defined. In the function `this` is bound to the current model instance.
-    + `age` no default is provided and we could write it just as `"age": "int"`.
+    + `age` no default is provided and we could write it just as `age: "int"`.
+    + `active` no default is provided and we could write it just as `active: "boolean"`.
     + `created`, like uuid(), will be evaluated from cassandra using the `now()` function.
-- `key`: here is where you define the key of your table. As you can imagine, the array defines a `compound primary key` and the first value of the array is the `partition key` and the others are the `clustering keys`. The `partition key` itself can be an array with multiple fields making it a `composite key`. Read more about compound keys on the <a href="http://docs.datastax.com/en/cql/3.1/cql/ddl/ddl_compound_keys_c.html" target="_blank">documentation</a>
+
+- `key`: here is where you define the primary key of your table. As you can imagine, the array defines a `compound primary key` and the first value of the array is the `partition key` and the others are the `clustering keys`. The `partition key` itself can be an array with multiple fields. When a partition key is an array of multiple fields, it is called a `composite` partition key.
+
+The partition key is the key field by which cassandra distributes it's data into multiple machines. So when querying cassandra, in most cases you need to provide the partition key, so cassandra knows which machines or partitions contains the data you are looking for.
+
+The clustering keys are used to keep the data sorted according to the field values of those keys in a partition. So that after getting into a partition, cassandra can find the required data under those partitions very quickly. As the data is sorted according to those keys, cassandra can efficiently seek to find the data it needs.
+
+Understanding the primary key parts is a crucial concept to cassandra data modeling. To get a detailed idea about them, read the cassandra documentation. For your convenience, following are some links to the relevant documentation pages:
+
+Read more about composite keys on the <a href="http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCompositePartitionKeyConcept.html" target="_blank">composite key doc</a>
+
+Read more about the compound key here on the <a href="http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCompoundPrimaryKeyConcept.html" target="_blank">compound key documentation</a>
+
 - `clustering_order`: here you can define the clustering order of the clustering keys. If order is not defined, default value of ASC (ascending) is used.
-- `indexes` are the index of your table. It's always an array of field names. You can read more on the <a href="http://www.datastax.com/documentation/cql/3.1/cql/ddl/ddl_primary_index_c.html" target="_blank">documentation</a>
-- `custom_index` provides the ability to define custom indexes with cassandra. Cassandra upto version 2.1.x supports only one custom index per table.
+
+- `materialized_views` provides you the ability to define cassandra 3.x materialized views for your model table. You may want to read more about it on the <a href="http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCreateMV.html" target="_blank">materialized view documentation</a>. This is generally suited for querying high cardinality fields.
+
+- `indexes` are the index of your table. It's always an array of field names. You can read more on the <a href="http://docs.datastax.com/en/cql/3.3/cql/cql_using/usePrimaryIndex.html" target="_blank">secondary index documentation</a>. This is generally suited for querying low cardinality fields, but not as low as boolean fields or fields with very limited number of variants. Very low cardinality fields are not a good separator of large datasets and hence not worthwhile to index.
+
+- `custom_index` provides the ability to define custom indexes with cassandra. Cassandra 3.x supports only one custom index per table.
 
 When you instantiate a model, every field you defined in schema is automatically a property of your instances. So, you can write:
 
@@ -172,7 +221,7 @@ Express cassandra exposes some node driver methods for convenience. To generate 
 *   `models.uuidFromString(str)`
     returns a type 3 uuid from input string, suitable for Cassandra `uuid` fields
 *   `models.timeuuid() / .maxTimeuuid() / .minTimeuuid()`
-    returns a type 1 (time-based) uuid, suitable for Cassandra `timeuuid` fields, as a string. From the [Datastax documentation](https://docs.datastax.com/en/cql/3.0/cql/cql_reference/timeuuid_functions_r.html):
+    returns a type 1 (time-based) uuid, suitable for Cassandra `timeuuid` fields, as a string. From the [Datastax documentation](https://docs.datastax.com/en/cql/3.3/cql/cql_reference/timeuuid_functions_r.html):
 
     > The min/maxTimeuuid example selects all rows where the timeuuid column, t, is strictly later than 2013-01-01 00:05+0000 but strictly earlier than 2013-02-02 10:00+0000. The t >= maxTimeuuid('2013-01-01 00:05+0000') does not select a timeuuid generated exactly at 2013-01-01 00:05+0000 and is essentially equivalent to t > maxTimeuuid('2013-01-01 00:05+0000').
 
@@ -199,7 +248,7 @@ models.instance.Stats.update({user_id:1234}, {visit_count:-1}, function(err){
 });
 ```
 
-Please note that counter columns has special limitations, to know more about the counter column usage, see the <a href="http://docs.datastax.com/en/cql/3.1/cql/cql_using/use_counter_t.html">cassandra docs</a>.
+Please note that counter columns has special limitations, to know more about the counter column usage, see the <a href="https://docs.datastax.com/en/cql/3.3/cql/cql_using/useCountersConcept.html">cassandra counter docs</a>.
 
 ### Support for Composite Data Types
 
@@ -407,6 +456,18 @@ models.instance.Person.find({}, { select: ['name','age'], distinct: true }, func
 
 ```
 
+And if you have defined materialized views in your schema as described in the schema detail section, then you can query your views by using the similar find/findOne functions. Just add an option with the materialized view name like the following:
+
+
+```js
+
+models.instance.Person.find({name: 'John'}, { materialized_view: 'view_name1', raw: true }, function(err, people){
+    //people is an array of plain objects taken from the materialized view
+});
+
+```
+
+
 **Remember** that your select needs to include all the partition key columns defined for your table!
 
 If your table structure looks like this:
@@ -448,7 +509,7 @@ models.instance.Person.find(query, {raw:true, allow_filtering: true}, function(e
 
 ```
 
-You can also use the `token` comparison function while querying a result set using the $token operator. This is specially useful for <a href="http://docs.datastax.com/en/cql/3.1/cql/cql_using/paging_c.html">paging through unordered partitioner results</a>.
+You can also use the `token` comparison function while querying a result set using the $token operator. This is specially useful for <a href="https://docs.datastax.com/en/cql/3.3/cql/cql_using/usePaging.html">paging through unordered partitioner results</a>.
 
 ```js
 //consider the following situation
@@ -473,7 +534,7 @@ models.instance.Person.find(query, function(err, people){
 });
 ```
 
-Note that all query clauses must be Cassandra compliant. You cannot, for example, use $in operator for a key which is not the partition key. Querying in Cassandra is very basic but could be confusing at first. Take a look at this <a href="http://mechanics.flite.com/blog/2013/11/05/breaking-down-the-cql-where-clause/" target="_blank">post</a> and, obvsiouly, at the <a href="http://www.datastax.com/documentation/cql/3.1/cql/cql_using/about_cql_c.html" target="_blank">documentation</a>
+Note that all query clauses must be Cassandra compliant. You cannot, for example, use $in operator for a key which is not part of the primary key. Querying in Cassandra is very basic but could be confusing at first. Take a look at this <a href="http://mechanics.flite.com/blog/2013/11/05/breaking-down-the-cql-where-clause/" target="_blank">post</a> and, obvsiouly, at the <a href="https://docs.datastax.com/en/cql/3.3/cql/cql_using/useQueryDataTOC.html" target="_blank">cql query documentation</a>
 
 
 ## Save / Update / Delete

@@ -84,7 +84,8 @@ module.exports = {
         "info": { "type": "map", typeDef:"<varchar,varchar>" },
         "phones": { "type": "list", typeDef:"<varchar>" },
         "emails": { "type": "set", typeDef:"<varchar>" },
-        "createdAt": {"type": "timestamp", "default" : {"$db_function": "dateOf(now())"} }
+        "active": "boolean",
+        "createdAt": {"type": "timestamp", "default" : {"$db_function": "toTimestamp(now())"} }
     },
     "key" : [["userID"],"age"],
     "indexes": ["Name"]

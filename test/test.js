@@ -22,7 +22,8 @@ describe('Unit Tests', function(){
                         class: 'SimpleStrategy',
                         replication_factor: 1
                     },
-                    dropTableOnSchemaChange: true
+                    dropTableOnSchemaChange: true,
+                    createKeyspace: true
                 }
             },
             function(err) {
@@ -55,7 +56,8 @@ describe('Unit Tests', function(){
                 stringList: ['one', 'two', 'three'],
                 timeSet: [current_time],
                 intSet: [1, 2, 3, 3],
-                stringSet: ['one', 'two', 'three', 'three']
+                stringSet: ['one', 'two', 'three', 'three'],
+                active: true
             });
             alex.save(function(err){
                 if(err) {
@@ -82,6 +84,7 @@ describe('Unit Tests', function(){
                 people[0].info.hello.should.equal('world');
                 people[0].phones[1].should.equal('234567');
                 people[0].emails[1].should.equal('c@d.com');
+                people[0].active.should.equal(true);
                 expect(people[0].uniId.toString().length).to.be.equal(36);
                 expect(people[0].timeId.toString().length).to.be.equal(36);
                 expect(people[0].createdAt).to.exist;
@@ -185,7 +188,7 @@ describe('Unit Tests', function(){
             models.instance.Person.update({userID:1234, age:32}, {Name:1, info:{'new':'addition'}, phones:['56788'], emails:['c@d.com']}, function(err){
                 if(err) {
                     err.name.should.equal('apollo.model.update.invalidvalue');
-                    models.instance.Person.update({userID:1234, age:32}, {Name:"Stupid", timeId:models.timeuuid(), info:{'new':'addition'}, phones:['56788'], emails:['c@d.com']}, function(err){
+                    models.instance.Person.update({userID:1234, age:32}, {Name:"Stupid", timeId:models.timeuuid(), info:{'new':'addition'}, phones:['56788'], emails:['c@d.com'], active: false}, function(err){
                         if(err) throw err;
                         done();
                     });
@@ -205,6 +208,7 @@ describe('Unit Tests', function(){
                 people[0].phones[0].should.equal('56788');
                 people[0].emails[0].should.equal('c@d.com');
                 people[0].emails.length.should.equal(1);
+                people[0].active.should.equal(false);
                 expect(people[0].timeId.toString().length).to.be.equal(36);
                 done();
             });
@@ -324,12 +328,12 @@ describe('Unit Tests', function(){
         it('should insert data properly', function(done) {
             var queries = [
                 {
-                    query: "INSERT INTO event (email, id, body) VALUES (?, ?, ?)",
-                    params: ['hello1@h.com', event_id, 'hello1']
+                    query: "INSERT INTO event (email, id, body, extra) VALUES (?, ?, ?, ?)",
+                    params: ['hello1@h.com', event_id, 'hello1', 'extra1']
                 },
                 {
-                    query: "INSERT INTO event (email, id, body) VALUES (?, ?, ?)",
-                    params: ['hello2@h.com', event_id, 'hello2']
+                    query: "INSERT INTO event (email, id, body, extra) VALUES (?, ?, ?, ?)",
+                    params: ['hello2@h.com', event_id, 'hello2', 'extra2']
                 }
             ];
 
@@ -345,7 +349,7 @@ describe('Unit Tests', function(){
     });
 
     describe('#find after raw batch events',function(){
-        it('should find the event with timeuuid in query', function(done) {
+        it('should find the event with email and timeuuid in query', function(done) {
             models.instance.Event.findOne({email: 'hello1@h.com', id: event_id}, function(err, event){
                 if(err) throw err;
                 models.instance.Event.findOne({email: 'hello1@h.com', id: event.id}, function(err, event){
@@ -353,6 +357,39 @@ describe('Unit Tests', function(){
                     event.body.should.equal('hello1');
                     done();
                 });
+            });
+        });
+    });
+
+    describe('#verify if all inserted events went to the materialized view',function(){
+        it('should find all the events filtered by id from materialized view', function(done) {
+            models.instance.Event.find({id: event_id}, {materialized_view: 'event_by_id'}, function(err, events){
+                if(err) throw err;
+                events.length.should.equal(2);
+                done();
+            });
+        });
+    });
+
+    describe('#testing instance update for an event object taken from materialized view',function(){
+        it('should get an event by id and email from materialized view and instance update it', function(done) {
+            models.instance.Event.findOne({id: event_id, email: 'hello1@h.com'}, {materialized_view: 'event_by_id'}, function(err, event){
+                if(err) throw err;
+                event.body = 'hello1 updated';
+                event.save(function(err){
+                    models.instance.Event.findOne({id: event_id, email: 'hello1@h.com'}, function(err, event_updated){
+                        if(err) throw err;
+                        event_updated.body.should.equal('hello1 updated');
+                        event_updated.extra.should.equal('extra1'); //check if the extra section that is not part of the materialized view is kept intact by the save operation
+
+                        //check also if the materialized view has updated
+                        models.instance.Event.findOne({id: event_id, email: 'hello1@h.com'}, {materialized_view: 'event_by_id'}, function(err, event_updated){
+                            if(err) throw err;
+                            event_updated.body.should.equal('hello1 updated');
+                            done();
+                        });
+                    });
+                })
             });
         });
     });
@@ -368,7 +405,7 @@ describe('Unit Tests', function(){
             });
 
             queries.push(event.save({return_query: true}));
-            queries.push(models.instance.Event.update({email: 'hello1@h.com', id: event_id}, {body:'hello1 updated'}, {return_query: true}));
+            queries.push(models.instance.Event.update({email: 'hello1@h.com', id: event_id}, {body:'hello1 updated again'}, {return_query: true}));
             queries.push(models.instance.Event.delete({email: 'hello2@h.com', id: event_id}, {return_query: true}));
 
             models.doBatch(queries, function(err){
@@ -388,13 +425,34 @@ describe('Unit Tests', function(){
         });
     });
 
-    describe('#find after orm batch events',function(){
-        it('should find updated events', function(done) {
+    describe('#verify orm batch modifications on table and materialized view',function(){
+        it('should find modifications reflected in events', function(done) {
             models.instance.Event.find({'$limit':10}, function(err, events){
                 if(err) throw err;
                 events.length.should.equal(2);
-                events[0].body.should.equal('hello1 updated');
+                events[0].body.should.equal('hello1 updated again');
                 events[1].body.should.equal('hello3');
+
+                done();
+            });
+        });
+
+        it('should find modifications reflected in materialized view', function(done) {
+            models.instance.Event.find({id: event_id, $orderby:{'$asc' :'email'}}, {materialized_view: 'event_by_id', raw: true}, function(err, events){
+                if(err) throw err;
+                events.length.should.equal(2);
+                events[0].body.should.equal('hello1 updated again');
+                events[1].body.should.equal('hello3');
+
+                done();
+            });
+        });
+    });
+
+    describe('#find all remaining events and delete using orm batch',function(){
+        it('should find remaining events and delete them', function(done) {
+            models.instance.Event.find({'$limit':10}, function(err, events){
+                if(err) throw err;
 
                 var queries = [];
 
@@ -406,6 +464,26 @@ describe('Unit Tests', function(){
                     if(err) throw err;
                     done();
                 });
+            });
+        });
+    });
+
+    describe('#verify all events are deleted',function(){
+        it('should find all the events deleted from table', function(done) {
+            models.instance.Event.find({'$limit':10}, function(err, events){
+                if(err) throw err;
+                events.length.should.equal(0);
+                done();
+            });
+        });
+    });
+
+    describe('#verify events are deleted from materialized view',function(){
+        it('should find all the events deleted from materialized view', function(done) {
+            models.instance.Event.find({id: event_id}, {materialized_view: 'event_by_id'}, function(err, events){
+                if(err) throw err;
+                events.length.should.equal(0);
+                done();
             });
         });
     });
