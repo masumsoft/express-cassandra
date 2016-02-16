@@ -4,15 +4,13 @@ node_js:
   - "0.10"
   - "4.2"
 
-jdk:
-  - oraclejdk8
-
 addons:
   apt:
     packages:
       - oracle-java8-installer
 
 before_install:
+  - sudo echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections && sudo apt-get install -y oracle-java8-installer
   - java -version
   - sudo rm -rf /var/lib/cassandra/*
   - wget http://www.us.apache.org/dist/cassandra/3.3/apache-cassandra-3.3-bin.tar.gz && tar -xvzf apache-cassandra-3.3-bin.tar.gz && sudo sh apache-cassandra-3.3/bin/cassandra
