@@ -13,4 +13,5 @@ before_install:
   - sudo update-java-alternatives -s java-8-oracle
   - java -version
   - sudo rm -rf /var/lib/cassandra/*
-  - wget http://www.us.apache.org/dist/cassandra/3.3/apache-cassandra-3.3-bin.tar.gz && tar -xvzf apache-cassandra-3.3-bin.tar.gz && sudo sh apache-cassandra-3.3/bin/cassandra
+  - wget http://www.us.apache.org/dist/cassandra/3.3/apache-cassandra-3.3-bin.tar.gz && tar -xvzf apache-cassandra-3.3-bin.tar.gz
+  - ./apache-cassandra-3.3/bin/cassandra
