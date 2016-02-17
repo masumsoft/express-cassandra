@@ -11,8 +11,8 @@ addons:
 
 before_install:
   - sudo update-java-alternatives -s java-8-oracle
+  - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
   - java -version
-  - echo $JAVA_HOME
   - sudo rm -rf /var/lib/cassandra/*
   - wget http://www.us.apache.org/dist/cassandra/3.3/apache-cassandra-3.3-bin.tar.gz && tar -xvzf apache-cassandra-3.3-bin.tar.gz
-  - ./apache-cassandra-3.3/bin/cassandra
+  - sudo sh ./apache-cassandra-3.3/bin/cassandra
