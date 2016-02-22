@@ -404,7 +404,7 @@ module.exports = {
 
 Ok, now you have a bunch of people on db. How do I retrieve them?
 
-### Find
+### Find (results are model instances)
 
 ```js
 
@@ -426,6 +426,8 @@ models.instance.Person.findOne({name: 'John'}, function(err, john){
 
 In the above example it will perform the query `SELECT * FROM person WHERE name='john'` but `find()` allows you to perform even more complex queries on cassandra.  You should be aware of how to query cassandra. Every error will be reported to you in the `err` argument, while in `people` you'll find instances of `Person`.
 
+#### Find (results are raw objects)
+
 If you don't want the orm to cast results to instances of your model you can use the `raw` option as in the following example:
 
 ```js
@@ -436,52 +438,7 @@ models.instance.Person.find({name: 'John'}, { raw: true }, function(err, people)
 
 ```
 
-You can also select particular columns using the select key in the options object like the following example:
-
-```js
-
-models.instance.Person.find({name: 'John'}, { raw: true, select: ['name','age'] }, function(err, people){
-    //people is an array of plain objects with only name and age
-});
-
-```
-
-Also, `DISTINCT` selects are possible:
-
-```js
-
-models.instance.Person.find({}, { select: ['name','age'], distinct: true }, function(err, people){
-    //people is a distinct array of plain objects with only name and age.
-});
-
-```
-
-And if you have defined materialized views in your schema as described in the schema detail section, then you can query your views by using the similar find/findOne functions. Just add an option with the materialized view name like the following:
-
-
-```js
-
-models.instance.Person.find({name: 'John'}, { materialized_view: 'view_name1', raw: true }, function(err, people){
-    //people is an array of plain objects taken from the materialized view
-});
-
-```
-
-
-**Remember** that your select needs to include all the partition key columns defined for your table!
-
-If your table structure looks like this:
-
-```sql
-CREATE TABLE IF NOT EXISTS mykeyspace.mytable (
-    PRIMARY KEY(("columnOne", "columnTwo", "columnThree"), "columnFour")
-) WITH CLUSTERING ORDER BY ("columnFour" DESC);
-```
-
-Then your `select`-array has to look like this: `select: ['columnOne', 'columnTwo', 'columnThree']`.
-
-
-### Let's see a complex query
+#### Find (A more complex query)
 
 ```js
 
@@ -499,6 +456,76 @@ models.instance.Person.find(query, {raw: true}, function(err, people){
 
 ```
 
+#### Find (results to contain only selected columns)
+
+You can also select particular columns using the select key in the options object like the following example:
+
+```js
+
+models.instance.Person.find({name: 'John'}, { select: ['name as username','age'] }, function(err, people){
+    //people is an array of plain objects with only name and age
+});
+
+```
+
+Note that if you use the `select` option, then the results will always be raw plain objects instead of model instances.
+
+Also **Remember** that your select needs to include all the partition key columns defined for your table!
+
+If your model key looks like this:
+
+```js
+
+module.exports = {
+    fields: {
+        //fields are not shown for clarity
+    },
+    key : [["columnOne","columnTwo","columnThree"],"columnFour","ColumnFive"]
+}
+
+```
+
+Then your `select`-array has to at least include the partition key columns like this: `select: ['columnOne', 'columnTwo', 'columnThree']`.
+
+#### Find (using aggregate function)
+
+You can also use `aggregate functions` using the select key in the options object like the following example:
+
+```js
+
+models.instance.Person.find({name: 'John'}, { select: ['name','sum(age)'] }, function(err, people){
+    //people is an array of plain objects with sum of all ages where name is John
+});
+
+```
+
+#### Find (using distinct select)
+
+Also, `DISTINCT` selects are possible:
+
+```js
+
+models.instance.Person.find({}, { select: ['name','age'], distinct: true }, function(err, people){
+    //people is a distinct array of plain objects with only distinct name and ages.
+});
+
+```
+
+#### Find (querying a materialized view)
+
+And if you have defined `materialized views` in your schema as described in the schema detail section, then you can query your views by using the similar find/findOne functions. Just add an option with the materialized view name like the following:
+
+
+```js
+
+models.instance.Person.find({name: 'John'}, { materialized_view: 'view_name1', raw: true }, function(err, people){
+    //people is an array of plain objects taken from the materialized view
+});
+
+```
+
+#### Find (with allow filtering)
+
 If you want to set allow filtering option, you may do that like this:
 
 ```js
@@ -508,6 +535,8 @@ models.instance.Person.find(query, {raw:true, allow_filtering: true}, function(e
 });
 
 ```
+
+#### Find (token based pagination)
 
 You can also use the `token` comparison function while querying a result set using the $token operator. This is specially useful for <a href="https://docs.datastax.com/en/cql/3.3/cql/cql_using/usePaging.html">paging through unordered partitioner results</a>.
 

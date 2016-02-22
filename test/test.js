@@ -141,6 +141,29 @@ describe('Unit Tests', function(){
         });
     });
 
+    describe('#findOne with selected columns',function(){
+        it('should find a row with only selected columns', function(done) {
+            models.instance.Person.findOne({userID:1234, age:32}, {select: ['Name as name','info']}, function(err, user){
+                if(err) throw err;
+                user.name.should.equal('Mahafuzur');
+                user.info.hello.should.equal('world');
+                should.not.exist(user.phones);
+                should.not.exist(user.emails);
+                done();
+            });
+        });
+    });
+
+    describe('#findOne with aggregate function',function(){
+        it('should find a row with only selected columns', function(done) {
+            models.instance.Person.findOne({userID:1234}, {select: ['sum(age)']}, function(err, user){
+                if(err) throw err;
+                user['system.sum(age)'].should.equal(32);
+                done();
+            });
+        });
+    });
+
     describe('#find with $gt and $lt operator',function(){
         it('should find data as saved without errors', function(done) {
             models.instance.Person.find({userID:1234, age:{'$gt':31,'$lt':35}}, function(err, people){
