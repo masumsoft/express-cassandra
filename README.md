@@ -25,6 +25,47 @@ Please note that if you use the legacy cassandra 2.x compliant version then plea
 ## Usage
 
 
+**Asynchronously load schemas**
+```js
+var Cassandra = require('express-cassandra');
+var cassandra = Cassandra.createClient({
+    clientOptions: {
+        contactPoints: ['127.0.0.1'],
+        protocolOptions: { port: 9042 },
+        keyspace: 'mykeyspace',
+        queryOptions: {consistency: Cassandra.consistencies.one}
+    },
+    ormOptions: {
+        defaultReplicationStrategy : {
+            class: 'SimpleStrategy',
+            replication_factor: 1
+        },
+        dropTableOnSchemaChange: false,
+        createKeyspace: true
+    }
+});
+
+
+var UserSchema = cassandra.loadSchema('users', {
+    fields: {
+        name: 'text',
+        password: 'text'
+    },
+    key: ['name']
+});
+
+cassandra.connect(function (err) {
+    if (err) {
+        console.log(err.message);
+    } else {
+        console.log(cassandra.modelInstance.users);
+        console.log(cassandra.modelInstance.users === UserSchema);
+    }
+});
+
+```
+
+
 ```js
 var models = require('express-cassandra');
 
