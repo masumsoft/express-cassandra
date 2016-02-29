@@ -4,6 +4,7 @@ var should = chai.should();
 var expect = chai.expect;
 var current_time = Date.now();
 var event_id = models.timeuuid();
+var client;
 
 describe('Unit Tests', function(){
     describe('#modelsync',function(done){
@@ -33,6 +34,50 @@ describe('Unit Tests', function(){
             );
         });
     });
+
+    describe('#multiple connections', function (done) {
+        it('should create a new cassandra client', function (done) {
+            this.timeout(5000);
+            this.slow(1000);
+            client = models.createClient({
+                clientOptions: {
+                    contactPoints: ['127.0.0.1'],
+                    keyspace: 'express_cassandra_tests_kspc1',
+                    queryOptions: {consistency: models.consistencies.one}
+                },
+                ormOptions: {
+                    defaultReplicationStrategy : {
+                        class: 'SimpleStrategy',
+                        replication_factor: 1
+                    },
+                    dropTableOnSchemaChange: true,
+                    createKeyspace: true
+                }
+            });
+
+            client.connect(function(err) {
+                if(err) throw err;
+                else done();
+            });
+        });
+    });
+    
+    describe('#arbitrarily load schemas', function (done) {
+        after(function () {
+            client.close();
+        });
+        it('should load a schema from an object', function (done) {
+            var tmp = client.loadSchema('tempschema', {
+                fields: {
+                    name: 'text'
+                },
+                key: ['name']
+            });
+            tmp.should.equal(client.instance.tempschema);
+            done();
+        });
+    });
+
 
     describe('#save',function(){
         it('should save data to without errors', function(done) {
