@@ -1,6 +1,6 @@
 {
   "name": "express-cassandra",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "dependencies": {
     "async": "^1.0.0",
     "cassandra-driver": "^3.0.1",
@@ -21,7 +21,7 @@
     "test": "node_modules/.bin/mocha --bail"
   },
   "license": "LGPL-3.0",
-  "description": "Cassandra ORM for express, restify, hapi, koa and raw node",
+  "description": "Framework Independent Cassandra Object Models (ORM) for NodeJS",
   "repository": {
     "type": "git",
     "url": "git://github.com/masumsoft/express-cassandra.git"
