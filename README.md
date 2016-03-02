@@ -24,48 +24,6 @@ Please note that if you use the legacy cassandra 2.x compliant version then plea
 
 ## Usage
 
-
-**Asynchronously load schemas**
-```js
-var Cassandra = require('express-cassandra');
-var cassandra = Cassandra.createClient({
-    clientOptions: {
-        contactPoints: ['127.0.0.1'],
-        protocolOptions: { port: 9042 },
-        keyspace: 'mykeyspace',
-        queryOptions: {consistency: Cassandra.consistencies.one}
-    },
-    ormOptions: {
-        defaultReplicationStrategy : {
-            class: 'SimpleStrategy',
-            replication_factor: 1
-        },
-        dropTableOnSchemaChange: false,
-        createKeyspace: true
-    }
-});
-
-
-var UserSchema = cassandra.loadSchema('users', {
-    fields: {
-        name: 'text',
-        password: 'text'
-    },
-    key: ['name']
-});
-
-cassandra.connect(function (err) {
-    if (err) {
-        console.log(err.message);
-    } else {
-        console.log(cassandra.modelInstance.users);
-        console.log(cassandra.modelInstance.users === UserSchema);
-    }
-});
-
-```
-
-
 ```js
 var models = require('express-cassandra');
 
@@ -105,6 +63,47 @@ models.setDirectory( __dirname + '/models').bind(
         else console.log(models.timeuuid());
     }
 );
+
+```
+
+Alternatively if you don't want to load your models automatically from a specific directory and want to define and load models yourself, then you can asynchronously load your schemas like the following:
+
+```js
+var Cassandra = require('express-cassandra');
+var cassandra = Cassandra.createClient({
+    clientOptions: {
+        contactPoints: ['127.0.0.1'],
+        protocolOptions: { port: 9042 },
+        keyspace: 'mykeyspace',
+        queryOptions: {consistency: Cassandra.consistencies.one}
+    },
+    ormOptions: {
+        defaultReplicationStrategy : {
+            class: 'SimpleStrategy',
+            replication_factor: 1
+        },
+        dropTableOnSchemaChange: false,
+        createKeyspace: true
+    }
+});
+
+
+var UserSchema = cassandra.loadSchema('users', {
+    fields: {
+        name: 'text',
+        password: 'text'
+    },
+    key: ['name']
+});
+
+cassandra.connect(function (err) {
+    if (err) {
+        console.log(err.message);
+    } else {
+        console.log(cassandra.modelInstance.users);
+        console.log(cassandra.modelInstance.users === UserSchema);
+    }
+});
 
 ```
 
@@ -720,6 +719,20 @@ models.instance.Person.delete(query_object, function(err){
 
 ```
 
+If you have a model instance and you want to delete the instance object, you may do that like the following:
+
+```js
+models.instance.Person.findOne({name: 'John'}, function(err, john){
+    if(err) throw err;
+
+    //Note that returned variable john here is an instance of your model,
+    //so you can do john.delete() like the following
+    john.delete(function(err){
+        //...
+    });
+});
+```
+
 
 ## Raw Query
 
@@ -791,7 +804,7 @@ models.instance.Person.execute_batch(queries, function(err){
 
 ## Get the client driver instance
 
-You can get the client driver instance from cassandra nodejs-driver using the `get_cql_client` method. This will provide you a cql driver instance with which you can do anything you could possibly do with the datastax nodejs-driver version 2.1.
+You can get the client driver instance from cassandra nodejs-driver using the `get_cql_client` method. This will provide you a cql driver instance with which you can do anything you could possibly do with the datastax nodejs-driver version 3.0.
 
 ```js
 
