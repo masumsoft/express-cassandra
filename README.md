@@ -191,8 +191,8 @@ module.exports = {
     },
     indexes: ["name"],
     custom_index: {
-        on: '...',
-        using: '...',
+        on: 'age',
+        using: 'path.to.the.IndexClass',
         options: {
             option1 : '...',
             option2: '...'
@@ -230,7 +230,7 @@ Read more about the compound key here on the <a href="http://docs.datastax.com/e
 
 - `indexes` are the index of your table. It's always an array of field names. You can read more on the <a href="http://docs.datastax.com/en/cql/3.3/cql/cql_using/usePrimaryIndex.html" target="_blank">secondary index documentation</a>. This is generally suited for querying low cardinality fields, but not as low as boolean fields or fields with very limited number of variants. Very low cardinality fields are not a good separator of large datasets and hence not worthwhile to index.
 
-- `custom_index` provides the ability to define custom indexes with cassandra. Cassandra 3.x supports only one custom index per table.
+- `custom_index` provides the ability to define custom indexes with a Cassandra table. The `on` section should contain the column name on which the index should be built, the `using` section should contain the custom indexer class path and the `options` section should contain the passed options for the indexer class if any.
 
 When you instantiate a model, every field you defined in schema is automatically a property of your instances. So, you can write:
 
