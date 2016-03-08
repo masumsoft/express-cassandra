@@ -1,6 +1,6 @@
 {
   "name": "express-cassandra",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "dependencies": {
     "async": "^1.0.0",
     "cassandra-driver": "^3.0.1",
