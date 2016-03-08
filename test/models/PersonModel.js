@@ -88,5 +88,11 @@ module.exports = {
         "createdAt": {"type": "timestamp", "default" : {"$db_function": "toTimestamp(now())"} }
     },
     "key" : [["userID"],"age"],
-    "indexes": ["Name"]
+    "indexes": ["Name"],
+    materialized_views: {
+        mat_view_composite: {
+            select: ["Name"],
+            key : [["userID","age"],"active"]
+        }
+    }
 }

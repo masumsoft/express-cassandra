@@ -61,7 +61,7 @@ describe('Unit Tests', function(){
             });
         });
     });
-    
+
     describe('#arbitrarily load schemas', function (done) {
         after(function () {
             client.close();
@@ -234,6 +234,17 @@ describe('Unit Tests', function(){
             models.instance.Person.find({userID:{'$token':{'$gt':1235,'$lte':1234}},$limit:1}, function(err, people){
                 if(err) throw err;
                 people.length.should.equal(1);
+                done();
+            });
+        });
+    });
+
+    describe('#find with $token operator for composite key',function(){
+        it('should find data as saved without errors', function(done) {
+            models.instance.Person.find({'userID,age':{'$token':{'$gte':[1234,32]}}}, {materialized_view: 'mat_view_composite', raw: true}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
+                people[0].Name.should.equal('Mahafuzur');
                 done();
             });
         });
