@@ -604,6 +604,21 @@ models.instance.Person.find(query, function(err, people){
 });
 ```
 
+If you have a `composite partition key`, then the token operator should be contained in comma (,) separated partition key field names and the values should be an array containing the values for the partition key fields. Following is an example to demonstrate that:
+
+```js
+var query = {
+    'id,name':{
+        '$token':{
+            '$gt':[1234,'John']
+        }
+    }
+};
+models.instance.Person.find(query, function(err, people){
+
+});
+```
+
 Note that all query clauses must be Cassandra compliant. You cannot, for example, use $in operator for a key which is not part of the primary key. Querying in Cassandra is very basic but could be confusing at first. Take a look at this <a href="http://mechanics.flite.com/blog/2013/11/05/breaking-down-the-cql-where-clause/" target="_blank">post</a> and, obvsiouly, at the <a href="https://docs.datastax.com/en/cql/3.3/cql/cql_using/useQueryDataTOC.html" target="_blank">cql query documentation</a>
 
 
