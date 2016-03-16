@@ -7,7 +7,7 @@ express-cassandra
 
 No more hassling with raw cql queries from your nodejs web frameworks. express-cassandra automatically loads your models and provides you with object oriented mapping to your cassandra tables like a standard ORM.
 
-This module uses datastax <a href="https://github.com/datastax/nodejs-driver">cassandra-driver</a> for node and many of the orm features are wrapper over a largely modified version of <a href="https://github.com/3logic/apollo-cassandra">apollo-cassandra</a> module. The modifications made to the orm library was necessary to support missing features in the orm, keep it updated with the latest cassandra releases and to make it compatible with requirements of this module.
+This module uses datastax [cassandra-driver](https://github.com/datastax/nodejs-driver) for node and many of the orm features are wrapper over a largely modified version of [apollo-cassandra](https://github.com/3logic/apollo-cassandra) module. The modifications made to the orm library was necessary to support missing features in the orm, keep it updated with the latest cassandra releases and to make it compatible with requirements of this module.
 
 
 ## Installation
@@ -220,15 +220,15 @@ The clustering keys are used to keep the data sorted according to the field valu
 
 Understanding the primary key parts is a crucial concept to cassandra data modeling. To get a detailed idea about them, read the cassandra documentation. For your convenience, following are some links to the relevant documentation pages:
 
-Read more about composite keys on the <a href="http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCompositePartitionKeyConcept.html" target="_blank">composite key doc</a>
+Read more about composite keys on the [composite key doc](http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCompositePartitionKeyConcept.html)
 
-Read more about the compound key here on the <a href="http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCompoundPrimaryKeyConcept.html" target="_blank">compound key documentation</a>
+Read more about the compound key here on the [compound key documentation](http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCompoundPrimaryKeyConcept.html)
 
 - `clustering_order`: here you can define the clustering order of the clustering keys. If order is not defined, default value of ASC (ascending) is used.
 
-- `materialized_views` provides you the ability to define cassandra 3.x materialized views for your model table. You may want to read more about it on the <a href="http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCreateMV.html" target="_blank">materialized view documentation</a>. This is generally suited for querying high cardinality fields.
+- `materialized_views` provides you the ability to define cassandra 3.x materialized views for your model table. You may want to read more about it on the [materialized view documentation](http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCreateMV.html). This is generally suited for querying high cardinality fields.
 
-- `indexes` are the index of your table. It's always an array of field names. You can read more on the <a href="http://docs.datastax.com/en/cql/3.3/cql/cql_using/usePrimaryIndex.html" target="_blank">secondary index documentation</a>. This is generally suited for querying low cardinality fields, but not as low as boolean fields or fields with very limited number of variants. Very low cardinality fields are not a good separator of large datasets and hence not worthwhile to index.
+- `indexes` are the index of your table. It's always an array of field names. You can read more on the [index documentation](http://docs.datastax.com/en/cql/3.3/cql/cql_using/usePrimaryIndex.html). This is generally suited for querying low cardinality fields, but not as low as boolean fields or fields with very limited number of variants. Very low cardinality fields are not a good separator of large datasets and hence not worthwhile to index.
 
 - `custom_index` provides the ability to define custom indexes with a Cassandra table. The `on` section should contain the column name on which the index should be built, the `using` section should contain the custom indexer class path and the `options` section should contain the passed options for the indexer class if any.
 
@@ -289,7 +289,7 @@ models.instance.Stats.update({user_id:1234}, {visit_count:-1}, function(err){
 });
 ```
 
-Please note that counter columns has special limitations, to know more about the counter column usage, see the <a href="https://docs.datastax.com/en/cql/3.3/cql/cql_using/useCountersConcept.html">cassandra counter docs</a>.
+Please note that counter columns has special limitations, to know more about the counter column usage, see the [cassandra counter docs](https://docs.datastax.com/en/cql/3.3/cql/cql_using/useCountersConcept.html).
 
 ### Support for Composite Data Types
 
@@ -579,7 +579,7 @@ models.instance.Person.find(query, {raw:true, allow_filtering: true}, function(e
 
 #### Find (token based pagination)
 
-You can also use the `token` comparison function while querying a result set using the $token operator. This is specially useful for <a href="https://docs.datastax.com/en/cql/3.3/cql/cql_using/usePaging.html">paging through unordered partitioner results</a>.
+You can also use the `token` comparison function while querying a result set using the $token operator. This is specially useful for [paging through unordered partitioner results](https://docs.datastax.com/en/cql/3.3/cql/cql_using/usePaging.html).
 
 ```js
 //consider the following situation
@@ -619,7 +619,7 @@ models.instance.Person.find(query, function(err, people){
 });
 ```
 
-Note that all query clauses must be Cassandra compliant. You cannot, for example, use $in operator for a key which is not part of the primary key. Querying in Cassandra is very basic but could be confusing at first. Take a look at this <a href="http://mechanics.flite.com/blog/2013/11/05/breaking-down-the-cql-where-clause/" target="_blank">post</a> and, obvsiouly, at the <a href="https://docs.datastax.com/en/cql/3.3/cql/cql_using/useQueryDataTOC.html" target="_blank">cql query documentation</a>
+Note that all query clauses must be Cassandra compliant. You cannot, for example, use $in operator for a key which is not part of the primary key. Querying in Cassandra is very basic but could be confusing at first. Take a look at this [post](http://mechanics.flite.com/blog/2013/11/05/breaking-down-the-cql-where-clause/) and, obvsiouly, at the [cql query documentation](https://docs.datastax.com/en/cql/3.3/cql/cql_using/useQueryDataTOC.html)
 
 
 ## Save / Update / Delete
