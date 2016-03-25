@@ -9,8 +9,8 @@ var client;
 describe('Unit Tests', function(){
     describe('#modelsync',function(done){
         it('should connect and sync with db without errors', function(done) {
-            this.timeout(5000);
-            this.slow(1000);
+            this.timeout(10000);
+            this.slow(3000);
             models.setDirectory( __dirname + '/models').bind(
             {
                 clientOptions: {
@@ -37,8 +37,8 @@ describe('Unit Tests', function(){
 
     describe('#multiple connections', function (done) {
         it('should create a new cassandra client', function (done) {
-            this.timeout(5000);
-            this.slow(1000);
+            this.timeout(10000);
+            this.slow(3000);
             client = models.createClient({
                 clientOptions: {
                     contactPoints: ['127.0.0.1'],
@@ -82,7 +82,7 @@ describe('Unit Tests', function(){
     describe('#save',function(){
         it('should save data to without errors', function(done) {
             var revtimeMap = {};
-            revtimeMap[current_time] = 'one';
+            revtimeMap[new Date(current_time)] = 'one';
             revtimeMap['2014-10-2 12:00'] = 'two';
             var alex = new models.instance.Person({
                 userID:1234,
@@ -258,6 +258,17 @@ describe('Unit Tests', function(){
                     if(err) throw err;
                     done();
                 });
+            });
+        });
+    });
+
+    describe('#find using secondary index',function(){
+        it('should find data as saved without errors', function(done) {
+            models.instance.Person.find({Name: 'Mahafuzur'}, {raw: true}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
+                people[0].Name.should.equal('Mahafuzur');
+                done();
             });
         });
     });

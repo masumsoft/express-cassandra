@@ -1,10 +1,11 @@
 {
   "name": "express-cassandra",
-  "version": "0.6.4",
+  "version": "0.7.0",
   "dependencies": {
     "async": "^1.0.0",
     "cassandra-driver": "^3.0.1",
     "check-types": "^1.4.0",
+    "debug": "^2.2.0",
     "lodash": "^3.9.3"
   },
   "devDependencies": {

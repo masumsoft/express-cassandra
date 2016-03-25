@@ -795,6 +795,14 @@ models.doBatch(queries, function(err){
 });
 ```
 
+## Debug Logging Queries
+
+You can log the generated queries by the orm if you want. Just set the `DEBUG` environment variable like the following while starting your app:
+
+```
+DEBUG=express-cassandra node app.js
+```
+
 ## Raw Batch Query
 
 You can get the batch query interface from cassandra nodejs-driver using the `execute_batch` method.
@@ -843,7 +851,7 @@ models.close(function(err){
 
 All queries except schema definition related queries (i.e. create table etc.) are prepared by default. If you don't want to prepare queries, just set `prepare=false` in the options object.
 
-```
+```js
 models.instance.Person.find(query, {prepare: false}, function(err, people){
     //people is an array of plain objects
 });
