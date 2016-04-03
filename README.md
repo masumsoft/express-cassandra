@@ -577,6 +577,24 @@ models.instance.Person.find(query, {raw:true, allow_filtering: true}, function(e
 
 ```
 
+#### Find (using index expression)
+
+If you want to use custom index expressions, you may do that like this:
+
+```js
+var query = {
+    $expr: {
+        index: 'YOUR_INDEX_NAME',
+        query: 'YOUR_CUSTOM_EXPR_QUERY'
+    }
+}
+
+models.instance.Person.find(query, function(err, people){
+
+});
+
+```
+
 #### Find (token based pagination)
 
 You can also use the `token` comparison function while querying a result set using the $token operator. This is specially useful for [paging through unordered partitioner results](https://docs.datastax.com/en/cql/3.3/cql/cql_using/usePaging.html).
