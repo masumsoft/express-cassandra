@@ -322,7 +322,7 @@ module.exports = {
 
 When saving or updating composite types, use an object for a `map` value and use an array for `set` or `list` value like the following:
 
-```
+```js
 
 var person = new models.instance.Person({
 
@@ -336,6 +336,48 @@ person.save(function(err){
 
 });
 
+```
+
+If you want to add/remove/update existing map, list or set, then you can always find it using the find function,
+then change the map, list or set elements in javascript and use the `save` function on that model instance to save the changes.
+
+```js
+models.instance.Person.findOne(query, function(err, person){
+    person.mymap.key1 = 'val1 new';
+    delete person.mymap.key2;
+    person.mymap.key3 = 'val3';
+    person.mylist.push('value3');
+    person.myset.splice(0,1);
+
+    person.save(function(err){
+
+    });
+});
+```
+
+But sometimes you may want to add/remove elements into an existing map, list or set in a single call atomically.
+So you can use the update function along with the `$add` and `$remove` directive to do that.
+
+```js
+models.instance.Person.update({userID:1234, age:32}, {
+    info:{'$add':{'new2':'addition2'}},
+    phones:{'$add': ['12345']},
+    emails: {'$add': ['e@f.com']}
+}, function(err){
+    if(err) throw err;
+    done();
+});
+```
+
+```js
+models.instance.Person.update({userID:1234, age:32}, {
+    info:{'$remove':{'new2':''}},
+    phones:{'$remove': ['12345']},
+    emails: {'$remove': ['e@f.com']}
+}, function(err){
+    if(err) throw err;
+    done();
+});
 ```
 
 

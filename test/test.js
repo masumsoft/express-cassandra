@@ -127,7 +127,11 @@ describe('Unit Tests', function(){
                 people[0].surname.should.equal('no surname provided');
                 people[0].completeName.should.equal('Mahafuzur');
                 people[0].info.hello.should.equal('world');
+                people[0].phones.length.should.equal(2);
+                people[0].phones[0].should.equal('123456');
                 people[0].phones[1].should.equal('234567');
+                people[0].emails.length.should.equal(2);
+                people[0].emails[0].should.equal('a@b.com');
                 people[0].emails[1].should.equal('c@d.com');
                 people[0].active.should.equal(true);
                 expect(people[0].uniId.toString().length).to.be.equal(36);
@@ -294,12 +298,66 @@ describe('Unit Tests', function(){
                 if(err) throw err;
                 people.length.should.equal(1);
                 people[0].Name.should.equal('Stupid');
+                should.not.exist(people[0].info.hello);
                 people[0].info.new.should.equal('addition');
+                people[0].phones.length.should.equal(1);
                 people[0].phones[0].should.equal('56788');
-                people[0].emails[0].should.equal('c@d.com');
                 people[0].emails.length.should.equal(1);
+                people[0].emails[0].should.equal('c@d.com');
                 people[0].active.should.equal(false);
                 expect(people[0].timeId.toString().length).to.be.equal(36);
+                done();
+            });
+        });
+    });
+
+    describe('#update collections with $add',function(){
+        it('should update data on db without errors', function(done) {
+            models.instance.Person.update({userID:1234, age:32}, {info:{'$add':{'new2':'addition2'}}, phones:{'$add': ['12345']}, emails: {'$add': ['e@f.com']}}, function(err){
+                if(err) throw err;
+                done();
+            });
+        });
+    });
+
+    describe('#find after update collections with $add',function(){
+        it('should find data as updated without errors', function(done) {
+            models.instance.Person.find({userID: 1234,age:32}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
+                people[0].info.new.should.equal('addition');
+                people[0].info.new2.should.equal('addition2');
+                people[0].phones.length.should.equal(2);
+                people[0].phones[0].should.equal('56788');
+                people[0].phones[1].should.equal('12345');
+                people[0].emails.length.should.equal(2);
+                people[0].emails[0].should.equal('c@d.com');
+                people[0].emails[1].should.equal('e@f.com');
+                done();
+            });
+        });
+    });
+
+    describe('#update collections with $remove',function(){
+        it('should update data on db without errors', function(done) {
+            models.instance.Person.update({userID:1234, age:32}, {info:{'$remove':{'new2':''}}, phones:{'$remove': ['12345']}, emails: {'$remove': ['e@f.com']}}, function(err){
+                if(err) throw err;
+                done();
+            });
+        });
+    });
+
+    describe('#find after update collections with $remove',function(){
+        it('should find data as updated without errors', function(done) {
+            models.instance.Person.find({userID: 1234,age:32}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
+                people[0].info.new.should.equal('addition');
+                should.not.exist(people[0].info.new2);
+                people[0].phones.length.should.equal(1);
+                people[0].phones[0].should.equal('56788');
+                people[0].emails.length.should.equal(1);
+                people[0].emails[0].should.equal('c@d.com');
                 done();
             });
         });
