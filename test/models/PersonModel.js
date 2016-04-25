@@ -91,7 +91,7 @@ module.exports = {
     "indexes": ["Name"],
     materialized_views: {
         mat_view_composite: {
-            select: ["Name"],
+            select: ['*'],
             key : [["userID","age"],"active"]
         }
     }
