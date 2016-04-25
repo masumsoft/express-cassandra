@@ -227,7 +227,7 @@ Read more about the compound key here on the [compound key documentation](http:/
 
 - `clustering_order`: here you can define the clustering order of the clustering keys. If order is not defined, default value of ASC (ascending) is used.
 
-- `materialized_views` provides you the ability to define cassandra 3.x materialized views for your model table. You may want to read more about it on the [materialized view documentation](http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCreateMV.html). This is generally suited for querying high cardinality fields.
+- `materialized_views` provides you the ability to define cassandra 3.x materialized views for your model table. You may want to read more about it on the [materialized view documentation](http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCreateMV.html). This is generally suited for querying high cardinality fields. If you need to use select * for the materialized view, you can also use `select: ['*']`.
 
 - `indexes` are the index of your table. It's always an array of field names. You can read more on the [index documentation](http://docs.datastax.com/en/cql/3.3/cql/cql_using/usePrimaryIndex.html). This is generally suited for querying low cardinality fields, but not as low as boolean fields or fields with very limited number of variants. Very low cardinality fields are not a good separator of large datasets and hence not worthwhile to index.
 
