@@ -9,9 +9,10 @@
     "lodash": "^3.9.3"
   },
   "devDependencies": {
-    "vows": "*",
+    "chai": "*",
+    "istanbul": "*",
     "mocha": "*",
-    "chai": "*"
+    "vows": "*"
   },
   "optionalDependencies": {},
   "author": {
@@ -19,7 +20,8 @@
     "url": "https://www.codinglogs.com"
   },
   "scripts": {
-    "test": "node_modules/.bin/mocha --bail"
+    "test": "node_modules/.bin/mocha --bail",
+    "coverage": "node_modules/.bin/istanbul cover _mocha -- -R spec"
   },
   "license": "LGPL-3.0",
   "description": "Framework Independent Cassandra Object Models (ORM) for NodeJS",
