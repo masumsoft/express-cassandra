@@ -197,7 +197,8 @@ module.exports = {
             option1 : '...',
             option2: '...'
         }
-    }
+    },
+    table_name: "my_custom_table_name"
 }
 
 ```
@@ -231,6 +232,8 @@ Read more about the compound key here on the [compound key documentation](http:/
 - `indexes` are the index of your table. It's always an array of field names. You can read more on the [index documentation](http://docs.datastax.com/en/cql/3.3/cql/cql_using/usePrimaryIndex.html). This is generally suited for querying low cardinality fields, but not as low as boolean fields or fields with very limited number of variants. Very low cardinality fields are not a good separator of large datasets and hence not worthwhile to index.
 
 - `custom_index` provides the ability to define custom indexes with a Cassandra table. The `on` section should contain the column name on which the index should be built, the `using` section should contain the custom indexer class path and the `options` section should contain the passed options for the indexer class if any.
+
+- `table_name` provides the ability to use a different name for the actual table in cassandra. By default the lowercased modelname is used as the table name. But if you want a different table name instead, then you may want to use this optional field to specify the custom name for your cassandra table.
 
 When you instantiate a model, every field you defined in schema is automatically a property of your instances. So, you can write:
 
