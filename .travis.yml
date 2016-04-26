@@ -17,4 +17,3 @@ before_install:
   - sudo sh ./apache-cassandra-3.4/bin/cassandra -R
   - sleep 20
 
-script: npm run coverage
