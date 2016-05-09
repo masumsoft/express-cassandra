@@ -421,9 +421,9 @@ describe('Unit Tests', function(){
 
     describe('#update counter column',function(){
         it('should increment the counter to 2', function(done) {
-            models.instance.Counter.update({user_id:1234}, {visit_count:2}, function(err){
+            models.instance.Counter.update({user_id:models.datatypes.Long.fromInt(1234)}, {visit_count: models.datatypes.Long.fromInt(2)}, function(err){
                 if(err) throw err;
-                models.instance.Counter.findOne({user_id:1234}, function(err, stats){
+                models.instance.Counter.findOne({user_id:models.datatypes.Long.fromInt(1234)}, function(err, stats){
                     if(err) throw err;
                     stats.visit_count.toString().should.equal('2');
                     done();
@@ -431,9 +431,9 @@ describe('Unit Tests', function(){
             });
         });
         it('should keep the counter unchanged', function(done) {
-            models.instance.Counter.update({user_id:1234}, {visit_count:0}, function(err){
+            models.instance.Counter.update({user_id:models.datatypes.Long.fromInt(1234)}, {visit_count:models.datatypes.Long.fromInt(0)}, function(err){
                 if(err) throw err;
-                models.instance.Counter.findOne({user_id:1234}, function(err, stats){
+                models.instance.Counter.findOne({user_id:models.datatypes.Long.fromInt(1234)}, function(err, stats){
                     if(err) throw err;
                     stats.visit_count.toString().should.equal('2');
                     done();
@@ -441,9 +441,9 @@ describe('Unit Tests', function(){
             });
         });
         it('should decrement the counter to 0', function(done) {
-            models.instance.Counter.update({user_id:1234}, {visit_count:-2}, function(err){
+            models.instance.Counter.update({user_id:models.datatypes.Long.fromInt(1234)}, {visit_count:models.datatypes.Long.fromInt(-2)}, function(err){
                 if(err) throw err;
-                models.instance.Counter.findOne({user_id:1234}, function(err, stats){
+                models.instance.Counter.findOne({user_id:models.datatypes.Long.fromInt(1234)}, function(err, stats){
                     if(err) throw err;
                     stats.visit_count.toString().should.equal('0');
                     done();
@@ -451,9 +451,9 @@ describe('Unit Tests', function(){
             });
         });
         it('should increment the counter visitCount to 2', function(done) {
-            models.instance.Counter.update({user_id:1234}, {visitCount:2}, function(err){
+            models.instance.Counter.update({user_id:models.datatypes.Long.fromInt(1234)}, {visitCount:models.datatypes.Long.fromInt(2)}, function(err){
                 if(err) throw err;
-                models.instance.Counter.findOne({user_id:1234}, function(err, stats){
+                models.instance.Counter.findOne({user_id:models.datatypes.Long.fromInt(1234)}, function(err, stats){
                     if(err) throw err;
                     stats.visitCount.toString().should.equal('2');
                     done();
@@ -461,9 +461,9 @@ describe('Unit Tests', function(){
             });
         });
         it('should decrement the counter visitCount to 0', function(done) {
-            models.instance.Counter.update({user_id:1234}, {visitCount:-2}, function(err){
+            models.instance.Counter.update({user_id:models.datatypes.Long.fromInt(1234)}, {visitCount:models.datatypes.Long.fromInt(-2)}, function(err){
                 if(err) throw err;
-                models.instance.Counter.findOne({user_id:1234}, function(err, stats){
+                models.instance.Counter.findOne({user_id:models.datatypes.Long.fromInt(1234)}, function(err, stats){
                     if(err) throw err;
                     stats.visitCount.toString().should.equal('0');
                     done();
