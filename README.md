@@ -294,9 +294,9 @@ models.instance.Stats.update({user_id:1234}, {visit_count:-1}, function(err){
 
 Please note that counter columns has special limitations, to know more about the counter column usage, see the [cassandra counter docs](https://docs.datastax.com/en/cql/3.3/cql/cql_using/useCountersConcept.html).
 
-### Support for Composite Data Types
+### Support for Collection Data Types
 
-Cassandra composite data types (`map`, `list` & `set`) are supported in model schema definitions. An additional `typeDef` attribute is used to define the composite type.
+Cassandra collection data types (`map`, `list` & `set`) are supported in model schema definitions. An additional `typeDef` attribute is used to define the collection type.
 
 ```js
 
@@ -323,7 +323,7 @@ module.exports = {
 
 ```
 
-When saving or updating composite types, use an object for a `map` value and use an array for `set` or `list` value like the following:
+When saving or updating collection types, use an object for a `map` value and use an array for `set` or `list` value like the following:
 
 ```js
 
