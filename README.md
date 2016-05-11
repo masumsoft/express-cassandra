@@ -383,6 +383,38 @@ models.instance.Person.update({userID:1234, age:32}, {
 });
 ```
 
+### Support for Frozen Collections
+
+Frozen collections are useful if you want to use them in the primary key. Frozen collection can only be replaced as a whole, you cannot for example add/remove elements in a frozen collection.
+
+```js
+myfrozenmap: {
+    type: "frozen",
+    typeDef: "<map<varchar, text>>"
+}
+```
+
+### Support for Tuple Data Type
+
+Cassandra tuple data types can be declared using the `frozen` type like the following:
+
+```js
+mytuple: {
+    type: "frozen",
+    typeDef: "<tuple<int, text, float>>"
+}
+```
+
+To insert/update data into a tuple, use the cassandra Tuple datatype like the following:
+
+```js
+var person = new models.instance.Person({
+    //...other fields ommitted for clarity
+    mytuple: new models.datatypes.Tuple(3, 'bar', 2.1)
+});
+
+```
+
 
 ## Virtual fields
 
