@@ -549,7 +549,8 @@ describe('Unit Tests', function(){
             var event = new models.instance.Event({
                 email: 'hello3@h.com',
                 id: event_id,
-                body: 'hello3'
+                body: 'hello3',
+                tupletest: new models.datatypes.Tuple(3, 'bar', 2.1)
             });
 
             queries.push(event.save({return_query: true}));
@@ -580,6 +581,11 @@ describe('Unit Tests', function(){
                 events.length.should.equal(2);
                 events[0].body.should.equal('hello1 updated again');
                 events[1].body.should.equal('hello3');
+
+                var tuple_values = events[1].tupletest.values();
+                tuple_values[0].should.equal(3);
+                tuple_values[1].should.equal('bar');
+                tuple_values[2].should.approximately(2.1, 0.1);
 
                 done();
             });

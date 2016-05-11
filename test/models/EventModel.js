@@ -3,7 +3,11 @@ module.exports = {
         "email" : {"type": "text"},
         "id" : { "type": "timeuuid"},
         "body" : {"type": "text"},
-        "extra": {"type": "text"}
+        "extra": {"type": "text"},
+        "tupletest": {
+            "type": "frozen",
+            "typeDef": "<tuple<int, text, float>>"
+        }
     },
     "key" : [["email"],"id"],
     "clustering_order": {id: "desc"},
