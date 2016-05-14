@@ -9,8 +9,8 @@ var client;
 describe('Unit Tests', function(){
     describe('#modelsync',function(done){
         it('should connect and sync with db without errors', function(done) {
-            this.timeout(10000);
-            this.slow(3000);
+            this.timeout(20000);
+            this.slow(10000);
             models.setDirectory( __dirname + '/models').bind(
             {
                 clientOptions: {
@@ -24,7 +24,102 @@ describe('Unit Tests', function(){
                         replication_factor: 1
                     },
                     dropTableOnSchemaChange: true,
-                    createKeyspace: true
+                    createKeyspace: true,
+                    udts: {
+                        phone: {
+                            alias: 'text',
+                            phone_number: 'text',
+                            country_code: 'int'
+                        },
+                        address: {
+                            street: 'text',
+                            city: 'text',
+                            state: 'text',
+                            zip: 'int',
+                            phones: 'set<frozen<phone>>'
+                        }
+                    },
+                    udfs: {
+                        fLog: {
+                            language: 'java',
+                            code: 'return Double.valueOf(Math.log(input.doubleValue()));',
+                            returnType: 'double',
+                            inputs: {
+                                input: 'double'
+                            }
+                        },
+                        avgState: {
+                            language: 'java',
+                            code: 'if (val !=null) { state.setInt(0, state.getInt(0)+1); state.setLong(1,state.getLong(1)+val.intValue()); } return state;',
+                            returnType: 'tuple<int, bigint>',
+                            inputs: {
+                                state: 'tuple<int, bigint>',
+                                val: 'int'
+                            }
+                        },
+                        avgFinal: {
+                            language: 'java',
+                            code: 'double r = 0; if (state.getInt(0) == 0) return null; r = state.getLong(1); r/= state.getInt(0); return Double.valueOf(r);',
+                            returnType: 'double',
+                            inputs: {
+                                state: 'tuple<int,bigint>'
+                            }
+                        },
+                        maxI: {
+                            language: 'java',
+                            code: 'if (current == null) return candidate; else return Math.max(current, candidate);',
+                            returnType: 'int',
+                            inputs: {
+                                current: 'int',
+                                candidate: 'int'
+                            }
+                        },
+                        state_group_and_count: {
+                            language: 'java',
+                            code: 'Integer count = (Integer) state.get(type);  if (count == null) count = 1; else count++; state.put(type, count); return state; ',
+                            returnType: 'map<text, int>',
+                            inputs: {
+                                state: 'map<text, int>',
+                                type: 'text'
+                            }
+                        },
+                        state_group_and_total: {
+                            language: 'java',
+                            code: 'Integer count = (Integer) state.get(type);  if (count == null) count = amount; else count = count + amount; state.put(type, count); return state;',
+                            returnType: 'map<text, int>',
+                            inputs: {
+                                state: 'map<text, int>',
+                                type: 'text',
+                                amount: 'int'
+                            }
+                        }
+                    },
+                    udas: {
+                        average: {
+                            input_types: ['int'],
+                            sfunc: 'avgState',
+                            stype: 'tuple<int,bigint>',
+                            finalfunc: 'avgFinal',
+                            initcond: '(0,0)'
+                        },
+                        maxAgg: {
+                            input_types: ['int'],
+                            sfunc: 'maxI',
+                            stype: 'int',
+                        },
+                        group_and_count: {
+                            input_types: ['text'],
+                            sfunc: 'state_group_and_count',
+                            stype: 'map<text, int> ',
+                            initcond: '{}'
+                        },
+                        group_and_total: {
+                            input_types: ['text', 'int'],
+                            sfunc: 'state_group_and_total',
+                            stype: 'map<text, int>',
+                            initcond: '{}'
+                        }
+                    }
                 }
             },
             function(err) {
@@ -37,8 +132,8 @@ describe('Unit Tests', function(){
 
     describe('#multiple connections', function (done) {
         it('should create a new cassandra client', function (done) {
-            this.timeout(10000);
-            this.slow(3000);
+            this.timeout(20000);
+            this.slow(10000);
             client = models.createClient({
                 clientOptions: {
                     contactPoints: ['127.0.0.1'],
@@ -81,6 +176,8 @@ describe('Unit Tests', function(){
 
     describe('#save',function(){
         it('should save data to without errors', function(done) {
+            this.timeout(5000);
+            this.slow(1000);
             var revtimeMap = {};
             revtimeMap[new Date(current_time)] = 'one';
             revtimeMap['2014-10-2 12:00'] = 'two';
@@ -102,6 +199,20 @@ describe('Unit Tests', function(){
                 timeSet: [current_time],
                 intSet: [1, 2, 3, 3],
                 stringSet: ['one', 'two', 'three', 'three'],
+                address: {
+                    city: 'Santa Clara',
+                    state: 'CA',
+                    street: '3975 Freedom Circle',
+                    zip: 95054,
+                    phones: [
+                        {
+                            alias: 'Masum',
+                            phone_number: '650-389-6000',
+                            country_code: 1
+                        }
+                    ]
+                },
+                points: 64.0,
                 active: true
             });
             alex.save(function(err){
@@ -133,7 +244,15 @@ describe('Unit Tests', function(){
                 people[0].emails.length.should.equal(2);
                 people[0].emails[0].should.equal('a@b.com');
                 people[0].emails[1].should.equal('c@d.com');
+                people[0].address.city.should.equal('Santa Clara');
+                people[0].address.state.should.equal('CA');
+                people[0].address.street.should.equal('3975 Freedom Circle');
+                people[0].address.zip.should.equal(95054);
+                people[0].address.phones[0].alias.should.equal('Masum');
+                people[0].address.phones[0].phone_number.should.equal('650-389-6000');
+                people[0].address.phones[0].country_code.should.equal(1);
                 people[0].active.should.equal(true);
+                people[0].points.should.approximately(64.0, 0.1);
                 expect(people[0].uniId.toString().length).to.be.equal(36);
                 expect(people[0].timeId.toString().length).to.be.equal(36);
                 expect(people[0].createdAt).to.exist;
@@ -203,11 +322,13 @@ describe('Unit Tests', function(){
         });
     });
 
-    describe('#findOne with aggregate function',function(){
+    describe('#findOne with udf, uda and builtin aggregate functions',function(){
         it('should find a row with only selected columns', function(done) {
-            models.instance.Person.findOne({userID:1234}, {select: ['sum(age)']}, function(err, user){
+            models.instance.Person.findOne({userID:1234}, {select: ['fLog(points)','sum(age)','average(age)']}, function(err, user){
                 if(err) throw err;
+                user['express_cassandra_tests_kspc1.flog(points)'].should.approximately(4.16, 0.01);
                 user['system.sum(age)'].should.equal(32);
+                user['express_cassandra_tests_kspc1.average(age)'].should.equal(32);
                 done();
             });
         });

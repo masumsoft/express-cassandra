@@ -84,6 +84,11 @@ module.exports = {
         "info": { "type": "map", typeDef:"<varchar,varchar>" },
         "phones": { "type": "list", typeDef:"<varchar>" },
         "emails": { "type": "set", typeDef:"<varchar>" },
+        "address": {
+            type: 'frozen',
+            typeDef: '<address>'
+        },
+        "points": "double",
         "active": "boolean",
         "createdAt": {"type": "timestamp", "default" : {"$db_function": "toTimestamp(now())"} }
     },
