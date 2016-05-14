@@ -415,6 +415,85 @@ var person = new models.instance.Person({
 
 ```
 
+### Support for User Defined Types, Functions and Aggregates
+
+User defined types (UDTs), user defined functions (UDFs) and user defined aggregates (UDAs) are supported too. The UDTs, UDFs & UDAs should be defined globally against your keyspace. You can defined them in the configuration object passed to initialize express-cassandra, so that express cassandra could create and sync them against your keyspace. So you may be able to use them in your schema definition and queries. The configuration object should have some more object keys representing the user defined types, functions and aggregates under `ormOptions` like the following:
+
+```js
+clientOptions: {
+    //... client options are ommitted for clarity
+},
+ormOptions: {
+    //... other orm options are ommitted for clarity
+    udts: {
+        phone: {
+            alias: 'text',
+            phone_number: 'text',
+            country_code: 'int'
+        },
+        address: {
+            street: 'text',
+            city: 'text',
+            state: 'text',
+            zip: 'int',
+            phones: 'set<frozen<phone>>'
+        }
+    },
+    udfs: {
+        fLog: {
+            language: 'java',
+            code: 'return Double.valueOf(Math.log(input.doubleValue()));',
+            returnType: 'double',
+            inputs: {
+                input: 'double'
+            }
+        },
+        avgState: {
+            language: 'java',
+            code: 'if (val !=null) { state.setInt(0, state.getInt(0)+1); state.setLong(1,state.getLong(1)+val.intValue()); } return state;',
+            returnType: 'tuple<int,bigint>',
+            inputs: {
+                state: 'tuple<int,bigint>',
+                val: 'int'
+            }
+        },
+        avgFinal: {
+            language: 'java',
+            code: 'double r = 0; if (state.getInt(0) == 0) return null; r = state.getLong(1); r/= state.getInt(0); return Double.valueOf(r);',
+            returnType: 'double',
+            inputs: {
+                state: 'tuple<int,bigint>'
+            }
+        }
+    },
+    udas: {
+        average: {
+            input_types: ['int'],
+            sfunc: 'avgState',
+            stype: 'tuple<int,bigint>',
+            finalfunc: 'avgFinal',
+            initcond: '(0,0)'
+        }
+    }
+}
+```
+
+After configuring them for your keyspace, you could possibly define fields using udts like the following:
+
+```js
+currencies: {
+    type: 'frozen',
+    typeDef: '<address>'
+}
+```
+
+and use the UDFs and UDAs like any other standard functions using the `select` attribute:
+
+```js
+models.instance.Person.findOne({...}, {select: ['fLog(points)','average(age)']}, function(err, user){
+    //...
+});
+```
 
 ## Virtual fields
 
