@@ -751,6 +751,77 @@ models.instance.Person.find(query, function(err, people){
 
 ```
 
+#### Find (fetching large result sets using streaming queries)
+
+The stream() method automatically fetches the following pages, yielding the rows as they come through the network and retrieving the following page after the previous rows were read (throttling).
+
+```js
+models.instance.Person.stream({Name: 'John'}, {raw: true}, function(reader){
+    var row;
+    while (row = reader.readRow()) {
+        //process row
+    }
+}, function(err){
+    //emitted when all rows have been retrieved and read
+});
+```
+
+With the eachRow() method, you can retrieve the following pages automatically by setting the autoPage flag to true in the query options to request the following pages automatically. Because eachRow() does not handle backpressure, it is only suitable when there is minimum computation per row required and no additional I/O, otherwise it ends up buffering an unbounded amount of rows.
+
+```js
+models.instance.Person.eachRow({Name: 'John'}, {autoPage : true}, function(n, row){
+    // invoked per each row in all the pages
+}, function(err, result){
+    // ...
+});
+```
+
+If you want to retrieve the next page of results only when you ask for it (for example, in a web page or after a certain computation or job finished), you can use the eachRow() method in the following way:
+
+```js
+models.instance.Person.eachRow({Name: 'John'}, {fetchSize : 100}, function(n, row){
+    // invoked per each row in all the pages
+}, function(err, result){
+    // called once the page has been retrieved.
+    if(err) throw err;
+    if (result.nextPage) {
+        // retrieve the following pages
+        // the same row handler from above will be used
+        result.nextPage();
+    }
+});
+```
+
+You can also use the `pageState` property, a string token made available in the result if there are additional result pages.
+
+```js
+models.instance.Person.eachRow({Name: 'John'}, {fetchSize : 100}, function(n, row){
+    // invoked per each row in all the pages
+}, function(err, result){
+    // called once the page has been retrieved.
+    if(err) throw err;
+    // store the paging state
+    pageState = result.pageState;
+});
+```
+
+In the next request, use the page state to fetch the following rows.
+
+```js
+models.instance.Person.eachRow({Name: 'John'}, {fetchSize : 100, pageState : pageState}, function(n, row){
+    // invoked per each row in all the pages
+}, function(err, result){
+    // called once the page has been retrieved.
+    if(err) throw err;
+    // store the next paging state.
+      pageState = result.pageState;
+});
+```
+
+Saving the paging state works well when you only let the user move from one page to the next. But it doesn’t allow random jumps (like "go directly to page 10"), because you can't fetch a page unless you have the paging state of the previous one. Such a feature would require offset queries, which are not natively supported by Cassandra.
+
+Note: The page state token can be manipulated to retrieve other results within the same column family, so it is not safe to expose it to the users.
+
 #### Find (token based pagination)
 
 You can also use the `token` comparison function while querying a result set using the $token operator. This is specially useful for [paging through unordered partitioner results](https://docs.datastax.com/en/cql/3.3/cql/cql_using/usePaging.html).
