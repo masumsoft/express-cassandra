@@ -398,6 +398,34 @@ describe('Unit Tests', function(){
         });
     });
 
+    describe('#find using stream',function(){
+        it('should stream data without errors', function(done) {
+            models.instance.Person.stream({Name: 'Mahafuzur'}, function(reader){
+                var row;
+                while (row = reader.readRow()) {
+                    row.Name.should.equal('Mahafuzur');
+                }
+            }, function(err){
+                if(err) throw err;
+                done();
+            });
+        });
+    });
+
+    describe('#find using eachRow',function(){
+        it('should stream data using eachRow without errors', function(done) {
+            models.instance.Person.eachRow({Name: 'Mahafuzur'}, {fetchSize : 100}, function(n, row){
+                row.Name.should.equal('Mahafuzur');
+            }, function(err, result){
+                if(err) throw err;
+                if (result.nextPage) {
+                    result.nextPage();
+                }
+                done();
+            });
+        });
+    });
+
     describe('#update',function(){
         it('should update data on db without errors', function(done) {
             models.instance.Person.update({userID:1234, age:32}, {Name:1, info:{'new':'addition'}, phones:['56788'], emails:['c@d.com']}, function(err){
