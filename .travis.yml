@@ -14,7 +14,7 @@ before_install:
   - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
   - java -version
   - wget http://archive.apache.org/dist/cassandra/3.0.6/apache-cassandra-3.0.6-bin.tar.gz && tar -xvzf apache-cassandra-3.0.6-bin.tar.gz
-  - sed -i 's/enable_user_defined_functions\: false/enable_user_defined_functions\: true/g' ./apache-cassandra-3.0.6/conf/cassandra.yaml
+  - sed -i "s/enable_user_defined_functions\: false/enable_user_defined_functions\: true/g" ./apache-cassandra-3.0.6/conf/cassandra.yaml
   - sudo sh ./apache-cassandra-3.0.6/bin/cassandra -R
   - sleep 20
 
