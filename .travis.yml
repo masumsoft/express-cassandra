@@ -13,7 +13,7 @@ before_install:
   - sudo update-java-alternatives -s java-8-oracle
   - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
   - java -version
-  - wget http://www-us.apache.org/dist/cassandra/3.4/apache-cassandra-3.4-bin.tar.gz && tar -xvzf apache-cassandra-3.4-bin.tar.gz
-  - sudo sh ./apache-cassandra-3.4/bin/cassandra -R
+  - wget http://archive.apache.org/dist/cassandra/3.0.6/apache-cassandra-3.0.6-bin.tar.gz && tar -xvzf apache-cassandra-3.0.6-bin.tar.gz
+  - sudo sh ./apache-cassandra-3.0.6/bin/cassandra -R
   - sleep 20
 
