@@ -495,6 +495,19 @@ models.instance.Person.findOne({...}, {select: ['fLog(points)','average(age)']},
 });
 ```
 
+### Support for shared static columns
+
+In a table that uses clustering columns, non-clustering columns can be declared static in the schema definition like the following:
+
+```js
+"my_shared_data": {
+    "type": "text",
+    "static": true
+}
+```
+
+Note that static columns are only static within a given partition. Static columns also has several restrictions described in the cassandra [static column documentation](https://docs.datastax.com/en/cql/3.3/cql/cql_reference/refStaticCol.html).
+
 ## Virtual fields
 
 Your model could have some fields which are not saved on database. You can define them as `virtual`
