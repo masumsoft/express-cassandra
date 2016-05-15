@@ -88,12 +88,16 @@ module.exports = {
             type: 'frozen',
             typeDef: '<address>'
         },
+        "frozenMap": {
+            type: 'frozen',
+            typeDef: '<map <text, frozen<address>>>'
+        },
         "points": "double",
         "active": "boolean",
         "createdAt": {"type": "timestamp", "default" : {"$db_function": "toTimestamp(now())"} }
     },
     "key" : [["userID"],"age"],
-    "indexes": ["Name"],
+    "indexes": ["Name","phones","emails","keys(info)","entries(info)","values(info)","full(frozenMap)"],
     materialized_views: {
         mat_view_composite: {
             select: ['*'],

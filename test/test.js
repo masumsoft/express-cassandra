@@ -212,6 +212,21 @@ describe('Unit Tests', function(){
                         }
                     ]
                 },
+                frozenMap: {
+                    hello: {
+                        city: 'Santa Clara',
+                        state: 'CA',
+                        street: '3975 Freedom Circle',
+                        zip: 95054,
+                        phones: [
+                            {
+                                alias: 'Masum',
+                                phone_number: '650-389-6000',
+                                country_code: 1
+                            }
+                        ]
+                    }
+                },
                 points: 64.0,
                 active: true
             });
@@ -251,6 +266,7 @@ describe('Unit Tests', function(){
                 people[0].address.phones[0].alias.should.equal('Masum');
                 people[0].address.phones[0].phone_number.should.equal('650-389-6000');
                 people[0].address.phones[0].country_code.should.equal(1);
+                people[0].frozenMap.hello.phones[0].country_code.should.equal(1);
                 people[0].active.should.equal(true);
                 people[0].points.should.approximately(64.0, 0.1);
                 expect(people[0].uniId.toString().length).to.be.equal(36);
@@ -390,6 +406,73 @@ describe('Unit Tests', function(){
     describe('#find using secondary index',function(){
         it('should find data as saved without errors', function(done) {
             models.instance.Person.find({Name: 'Mahafuzur'}, {raw: true}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
+                people[0].Name.should.equal('Mahafuzur');
+                done();
+            });
+        });
+    });
+
+    describe('#find using indexed collections',function(){
+        it('should find data in a list using $contains', function(done) {
+            models.instance.Person.find({phones: {$contains: '234567'}}, {raw: true}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
+                people[0].Name.should.equal('Mahafuzur');
+                done();
+            });
+        });
+        it('should find data in a set using $contains', function(done) {
+            models.instance.Person.find({emails: {$contains: 'c@d.com'}}, {raw: true}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
+                people[0].Name.should.equal('Mahafuzur');
+                done();
+            });
+        });
+        it('should find data in a map using $contains_key', function(done) {
+            models.instance.Person.find({info: {$contains_key: 'hello'}}, {raw: true}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
+                people[0].Name.should.equal('Mahafuzur');
+                done();
+            });
+        });
+        it('should find data in a map using $contains entries', function(done) {
+            models.instance.Person.find({info: {$contains: {hello: 'world'}}}, {raw: true}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
+                people[0].Name.should.equal('Mahafuzur');
+                done();
+            });
+        });
+        it('should find data in a map using $contains values', function(done) {
+            models.instance.Person.find({info: {$contains: 'world'}}, {raw: true}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
+                people[0].Name.should.equal('Mahafuzur');
+                done();
+            });
+        });
+        it('should find data in a frozen map using full index', function(done) {
+            models.instance.Person.find({
+                frozenMap: {
+                    hello: {
+                        city: 'Santa Clara',
+                        state: 'CA',
+                        street: '3975 Freedom Circle',
+                        zip: 95054,
+                        phones: [
+                            {
+                                alias: 'Masum',
+                                phone_number: '650-389-6000',
+                                country_code: 1
+                            }
+                        ]
+                    }
+                }
+            }, {raw: true}, function(err, people){
                 if(err) throw err;
                 people.length.should.equal(1);
                 people[0].Name.should.equal('Mahafuzur');
