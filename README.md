@@ -538,6 +538,72 @@ In a table that uses clustering columns, non-clustering columns can be declared 
 
 Note that static columns are only static within a given partition. Static columns also has several restrictions described in the cassandra [static column documentation](https://docs.datastax.com/en/cql/3.3/cql/cql_reference/refStaticCol.html).
 
+### Support for indexed collections
+
+Collections can be indexed and queried to find a collection containing a particular value. Sets and lists are indexed slightly differently from maps, given the key-value nature of maps.
+
+Sets and lists can index all values found by indexing the collection column. Maps can index a map key, map value, or map entry using the methods shown below. Multiple indexes can be created on the same map column in a table, so that map keys, values, or entries can be queried. In addition, frozen collections can be indexed using FULL to index the full content of a frozen collection.
+
+For defining indexed collections or frozen full indexes, you can define the corresponsing fields in your schema definition indexes like the following:
+
+```js
+"fields": {...},
+"key": [...],
+"indexes": ["my_list","my_set","keys(my_map)","entries(my_map)","values(my_map)","full(my_frozen_field)"],
+```
+
+Now after defining your indexes in your collections, you can use the `$contains` and `$contains_key` directives to query those indexes:
+
+```js
+//Find all persons where my_list contains my_value
+models.instance.Person.find({my_list: {$contains: 'my_value'}}, {raw: true}, function(err, people){
+
+});
+//Find all persons where my_set contains my_value
+models.instance.Person.find({my_set: {$contains: 'my_value'}}, {raw: true}, function(err, people){
+
+});
+//Find all persons where my_map keys contains my_key
+models.instance.Person.find({my_map: {$contains_key: 'my_key'}}, {raw: true}, function(err, people){
+
+});
+//Find all persons where my_map contains object {my_key: 'my_value'}
+models.instance.Person.find({my_map: {$contains: {my_key: 'my_value'}}}, {raw: true}, function(err, people){
+
+});
+//Find all persons where my_map contains my_value
+models.instance.Person.find({my_map: {$contains: 'my_value'}}, {raw: true}, function(err, people){
+
+});
+```
+
+Now for finding using indexed frozen field using `full` type index, you can directly use the value of the complex object in your query.
+
+For example your person schema has a frozen map `myFrozenMap` with typeDef `<map <int, text>>` that is indexed using the `full` keyword like the following:
+
+```js
+fields: {
+    myFrozenMap: {
+        type: 'frozen',
+        typeDef: '<map <text, text>>'
+    }
+},
+keys: [...],
+indexes: ['full(myFrozenMap)']
+```
+
+So now you may query like the following:
+
+```js
+models.instance.Person.find({
+    myFrozenMap: {
+        my_key: 'my_value'
+    }
+}, {raw: true}, function(err, people){
+    //people is a list of persons where myFrozenMap value is {mykey: 'my_value'}
+});
+```
+
 ## Virtual fields
 
 Your model could have some fields which are not saved on database. You can define them as `virtual`
