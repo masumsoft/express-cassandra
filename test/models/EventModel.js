@@ -7,6 +7,10 @@ module.exports = {
         "tupletest": {
             "type": "frozen",
             "typeDef": "<tuple<int, text, float>>"
+        },
+        "statictest": {
+            "type": "text",
+            "static": true
         }
     },
     "key" : [["email"],"id"],
