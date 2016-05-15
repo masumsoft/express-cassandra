@@ -383,6 +383,36 @@ models.instance.Person.update({userID:1234, age:32}, {
 });
 ```
 
+Instead of `$add`, you may also use `$append`. Both of them will have the same effect. If you want to prepend in a list instead of append, you can use the `$prepend` directive like the following:
+
+```js
+models.instance.Person.update({userID:1234, age:32}, {
+    phones:{'$prepend': ['654532']}
+}, function(err){
+
+});
+```
+
+You can also replace a specific item in a map using the `$replace` directive like the following:
+
+```js
+models.instance.Person.update({userID:1234, age:32}, {
+    info:{'$replace':{'new':'replaced value'}}
+}, function(err){
+
+});
+```
+
+You may also replace a list item using the index. In this case provide a 2 item array where the first item is the index to replace and the second item is the value you want to set for that index.
+
+```js
+models.instance.Person.update({userID:1234, age:32}, {
+    phones:{'$replace': [1,'23456']} //replace the phone number at index 1 with the value 23456
+}, function(err){
+
+});
+```
+
 ### Support for Frozen Collections
 
 Frozen collections are useful if you want to use them in the primary key. Frozen collection can only be replaced as a whole, you cannot for example add/remove elements in a frozen collection.

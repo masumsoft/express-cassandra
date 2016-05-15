@@ -487,9 +487,53 @@ describe('Unit Tests', function(){
         });
     });
 
+    describe('#update list with $prepend',function(){
+        it('should update data on db without errors', function(done) {
+            models.instance.Person.update({userID:1234, age:32}, {phones:{'$prepend': ['654532']}}, function(err){
+                if(err) throw err;
+                done();
+            });
+        });
+    });
+
+    describe('#find after update list with $prepend',function(){
+        it('should find data as updated without errors', function(done) {
+            models.instance.Person.find({userID: 1234,age:32}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
+                people[0].phones.length.should.equal(3);
+                people[0].phones[0].should.equal('654532');
+                people[0].phones[1].should.equal('56788');
+                people[0].phones[2].should.equal('12345');
+                done();
+            });
+        });
+    });
+
+    describe('#update collections with $replace',function(){
+        it('should update data on db without errors', function(done) {
+            models.instance.Person.update({userID:1234, age:32}, {info:{'$replace':{'new':'addition_replaced'}}, phones:{'$replace': [1,'23456']}}, function(err){
+                if(err) throw err;
+                done();
+            });
+        });
+    });
+
+    describe('#find after update collections with $replace',function(){
+        it('should find data as updated without errors', function(done) {
+            models.instance.Person.find({userID: 1234,age:32}, function(err, people){
+                if(err) throw err;
+                people.length.should.equal(1);
+                people[0].info.new.should.equal('addition_replaced');
+                people[0].phones[1].should.equal('23456');
+                done();
+            });
+        });
+    });
+
     describe('#update collections with $remove',function(){
         it('should update data on db without errors', function(done) {
-            models.instance.Person.update({userID:1234, age:32}, {info:{'$remove':{'new2':''}}, phones:{'$remove': ['12345']}, emails: {'$remove': ['e@f.com']}}, function(err){
+            models.instance.Person.update({userID:1234, age:32}, {info:{'$remove':{'new2':''}}, phones:{'$remove': ['23456']}, emails: {'$remove': ['e@f.com']}}, function(err){
                 if(err) throw err;
                 done();
             });
@@ -501,10 +545,11 @@ describe('Unit Tests', function(){
             models.instance.Person.find({userID: 1234,age:32}, function(err, people){
                 if(err) throw err;
                 people.length.should.equal(1);
-                people[0].info.new.should.equal('addition');
+                people[0].info.new.should.equal('addition_replaced');
                 should.not.exist(people[0].info.new2);
-                people[0].phones.length.should.equal(1);
-                people[0].phones[0].should.equal('56788');
+                people[0].phones.length.should.equal(2);
+                people[0].phones[0].should.equal('654532');
+                people[0].phones[1].should.equal('12345');
                 people[0].emails.length.should.equal(1);
                 people[0].emails[0].should.equal('c@d.com');
                 done();
