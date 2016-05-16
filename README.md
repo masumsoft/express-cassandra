@@ -276,6 +276,80 @@ Express cassandra exposes some node driver methods for convenience. To generate 
     this object contains all the available datatypes defined by node cassandra driver, so you can for example use
     models.datatypes.Long to deal with the cassandra bigint or counter field types.
 
+
+### Cassandra to Javascript Datatypes
+
+When saving or retrieving the value of a column, the value is typed according to the following table.
+
+| Cassandra Field Types  |  Javascript Types                 |
+|------------------------|-----------------------------------|
+|     ascii              |     String                        |
+|     bigint             |     [models.datatypes.Long](https://google.github.io/closure-library/api/class_goog_math_Long.html)|
+|     blob               |     [Buffer](https://nodejs.org/api/buffer.html)|
+|     boolean            |     Boolean                       |
+|     counter            |     [models.datatypes.Long](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-Long.html)|
+|     date               |     [models.datatypes.LocalDate](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-LocalDate.html)|
+|     decimal            |     [models.datatypes.BigDecimal](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-BigDecimal.html)|
+|     double             |     Number                        |
+|     float              |     Number                        |
+|     inet               |     [models.datatypes.InetAddress](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-InetAddress.html)|
+|     int                |     Number (Integer)              |
+|     list               |     Array                         |
+|     map                |     Object                        |
+|     set                |     Array                         |
+|     smallint           |     Number (Integer)|
+|     text               |     String                        |
+|     time               |     [models.datatypes.LocalTime](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-LocalTime.html)|
+|     timestamp          |     Date                          |
+|     timeuuid           |     [models.datatypes.TimeUuid](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-TimeUuid.html)|
+|     tinyint            |     Number (Integer)|
+|     tuple              |     [models.datatypes.Tuple](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-Tuple.html)|
+|     uuid               |     [models.datatypes.Uuid](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-Uuid.html)|
+|     varchar            |     String                        |
+|     varint             |     [models.datatypes.Integer](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-Integer.html)|
+
+
+For example, you have a User model schema like the following:
+
+```js
+module.exports = {
+    "fields": {
+        "user_id": "bigint",
+        "user_name": "text"
+    },
+    "key" : ["user_id"]
+}
+```
+
+Now to insert data in the model, you need the Long data type. To create a Long type data, you can use the `models.datatypes.Long` like the following:
+
+```js
+var user = new models.instance.User({
+    user_id: models.datatypes.Long.fromString('1234556567676782'),
+    user_name: 'john'
+});
+user.save(function(err){
+    //Now let's find the saved user
+    models.instance.User.findOne({user_id: models.datatypes.Long.fromString('1234556567676782')}, function(err, john){
+        console.log(john.user_id.toString()); // john.user_id is of type Long.
+    });
+});
+```
+
+### Null and unset values
+
+To complete a distributed DELETE operation, Cassandra replaces it with a special value called a tombstone which can be propagated to replicas. When inserting or updating a field, you can set a certain field to null as a way to clear the value of a field, and it is considered a DELETE operation. In some cases, you might insert rows using null for values that are not specified, and even though our intention is to leave the value empty, Cassandra represents it as a tombstone causing unnecessary overhead.
+
+To avoid tombstones, cassandra has the concept of unset for a parameter value. So you can do the following to unset a field value for example:
+
+```js
+models.instance.User.update({user_id: models.datatypes.Long.fromString('1234556567676782')}, {
+    user_name: models.datatypes.unset
+}, function(err){
+    //user name is now unset
+})
+```
+
 ### Counter Column Operations
 
 Cassandra counter column increment and decrement operations are supported via the update operation. To increment/decrement a counter, you can use the following types of update operation:
