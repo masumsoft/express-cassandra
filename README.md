@@ -107,6 +107,20 @@ cassandra.connect(function (err) {
 
 ```
 
+For connecting to cassandra using authentication, you can use the nodejs-driver `authProvider` option in the `clientOptions` object like the following:
+
+```js
+clientOptions: {
+    contactPoints: ['127.0.0.1'],
+    protocolOptions: { port: 9042 },
+    keyspace: 'mykeyspace',
+    queryOptions: {consistency: models.consistencies.one},
+    authProvider: new models.driver.auth.PlainTextAuthProvider('my_user', 'my_password')
+}
+```
+
+Infact any of the clientOptions supported by the nodejs driver can be used. Possible options are documented in the [cassandra driver docs](http://docs.datastax.com/en/developer/nodejs-driver/3.0/common/drivers/reference/clientOptions.html).
+
 ## Write a Model named `PersonModel.js` inside models directory
 
 ```js
