@@ -222,7 +222,7 @@ What does the above code means?
 - `fields` are the columns of your table. For each column name the value can be a string representing the type or an object containing more specific informations. i.e.
     + ` "id"     : { "type": "uuid", "default": {"$db_function": "uuid()"} },` in this example id type is `uuid` and the default value is a cassandra function (so it will be executed from the database).
     + `"name"   : { "type": "varchar", "default": "no name provided"},` in this case name is a varchar and, if no value will be provided, it will have a default value of `no name provided`. The same goes for `surname`.
-    + `complete_name` the default values is calculated from others field. When the orm processes your model instances, the `complete_name` will be the result of the function you defined. In the function `this` is bound to the current model instance.
+    + `complete_name` the default values is calculated from others field. When the orm processes your model instances, the `complete_name` will be the result of the function you defined. In the function `this` is bound to the current model instance. If you need to use the custom datatypes, you may use the `this._get_data_types()` function that will be similar to using [models.datatypes](#cassandra-to-javascript-datatypes) but the difference is, it can be used from within a model definition. For example to return a Long value from a default function, you could use the `this._get_data_types().Long` class.
     + `age` no default is provided and we could write it just as `age: "int"`.
     + `active` no default is provided and we could write it just as `active: "boolean"`.
     + `created`, like uuid(), will be evaluated from cassandra using the `now()` function.
