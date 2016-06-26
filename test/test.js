@@ -919,16 +919,18 @@ describe('Unit Tests', function(){
         });
     });
 
-    describe('#toJSON returns json with model fields only',function(){
-        it('should return json for new model instance', function() {
+    describe('#toJSON returns object with model fields only',function(){
+        it('should return the object for new model instance', function() {
             var simple = new models.instance.Simple({foo:"bar"});
             simple.toJSON().should.deep.eq({
                 foo: "bar",
                 bar: "baz"
             });
+            JSON.stringify(simple).should.eq('{"foo":"bar","bar":"baz"}');
+            should.exist(simple._validators);
         });
 
-        it('should return json for fetched model', function(done) {
+        it('should return the object for fetched model', function(done) {
             var simple = new models.instance.Simple({foo:"bar"});
             simple.save(function save(err){
                 if(err) throw err;
@@ -937,6 +939,8 @@ describe('Unit Tests', function(){
                         foo: "bar",
                         bar: "baz"
                     });
+                    JSON.stringify(simpleModel).should.eq('{"foo":"bar","bar":"baz"}');
+                    should.exist(simpleModel._validators);
                     simpleModel.delete(function del(err){
                         if(err) throw err;
                         done();
