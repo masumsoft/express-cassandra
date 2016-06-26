@@ -919,6 +919,33 @@ describe('Unit Tests', function(){
         });
     });
 
+    describe('#toJSON returns json with model fields only',function(){
+        it('should return json for new model instance', function() {
+            var simple = new models.instance.Simple({foo:"bar"});
+            simple.toJSON().should.deep.eq({
+                foo: "bar",
+                bar: "baz"
+            });
+        });
+
+        it('should return json for fetched model', function(done) {
+            var simple = new models.instance.Simple({foo:"bar"});
+            simple.save(function save(err){
+                if(err) throw err;
+                models.instance.Simple.findOne({}, function findOne(err, simpleModel){
+                    simpleModel.toJSON().should.deep.eq({
+                        foo: "bar",
+                        bar: "baz"
+                    });
+                    simpleModel.delete(function del(err){
+                        if(err) throw err;
+                        done();
+                    });
+                });
+            });
+        });
+    });
+
     describe('#close cassandra connection',function(){
         it('should close connection to cassandra without errors', function(done) {
             models.close(function(err){
