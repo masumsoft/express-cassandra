@@ -818,6 +818,8 @@ models.instance.Person.findOne({name: 'John'}, function(err, john){
 
 ```
 
+Note that, result objects here in callback will be model instances. So you may do operations like `john.save`, `john.delete` etc on the result object directly. If you want to extract the raw javascript object values from a model instance, you may use the toJSON method like `john.toJSON()`. 
+
 In the above example it will perform the query `SELECT * FROM person WHERE name='john'` but `find()` allows you to perform even more complex queries on cassandra.  You should be aware of how to query cassandra. Every error will be reported to you in the `err` argument, while in `people` you'll find instances of `Person`.
 
 #### Find (results are raw objects)
