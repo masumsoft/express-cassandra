@@ -298,10 +298,10 @@ When saving or retrieving the value of a column, the value is typed according to
 | Cassandra Field Types  |  Javascript Types                 |
 |------------------------|-----------------------------------|
 |     ascii              |     String                        |
-|     bigint             |     [models.datatypes.Long](https://google.github.io/closure-library/api/class_goog_math_Long.html)|
+|     bigint             |     [models.datatypes.Long](https://google.github.io/closure-library/api/goog.math.Long.html)|
 |     blob               |     [Buffer](https://nodejs.org/api/buffer.html)|
 |     boolean            |     Boolean                       |
-|     counter            |     [models.datatypes.Long](https://google.github.io/closure-library/api/class_goog_math_Long.html)|
+|     counter            |     [models.datatypes.Long](https://google.github.io/closure-library/api/goog.math.Long.html)|
 |     date               |     [models.datatypes.LocalDate](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-LocalDate.html)|
 |     decimal            |     [models.datatypes.BigDecimal](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-BigDecimal.html)|
 |     double             |     Number                        |
