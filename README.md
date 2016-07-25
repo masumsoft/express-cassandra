@@ -121,7 +121,7 @@ clientOptions: {
 
 Infact any of the clientOptions supported by the nodejs driver can be used. Possible options are documented in the [cassandra driver docs](http://docs.datastax.com/en/developer/nodejs-driver/3.0/common/drivers/reference/clientOptions.html).
 
-## Write a Model named `PersonModel.js` inside models directory
+### Write a Model named `PersonModel.js` inside models directory
 
 ```js
 
@@ -139,7 +139,7 @@ module.exports = {
 Note that a model class name should contain the word `Model` in it,
 otherwise it won't be treated as a model class.
 
-## Let's insert some data into PersonModel
+### Let's insert some data into PersonModel
 
 ```js
 
@@ -151,7 +151,7 @@ john.save(function(err){
 
 ```
 
-## Now let's find it
+### Now let's find it
 
 ```js
 
@@ -206,12 +206,9 @@ module.exports = {
     indexes: ["name"],
     custom_indexes: [
         {
-            on: 'age',
-            using: 'path.to.the.IndexClass',
-            options: {
-                option1 : '...',
-                option2: '...'
-            }
+            on: 'complete_name',
+            using: 'org.apache.cassandra.index.sasi.SASIIndex',
+            options: {}
         }
     ],
     table_name: "my_custom_table_name"
@@ -247,7 +244,7 @@ Read more about the compound key here on the [compound key documentation](http:/
 
 - `indexes` are the index of your table. It's always an array of field names. You can read more on the [index documentation](http://docs.datastax.com/en/cql/3.3/cql/cql_using/usePrimaryIndex.html). This is generally suited for querying low cardinality fields, but not as low as boolean fields or fields with very limited number of variants. Very low cardinality fields are not a good separator of large datasets and hence not worthwhile to index.
 
-- `custom_indexes` is an array of objects defining the custom indexes for the table. The `on` section should contain the column name on which the index should be built, the `using` section should contain the custom indexer class path and the `options` section should contain the passed options for the indexer class if any.
+- `custom_indexes` is an array of objects defining the custom indexes for the table. The `on` section should contain the column name on which the index should be built, the `using` section should contain the custom indexer class path and the `options` section should contain the passed options for the indexer class if any. If no `options` are required, pass a blank {} object.
 
 - `table_name` provides the ability to use a different name for the actual table in cassandra. By default the lowercased modelname is used as the table name. But if you want a different table name instead, then you may want to use this optional field to specify the custom name for your cassandra table.
 
@@ -262,537 +259,13 @@ console.log(john.complete_name); // undefined.
 ```
 __note__: `john.complete_name` is undefined in the newly created instance but will be populated when the instance is saved because it has a default value in schema definition
 
-Ok, we are done with John, let's delete it:
+Ok, we are done with John, let's delete him:
 
 ```js
 
 john.delete(function(err){
     //...
 });
-
-```
-
-### A few handy tools for your model
-
-Express cassandra exposes some node driver methods for convenience. To generate uuids e.g. in field defaults:
-
-*   `models.uuid()`
-    returns a type 3 (random) uuid, suitable for Cassandra `uuid` fields, as a string
-*   `models.uuidFromString(str)`
-    returns a type 3 uuid from input string, suitable for Cassandra `uuid` fields
-*   `models.timeuuid() / .maxTimeuuid() / .minTimeuuid()`
-    returns a type 1 (time-based) uuid, suitable for Cassandra `timeuuid` fields, as a string. From the [Datastax documentation](https://docs.datastax.com/en/cql/3.3/cql/cql_reference/timeuuid_functions_r.html):
-
-    > The min/maxTimeuuid example selects all rows where the timeuuid column, t, is strictly later than 2013-01-01 00:05+0000 but strictly earlier than 2013-02-02 10:00+0000. The t >= maxTimeuuid('2013-01-01 00:05+0000') does not select a timeuuid generated exactly at 2013-01-01 00:05+0000 and is essentially equivalent to t > maxTimeuuid('2013-01-01 00:05+0000').
-
-    > The values returned by minTimeuuid and maxTimeuuid functions are not true UUIDs in that the values do not conform to the Time-Based UUID generation process specified by the RFC 4122. The results of these functions are deterministic, unlike the now function.
-*   `models.consistencies`
-    this object contains all the available consistency enums defined by node cassandra driver, so you can for example use models.consistencies.one, models.consistencies.quorum etc.
-*   `models.datatypes`
-    this object contains all the available datatypes defined by node cassandra driver, so you can for example use
-    models.datatypes.Long to deal with the cassandra bigint or counter field types.
-
-
-### Cassandra to Javascript Datatypes
-
-When saving or retrieving the value of a column, the value is typed according to the following table.
-
-| Cassandra Field Types  |  Javascript Types                 |
-|------------------------|-----------------------------------|
-|     ascii              |     String                        |
-|     bigint             |     [models.datatypes.Long](https://google.github.io/closure-library/api/goog.math.Long.html)|
-|     blob               |     [Buffer](https://nodejs.org/api/buffer.html)|
-|     boolean            |     Boolean                       |
-|     counter            |     [models.datatypes.Long](https://google.github.io/closure-library/api/goog.math.Long.html)|
-|     date               |     [models.datatypes.LocalDate](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-LocalDate.html)|
-|     decimal            |     [models.datatypes.BigDecimal](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-BigDecimal.html)|
-|     double             |     Number                        |
-|     float              |     Number                        |
-|     inet               |     [models.datatypes.InetAddress](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-InetAddress.html)|
-|     int                |     Number (Integer)              |
-|     list               |     Array                         |
-|     map                |     Object                        |
-|     set                |     Array                         |
-|     smallint           |     Number (Integer)|
-|     text               |     String                        |
-|     time               |     [models.datatypes.LocalTime](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-LocalTime.html)|
-|     timestamp          |     Date                          |
-|     timeuuid           |     [models.datatypes.TimeUuid](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-TimeUuid.html)|
-|     tinyint            |     Number (Integer)|
-|     tuple              |     [models.datatypes.Tuple](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-Tuple.html)|
-|     uuid               |     [models.datatypes.Uuid](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-Uuid.html)|
-|     varchar            |     String                        |
-|     varint             |     [models.datatypes.Integer](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-Integer.html)|
-
-
-For example, you have a User model schema like the following:
-
-```js
-module.exports = {
-    "fields": {
-        "user_id": "bigint",
-        "user_name": "text"
-    },
-    "key" : ["user_id"]
-}
-```
-
-Now to insert data in the model, you need the Long data type. To create a Long type data, you can use the `models.datatypes.Long` like the following:
-
-```js
-var user = new models.instance.User({
-    user_id: models.datatypes.Long.fromString('1234556567676782'),
-    user_name: 'john'
-});
-user.save(function(err){
-    //Now let's find the saved user
-    models.instance.User.findOne({user_id: models.datatypes.Long.fromString('1234556567676782')}, function(err, john){
-        console.log(john.user_id.toString()); // john.user_id is of type Long.
-    });
-});
-```
-
-### Null and unset values
-
-To complete a distributed DELETE operation, Cassandra replaces it with a special value called a tombstone which can be propagated to replicas. When inserting or updating a field, you can set a certain field to null as a way to clear the value of a field, and it is considered a DELETE operation. In some cases, you might insert rows using null for values that are not specified, and even though our intention is to leave the value empty, Cassandra represents it as a tombstone causing unnecessary overhead.
-
-To avoid tombstones, cassandra has the concept of unset for a parameter value. So you can do the following to unset a field value for example:
-
-```js
-models.instance.User.update({user_id: models.datatypes.Long.fromString('1234556567676782')}, {
-    user_name: models.datatypes.unset
-}, function(err){
-    //user name is now unset
-})
-```
-
-### Counter Column Operations
-
-Cassandra counter column increment and decrement operations are supported via the update operation. To increment/decrement a counter, you can use the following types of update operation:
-
-```js
-//Say your model name is StatsModel that has a user_id as the primary key and visit_count as a counter column.
-
-models.instance.Stats.update({user_id:1234}, {visit_count:2}, function(err){
-    //visit_count will be incremented by 2
-});
-
-models.instance.Stats.update({user_id:1234}, {visit_count:-1}, function(err){
-    //visit_count will be decremented by 1
-});
-```
-
-Please note that counter columns has special limitations, to know more about the counter column usage, see the [cassandra counter docs](https://docs.datastax.com/en/cql/3.3/cql/cql_using/useCountersConcept.html).
-
-### Support for Collection Data Types
-
-Cassandra collection data types (`map`, `list` & `set`) are supported in model schema definitions. An additional `typeDef` attribute is used to define the collection type.
-
-```js
-
-module.exports = {
-
-    "fields": {
-
-        mymap: {
-            type: "map",
-            typeDef: "<varchar, text>"
-        },
-        mylist: {
-            type: "list",
-            typeDef: "<varchar>"
-        },
-        myset: {
-            type: "set",
-            typeDef: "<varchar>"
-        }
-
-    }
-
-}
-
-```
-
-When saving or updating collection types, use an object for a `map` value and use an array for `set` or `list` value like the following:
-
-```js
-
-var person = new models.instance.Person({
-
-    mymap: {'key1':'val1','key2': 'val2'},
-    mylist: ['value1', 'value2'],
-    myset: ['value1', 'value2']
-
-});
-
-person.save(function(err){
-
-});
-
-```
-
-If you want to add/remove/update existing map, list or set, then you can always find it using the find function,
-then change the map, list or set elements in javascript and use the `save` function on that model instance to save the changes.
-
-```js
-models.instance.Person.findOne(query, function(err, person){
-    person.mymap.key1 = 'val1 new';
-    delete person.mymap.key2;
-    person.mymap.key3 = 'val3';
-    person.mylist.push('value3');
-    person.myset.splice(0,1);
-
-    person.save(function(err){
-
-    });
-});
-```
-
-But sometimes you may want to add/remove elements into an existing map, list or set in a single call atomically.
-So you can use the update function along with the `$add` and `$remove` directive to do that.
-
-```js
-models.instance.Person.update({userID:1234, age:32}, {
-    info:{'$add':{'new2':'addition2'}},
-    phones:{'$add': ['12345']},
-    emails: {'$add': ['e@f.com']}
-}, function(err){
-    if(err) throw err;
-    done();
-});
-```
-
-```js
-models.instance.Person.update({userID:1234, age:32}, {
-    info:{'$remove':{'new2':''}},
-    phones:{'$remove': ['12345']},
-    emails: {'$remove': ['e@f.com']}
-}, function(err){
-    if(err) throw err;
-    done();
-});
-```
-
-Instead of `$add`, you may also use `$append`. Both of them will have the same effect. If you want to prepend in a list instead of append, you can use the `$prepend` directive like the following:
-
-```js
-models.instance.Person.update({userID:1234, age:32}, {
-    phones:{'$prepend': ['654532']}
-}, function(err){
-
-});
-```
-
-You can also replace a specific item in a map using the `$replace` directive like the following:
-
-```js
-models.instance.Person.update({userID:1234, age:32}, {
-    info:{'$replace':{'new':'replaced value'}}
-}, function(err){
-
-});
-```
-
-You may also replace a list item using the index. In this case provide a 2 item array where the first item is the index to replace and the second item is the value you want to set for that index.
-
-```js
-models.instance.Person.update({userID:1234, age:32}, {
-    phones:{'$replace': [1,'23456']} //replace the phone number at index 1 with the value 23456
-}, function(err){
-
-});
-```
-
-### Support for Frozen Collections
-
-Frozen collections are useful if you want to use them in the primary key. Frozen collection can only be replaced as a whole, you cannot for example add/remove elements in a frozen collection.
-
-```js
-myfrozenmap: {
-    type: "frozen",
-    typeDef: "<map<varchar, text>>"
-}
-```
-
-### Support for Tuple Data Type
-
-Cassandra tuple data types can be declared using the `frozen` type like the following:
-
-```js
-mytuple: {
-    type: "frozen",
-    typeDef: "<tuple<int, text, float>>"
-}
-```
-
-To insert/update data into a tuple, use the cassandra Tuple datatype like the following:
-
-```js
-var person = new models.instance.Person({
-    //...other fields ommitted for clarity
-    mytuple: new models.datatypes.Tuple(3, 'bar', 2.1)
-});
-
-```
-
-### Support for User Defined Types, Functions and Aggregates
-
-User defined types (UDTs), user defined functions (UDFs) and user defined aggregates (UDAs) are supported too. The UDTs, UDFs & UDAs should be defined globally against your keyspace. You can defined them in the configuration object passed to initialize express-cassandra, so that express cassandra could create and sync them against your keyspace. So you may be able to use them in your schema definition and queries. The configuration object should have some more object keys representing the user defined types, functions and aggregates under `ormOptions` like the following:
-
-```js
-clientOptions: {
-    //... client options are ommitted for clarity
-},
-ormOptions: {
-    //... other orm options are ommitted for clarity
-    udts: {
-        phone: {
-            alias: 'text',
-            phone_number: 'text',
-            country_code: 'int'
-        },
-        address: {
-            street: 'text',
-            city: 'text',
-            state: 'text',
-            zip: 'int',
-            phones: 'set<frozen<phone>>'
-        }
-    },
-    udfs: {
-        fLog: {
-            language: 'java',
-            code: 'return Double.valueOf(Math.log(input.doubleValue()));',
-            returnType: 'double',
-            inputs: {
-                input: 'double'
-            }
-        },
-        avgState: {
-            language: 'java',
-            code: 'if (val !=null) { state.setInt(0, state.getInt(0)+1); state.setLong(1,state.getLong(1)+val.intValue()); } return state;',
-            returnType: 'tuple<int,bigint>',
-            inputs: {
-                state: 'tuple<int,bigint>',
-                val: 'int'
-            }
-        },
-        avgFinal: {
-            language: 'java',
-            code: 'double r = 0; if (state.getInt(0) == 0) return null; r = state.getLong(1); r/= state.getInt(0); return Double.valueOf(r);',
-            returnType: 'double',
-            inputs: {
-                state: 'tuple<int,bigint>'
-            }
-        }
-    },
-    udas: {
-        average: {
-            input_types: ['int'],
-            sfunc: 'avgState',
-            stype: 'tuple<int,bigint>',
-            finalfunc: 'avgFinal',
-            initcond: '(0,0)'
-        }
-    }
-}
-```
-
-After configuring them for your keyspace, you could possibly define fields using udts like the following:
-
-```js
-currencies: {
-    type: 'frozen',
-    typeDef: '<address>'
-}
-```
-
-and use the UDFs and UDAs like any other standard functions using the `select` attribute:
-
-```js
-models.instance.Person.findOne({...}, {select: ['fLog(points)','average(age)']}, function(err, user){
-    //...
-});
-```
-
-### Support for shared static columns
-
-In a table that uses clustering columns, non-clustering columns can be declared static in the schema definition like the following:
-
-```js
-"my_shared_data": {
-    "type": "text",
-    "static": true
-}
-```
-
-Note that static columns are only static within a given partition. Static columns also has several restrictions described in the cassandra [static column documentation](https://docs.datastax.com/en/cql/3.3/cql/cql_reference/refStaticCol.html).
-
-### Support for indexed collections
-
-Collections can be indexed and queried to find a collection containing a particular value. Sets and lists are indexed slightly differently from maps, given the key-value nature of maps.
-
-Sets and lists can index all values found by indexing the collection column. Maps can index a map key, map value, or map entry using the methods shown below. Multiple indexes can be created on the same map column in a table, so that map keys, values, or entries can be queried. In addition, frozen collections can be indexed using FULL to index the full content of a frozen collection.
-
-For defining indexed collections or frozen full indexes, you can define the corresponsing fields in your schema definition indexes like the following:
-
-```js
-"fields": {...},
-"key": [...],
-"indexes": ["my_list","my_set","keys(my_map)","entries(my_map)","values(my_map)","full(my_frozen_field)"],
-```
-
-Now after defining your indexes in your collections, you can use the `$contains` and `$contains_key` directives to query those indexes:
-
-```js
-//Find all persons where my_list contains my_value
-models.instance.Person.find({my_list: {$contains: 'my_value'}}, {raw: true}, function(err, people){
-
-});
-//Find all persons where my_set contains my_value
-models.instance.Person.find({my_set: {$contains: 'my_value'}}, {raw: true}, function(err, people){
-
-});
-//Find all persons where my_map keys contains my_key
-models.instance.Person.find({my_map: {$contains_key: 'my_key'}}, {raw: true}, function(err, people){
-
-});
-//Find all persons where my_map contains object {my_key: 'my_value'}
-models.instance.Person.find({my_map: {$contains: {my_key: 'my_value'}}}, {raw: true}, function(err, people){
-
-});
-//Find all persons where my_map contains my_value
-models.instance.Person.find({my_map: {$contains: 'my_value'}}, {raw: true}, function(err, people){
-
-});
-```
-
-Now for finding using indexed frozen field using `full` type index, you can directly use the value of the complex object in your query.
-
-For example your person schema has a frozen map `myFrozenMap` with typeDef `<map <int, text>>` that is indexed using the `full` keyword like the following:
-
-```js
-fields: {
-    myFrozenMap: {
-        type: 'frozen',
-        typeDef: '<map <text, text>>'
-    }
-},
-keys: [...],
-indexes: ['full(myFrozenMap)']
-```
-
-So now you may query like the following:
-
-```js
-models.instance.Person.find({
-    myFrozenMap: {
-        my_key: 'my_value'
-    }
-}, {raw: true}, function(err, people){
-    //people is a list of persons where myFrozenMap value is {mykey: 'my_value'}
-});
-```
-
-## Virtual fields
-
-Your model could have some fields which are not saved on database. You can define them as `virtual`
-
-```js
-
-module.exports = {
-    "fields": {
-        "id"     : { "type": "uuid", "default": {"$db_function": "uuid()"} },
-        "name"   : { "type": "varchar", "default": "no name provided"},
-        "surname"   : { "type": "varchar", "default": "no surname provided"},
-        "complete_name" : {
-            "type": "varchar",
-            "virtual" : {
-                get: function(){return this.name + ' ' +this.surname;},
-                set: function(value){
-                    value = value.split(' ');
-                    this.name = value[0];
-                    this.surname = value[1];
-                }
-            }
-        }
-    }
-}
-
-```
-
-A virtual field is simply defined adding a `virtual` key in field description. Virtuals can have a `get` and a `set` function, both optional (you should define at least one of them!).
-`this` inside get and set functions is bound to current instance of your model.
-
-## Validators
-
-Every time you set a property for an instance of your model, an internal type validator checks that the value is valid. If not an error is thrown. But how to add a custom validator? You need to provide your custom validator in the schema definition. For example, if you want to check age to be a number greater than zero:
-
-```js
-
-module.exports = {
-    //... other properties hidden for clarity
-    age: {
-        type : "int",
-        rule : function(value){ return value > 0; }
-    }
-}
-
-```
-
-your validator must return a boolean. If someone will try to assign `john.age = -15;` an error will be thrown.
-You can also provide a message for validation error in this way
-
-```js
-
-module.exports = {
-    //... other properties hidden for clarity
-    age: {
-        type : "int",
-        rule : {
-            validator : function(value){ return value > 0; },
-            message   : 'Age must be greater than 0'
-        }
-    }
-}
-
-```
-
-then the error will have your message. Message can also be a function; in that case it must return a string:
-
-```js
-
-module.exports = {
-    //... other properties hidden for clarity
-    age: {
-        type : "int",
-        rule : {
-            validator : function(value){ return value > 0; },
-            message   : function(value){ return 'Age must be greater than 0. You provided '+ value; }
-        }
-    }
-}
-
-```
-
-The error message will be `Age must be greater than 0. You provided -15`
-
-Note that default values _are_ validated if defined either by value or as a javascript function. Defaults defined as DB functions, on the other hand, are never validated in the model as they are retrieved _after_ the corresponding data has entered the DB.
-If you need to exclude defaults from being checked you can pass an extra flag:
-
-```js
-
-module.exports = {
-    //... other properties hidden for clarity
-    email: {
-        type : "text",
-        default : "<enter your email here>",
-        rule : {
-            validator : function(value){ /* code to check that value matches an email pattern*/ },
-            ignore_default: true
-        }
-    }
-}
 
 ```
 
@@ -824,7 +297,7 @@ Note that, result objects here in callback will be model instances. So you may d
 
 In the above example it will perform the query `SELECT * FROM person WHERE name='john'` but `find()` allows you to perform even more complex queries on cassandra.  You should be aware of how to query cassandra. Every error will be reported to you in the `err` argument, while in `people` you'll find instances of `Person`.
 
-#### Find (results are raw objects)
+### Find (results are raw objects)
 
 If you don't want the orm to cast results to instances of your model you can use the `raw` option as in the following example:
 
@@ -836,16 +309,24 @@ models.instance.Person.find({name: 'John'}, { raw: true }, function(err, people)
 
 ```
 
-#### Find (A more complex query)
+### Find (A more complex query)
 
 ```js
 
 var query = {
-    name: 'John', // stays for name='john'
-    age : { '$gt':10, '$lte':20 }, // stays for age>10 and age<=20 You can also use $gt, $gte, $lt, $lte, $eq
-    surname : { '$in': ['Doe','Smith'] }, //This is an IN clause
-    $orderby:{'$asc' :'age'}, //Order results by age in ascending order. Also allowed $desc and complex order like $orderby:{'$asc' : ['k1','k2'] }
-    $limit: 10 //limit result set
+    // equal query stays for name='john', also could be written as name: { $eq: 'John' }
+    name: 'John',
+    // range query stays for age>10 and age<=20. You can use $gt (>), $gte (>=), $lt (<), $lte (<=)
+    age : { '$gt':10, '$lte':20 },
+    // IN clause, means surname should either be Doe or Smith
+    surname : { '$in': ['Doe','Smith'] },
+    // like query supported by sasi indexes, complete_name must have an SASI index defined in custom_indexes
+    complete_name: { '$like': 'J%' },
+    // order results by age in ascending order.
+    // also allowed $desc and complex order like $orderby: {'$asc' : ['k1','k2'] }
+    $orderby:{ '$asc' :'age' },
+    //limit the result set to 10 rows
+    $limit: 10
 }
 
 models.instance.Person.find(query, {raw: true}, function(err, people){
@@ -854,7 +335,9 @@ models.instance.Person.find(query, {raw: true}, function(err, people){
 
 ```
 
-#### Find (results to contain only selected columns)
+Note that all query clauses must be Cassandra compliant. You cannot, for example, use $in operator for a key which is not part of the primary key. Querying in Cassandra is very basic but could be confusing at first. Take a look at this [post](http://mechanics.flite.com/blog/2013/11/05/breaking-down-the-cql-where-clause/) and, obvsiouly, at the [cql query documentation](https://docs.datastax.com/en/cql/3.3/cql/cql_using/useQueryDataTOC.html)
+
+### Find (results to contain only selected columns)
 
 You can also select particular columns using the select key in the options object like the following example:
 
@@ -885,7 +368,7 @@ module.exports = {
 
 Then your `select`-array has to at least include the partition key columns like this: `select: ['columnOne', 'columnTwo', 'columnThree']`.
 
-#### Find (using aggregate function)
+### Find (using aggregate function)
 
 You can also use `aggregate functions` using the select key in the options object like the following example:
 
@@ -897,7 +380,7 @@ models.instance.Person.find({name: 'John'}, { select: ['name','sum(age)'] }, fun
 
 ```
 
-#### Find (using distinct select)
+### Find (using distinct select)
 
 Also, `DISTINCT` selects are possible:
 
@@ -909,7 +392,7 @@ models.instance.Person.find({}, { select: ['name','age'], distinct: true }, func
 
 ```
 
-#### Find (querying a materialized view)
+### Find (querying a materialized view)
 
 And if you have defined `materialized views` in your schema as described in the schema detail section, then you can query your views by using the similar find/findOne functions. Just add an option with the materialized view name like the following:
 
@@ -922,7 +405,7 @@ models.instance.Person.find({name: 'John'}, { materialized_view: 'view_name1', r
 
 ```
 
-#### Find (with allow filtering)
+### Find (with allow filtering)
 
 If you want to set allow filtering option, you may do that like this:
 
@@ -934,7 +417,7 @@ models.instance.Person.find(query, {raw:true, allow_filtering: true}, function(e
 
 ```
 
-#### Find (using index expression)
+### Find (using index expression)
 
 If you want to use custom index expressions, you may do that like this:
 
@@ -952,7 +435,7 @@ models.instance.Person.find(query, function(err, people){
 
 ```
 
-#### Find (fetching large result sets using streaming queries)
+### Find (fetching large result sets using streaming queries)
 
 The stream() method automatically fetches the following pages, yielding the rows as they come through the network and retrieving the following page after the previous rows were read (throttling).
 
@@ -1023,7 +506,7 @@ Saving the paging state works well when you only let the user move from one page
 
 Note: The page state token can be manipulated to retrieve other results within the same column family, so it is not safe to expose it to the users.
 
-#### Find (token based pagination)
+### Find (token based pagination)
 
 You can also use the `token` comparison function while querying a result set using the $token operator. This is specially useful for [paging through unordered partitioner results](https://docs.datastax.com/en/cql/3.3/cql/cql_using/usePaging.html).
 
@@ -1065,10 +548,8 @@ models.instance.Person.find(query, function(err, people){
 });
 ```
 
-Note that all query clauses must be Cassandra compliant. You cannot, for example, use $in operator for a key which is not part of the primary key. Querying in Cassandra is very basic but could be confusing at first. Take a look at this [post](http://mechanics.flite.com/blog/2013/11/05/breaking-down-the-cql-where-clause/) and, obvsiouly, at the [cql query documentation](https://docs.datastax.com/en/cql/3.3/cql/cql_using/useQueryDataTOC.html)
 
-
-## Save / Update / Delete
+## Save / Update / Delete / Batch
 
 ### Save
 
@@ -1194,22 +675,7 @@ models.instance.Person.findOne({name: 'John'}, function(err, john){
 });
 ```
 
-
-## Raw Query
-
-You can get the raw query interface from cassandra nodejs-driver using the `execute_query` method.
-
-```js
-
-var query = "Select * from user where gender=? and age > ? limit ?";
-var params = ['male', 18, 10];
-models.instance.Person.execute_query(query, params, function(err, people){
-    //people is an array of plain objects
-});
-
-```
-
-## Batching ORM Operations
+### Batching ORM Operations
 
 You can batch any number of save, update and delete operations using the `models.doBatch` function. To use more than one of those functions as a combined batch operation, you need to tell each of the save/update/delete functions, that you want to get the final built query from the orm instead of executing it immediately. You can do that by adding a `return_query` parameter in the options object of the corresponding function and build an array of operations to execute atomically like the following:
 
@@ -1241,12 +707,545 @@ models.doBatch(queries, function(err){
 });
 ```
 
-## Debug Logging Queries
+## Complex Datatypes and Operations
 
-You can log the generated queries by the orm if you want. Just set the `DEBUG` environment variable like the following while starting your app:
+### Counter Column Operations
+
+Cassandra counter column increment and decrement operations are supported via the update operation. To increment/decrement a counter, you can use the following types of update operation:
+
+```js
+//Say your model name is StatsModel that has a user_id as the primary key and visit_count as a counter column.
+
+models.instance.Stats.update({user_id:1234}, {visit_count:2}, function(err){
+    //visit_count will be incremented by 2
+});
+
+models.instance.Stats.update({user_id:1234}, {visit_count:-1}, function(err){
+    //visit_count will be decremented by 1
+});
+```
+
+Please note that counter columns has special limitations, to know more about the counter column usage, see the [cassandra counter docs](https://docs.datastax.com/en/cql/3.3/cql/cql_using/useCountersConcept.html).
+
+### Collection Data Types
+
+Cassandra collection data types (`map`, `list` & `set`) are supported in model schema definitions. An additional `typeDef` attribute is used to define the collection type.
+
+```js
+
+module.exports = {
+
+    "fields": {
+
+        mymap: {
+            type: "map",
+            typeDef: "<varchar, text>"
+        },
+        mylist: {
+            type: "list",
+            typeDef: "<varchar>"
+        },
+        myset: {
+            type: "set",
+            typeDef: "<varchar>"
+        }
+
+    }
+
+}
 
 ```
-DEBUG=express-cassandra node app.js
+
+When saving or updating collection types, use an object for a `map` value and use an array for `set` or `list` value like the following:
+
+```js
+
+var person = new models.instance.Person({
+
+    mymap: {'key1':'val1','key2': 'val2'},
+    mylist: ['value1', 'value2'],
+    myset: ['value1', 'value2']
+
+});
+
+person.save(function(err){
+
+});
+
+```
+
+If you want to add/remove/update existing map, list or set, then you can always find it using the find function,
+then change the map, list or set elements in javascript and use the `save` function on that model instance to save the changes.
+
+```js
+models.instance.Person.findOne(query, function(err, person){
+    person.mymap.key1 = 'val1 new';
+    delete person.mymap.key2;
+    person.mymap.key3 = 'val3';
+    person.mylist.push('value3');
+    person.myset.splice(0,1);
+
+    person.save(function(err){
+
+    });
+});
+```
+
+But sometimes you may want to add/remove elements into an existing map, list or set in a single call atomically.
+So you can use the update function along with the `$add` and `$remove` directive to do that.
+
+```js
+models.instance.Person.update({userID:1234, age:32}, {
+    info:{'$add':{'new2':'addition2'}},
+    phones:{'$add': ['12345']},
+    emails: {'$add': ['e@f.com']}
+}, function(err){
+    if(err) throw err;
+    done();
+});
+```
+
+```js
+models.instance.Person.update({userID:1234, age:32}, {
+    info:{'$remove':{'new2':''}},
+    phones:{'$remove': ['12345']},
+    emails: {'$remove': ['e@f.com']}
+}, function(err){
+    if(err) throw err;
+    done();
+});
+```
+
+Instead of `$add`, you may also use `$append`. Both of them will have the same effect. If you want to prepend in a list instead of append, you can use the `$prepend` directive like the following:
+
+```js
+models.instance.Person.update({userID:1234, age:32}, {
+    phones:{'$prepend': ['654532']}
+}, function(err){
+
+});
+```
+
+You can also replace a specific item in a map using the `$replace` directive like the following:
+
+```js
+models.instance.Person.update({userID:1234, age:32}, {
+    info:{'$replace':{'new':'replaced value'}}
+}, function(err){
+
+});
+```
+
+You may also replace a list item using the index. In this case provide a 2 item array where the first item is the index to replace and the second item is the value you want to set for that index.
+
+```js
+models.instance.Person.update({userID:1234, age:32}, {
+    phones:{'$replace': [1,'23456']} //replace the phone number at index 1 with the value 23456
+}, function(err){
+
+});
+```
+
+### Frozen Collections
+
+Frozen collections are useful if you want to use them in the primary key. Frozen collection can only be replaced as a whole, you cannot for example add/remove elements in a frozen collection.
+
+```js
+myfrozenmap: {
+    type: "frozen",
+    typeDef: "<map<varchar, text>>"
+}
+```
+
+### Tuple Data Type
+
+Cassandra tuple data types can be declared using the `frozen` type like the following:
+
+```js
+mytuple: {
+    type: "frozen",
+    typeDef: "<tuple<int, text, float>>"
+}
+```
+
+To insert/update data into a tuple, use the cassandra Tuple datatype like the following:
+
+```js
+var person = new models.instance.Person({
+    //...other fields ommitted for clarity
+    mytuple: new models.datatypes.Tuple(3, 'bar', 2.1)
+});
+
+```
+
+### User Defined Types, Functions and Aggregates
+
+User defined types (UDTs), user defined functions (UDFs) and user defined aggregates (UDAs) are supported too. The UDTs, UDFs & UDAs should be defined globally against your keyspace. You can defined them in the configuration object passed to initialize express-cassandra, so that express cassandra could create and sync them against your keyspace. So you may be able to use them in your schema definition and queries. The configuration object should have some more object keys representing the user defined types, functions and aggregates under `ormOptions` like the following:
+
+```js
+clientOptions: {
+    //... client options are ommitted for clarity
+},
+ormOptions: {
+    //... other orm options are ommitted for clarity
+    udts: {
+        phone: {
+            alias: 'text',
+            phone_number: 'text',
+            country_code: 'int'
+        },
+        address: {
+            street: 'text',
+            city: 'text',
+            state: 'text',
+            zip: 'int',
+            phones: 'set<frozen<phone>>'
+        }
+    },
+    udfs: {
+        fLog: {
+            language: 'java',
+            code: 'return Double.valueOf(Math.log(input.doubleValue()));',
+            returnType: 'double',
+            inputs: {
+                input: 'double'
+            }
+        },
+        avgState: {
+            language: 'java',
+            code: 'if (val !=null) { state.setInt(0, state.getInt(0)+1); state.setLong(1,state.getLong(1)+val.intValue()); } return state;',
+            returnType: 'tuple<int,bigint>',
+            inputs: {
+                state: 'tuple<int,bigint>',
+                val: 'int'
+            }
+        },
+        avgFinal: {
+            language: 'java',
+            code: 'double r = 0; if (state.getInt(0) == 0) return null; r = state.getLong(1); r/= state.getInt(0); return Double.valueOf(r);',
+            returnType: 'double',
+            inputs: {
+                state: 'tuple<int,bigint>'
+            }
+        }
+    },
+    udas: {
+        average: {
+            input_types: ['int'],
+            sfunc: 'avgState',
+            stype: 'tuple<int,bigint>',
+            finalfunc: 'avgFinal',
+            initcond: '(0,0)'
+        }
+    }
+}
+```
+
+After configuring them for your keyspace, you could possibly define fields using udts like the following:
+
+```js
+currencies: {
+    type: 'frozen',
+    typeDef: '<address>'
+}
+```
+
+and use the UDFs and UDAs like any other standard functions using the `select` attribute:
+
+```js
+models.instance.Person.findOne({...}, {select: ['fLog(points)','average(age)']}, function(err, user){
+    //...
+});
+```
+
+### Shared Static Columns
+
+In a table that uses clustering columns, non-clustering columns can be declared static in the schema definition like the following:
+
+```js
+"my_shared_data": {
+    "type": "text",
+    "static": true
+}
+```
+
+Note that static columns are only static within a given partition. Static columns also has several restrictions described in the cassandra [static column documentation](https://docs.datastax.com/en/cql/3.3/cql/cql_reference/refStaticCol.html).
+
+### Indexed Collections
+
+Collections can be indexed and queried to find a collection containing a particular value. Sets and lists are indexed slightly differently from maps, given the key-value nature of maps.
+
+Sets and lists can index all values found by indexing the collection column. Maps can index a map key, map value, or map entry using the methods shown below. Multiple indexes can be created on the same map column in a table, so that map keys, values, or entries can be queried. In addition, frozen collections can be indexed using FULL to index the full content of a frozen collection.
+
+For defining indexed collections or frozen full indexes, you can define the corresponsing fields in your schema definition indexes like the following:
+
+```js
+"fields": {...},
+"key": [...],
+"indexes": ["my_list","my_set","keys(my_map)","entries(my_map)","values(my_map)","full(my_frozen_field)"],
+```
+
+Now after defining your indexes in your collections, you can use the `$contains` and `$contains_key` directives to query those indexes:
+
+```js
+//Find all persons where my_list contains my_value
+models.instance.Person.find({my_list: {$contains: 'my_value'}}, {raw: true}, function(err, people){
+
+});
+//Find all persons where my_set contains my_value
+models.instance.Person.find({my_set: {$contains: 'my_value'}}, {raw: true}, function(err, people){
+
+});
+//Find all persons where my_map keys contains my_key
+models.instance.Person.find({my_map: {$contains_key: 'my_key'}}, {raw: true}, function(err, people){
+
+});
+//Find all persons where my_map contains object {my_key: 'my_value'}
+models.instance.Person.find({my_map: {$contains: {my_key: 'my_value'}}}, {raw: true}, function(err, people){
+
+});
+//Find all persons where my_map contains my_value
+models.instance.Person.find({my_map: {$contains: 'my_value'}}, {raw: true}, function(err, people){
+
+});
+```
+
+Now for finding using indexed frozen field using `full` type index, you can directly use the value of the complex object in your query.
+
+For example your person schema has a frozen map `myFrozenMap` with typeDef `<map <int, text>>` that is indexed using the `full` keyword like the following:
+
+```js
+fields: {
+    myFrozenMap: {
+        type: 'frozen',
+        typeDef: '<map <text, text>>'
+    }
+},
+keys: [...],
+indexes: ['full(myFrozenMap)']
+```
+
+So now you may query like the following:
+
+```js
+models.instance.Person.find({
+    myFrozenMap: {
+        my_key: 'my_value'
+    }
+}, {raw: true}, function(err, people){
+    //people is a list of persons where myFrozenMap value is {mykey: 'my_value'}
+});
+```
+
+## A few handy tools for your model
+
+Express cassandra exposes some node driver methods for convenience. To generate uuids e.g. in field defaults:
+
+*   `models.uuid()`
+    returns a type 3 (random) uuid, suitable for Cassandra `uuid` fields, as a string
+*   `models.uuidFromString(str)`
+    returns a type 3 uuid from input string, suitable for Cassandra `uuid` fields
+*   `models.timeuuid() / .maxTimeuuid() / .minTimeuuid()`
+    returns a type 1 (time-based) uuid, suitable for Cassandra `timeuuid` fields, as a string. From the [Datastax documentation](https://docs.datastax.com/en/cql/3.3/cql/cql_reference/timeuuid_functions_r.html):
+
+    > The min/maxTimeuuid example selects all rows where the timeuuid column, t, is strictly later than 2013-01-01 00:05+0000 but strictly earlier than 2013-02-02 10:00+0000. The t >= maxTimeuuid('2013-01-01 00:05+0000') does not select a timeuuid generated exactly at 2013-01-01 00:05+0000 and is essentially equivalent to t > maxTimeuuid('2013-01-01 00:05+0000').
+
+    > The values returned by minTimeuuid and maxTimeuuid functions are not true UUIDs in that the values do not conform to the Time-Based UUID generation process specified by the RFC 4122. The results of these functions are deterministic, unlike the now function.
+*   `models.consistencies`
+    this object contains all the available consistency enums defined by node cassandra driver, so you can for example use models.consistencies.one, models.consistencies.quorum etc.
+*   `models.datatypes`
+    this object contains all the available datatypes defined by node cassandra driver, so you can for example use
+    models.datatypes.Long to deal with the cassandra bigint or counter field types.
+
+
+## Cassandra to Javascript Datatypes
+
+When saving or retrieving the value of a column, the value is typed according to the following table.
+
+| Cassandra Field Types  |  Javascript Types                 |
+|------------------------|-----------------------------------|
+|     ascii              |     String                        |
+|     bigint             |     [models.datatypes.Long](https://google.github.io/closure-library/api/goog.math.Long.html)|
+|     blob               |     [Buffer](https://nodejs.org/api/buffer.html)|
+|     boolean            |     Boolean                       |
+|     counter            |     [models.datatypes.Long](https://google.github.io/closure-library/api/goog.math.Long.html)|
+|     date               |     [models.datatypes.LocalDate](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-LocalDate.html)|
+|     decimal            |     [models.datatypes.BigDecimal](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-BigDecimal.html)|
+|     double             |     Number                        |
+|     float              |     Number                        |
+|     inet               |     [models.datatypes.InetAddress](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-InetAddress.html)|
+|     int                |     Number (Integer)              |
+|     list               |     Array                         |
+|     map                |     Object                        |
+|     set                |     Array                         |
+|     smallint           |     Number (Integer)|
+|     text               |     String                        |
+|     time               |     [models.datatypes.LocalTime](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-LocalTime.html)|
+|     timestamp          |     Date                          |
+|     timeuuid           |     [models.datatypes.TimeUuid](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-TimeUuid.html)|
+|     tinyint            |     Number (Integer)|
+|     tuple              |     [models.datatypes.Tuple](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-Tuple.html)|
+|     uuid               |     [models.datatypes.Uuid](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-Uuid.html)|
+|     varchar            |     String                        |
+|     varint             |     [models.datatypes.Integer](http://docs.datastax.com/en/drivers/nodejs/3.0/module-types-Integer.html)|
+
+
+For example, you have a User model schema like the following:
+
+```js
+module.exports = {
+    "fields": {
+        "user_id": "bigint",
+        "user_name": "text"
+    },
+    "key" : ["user_id"]
+}
+```
+
+Now to insert data in the model, you need the Long data type. To create a Long type data, you can use the `models.datatypes.Long` like the following:
+
+```js
+var user = new models.instance.User({
+    user_id: models.datatypes.Long.fromString('1234556567676782'),
+    user_name: 'john'
+});
+user.save(function(err){
+    //Now let's find the saved user
+    models.instance.User.findOne({user_id: models.datatypes.Long.fromString('1234556567676782')}, function(err, john){
+        console.log(john.user_id.toString()); // john.user_id is of type Long.
+    });
+});
+```
+
+### Null and unset values
+
+To complete a distributed DELETE operation, Cassandra replaces it with a special value called a tombstone which can be propagated to replicas. When inserting or updating a field, you can set a certain field to null as a way to clear the value of a field, and it is considered a DELETE operation. In some cases, you might insert rows using null for values that are not specified, and even though our intention is to leave the value empty, Cassandra represents it as a tombstone causing unnecessary overhead.
+
+To avoid tombstones, cassandra has the concept of unset for a parameter value. So you can do the following to unset a field value for example:
+
+```js
+models.instance.User.update({user_id: models.datatypes.Long.fromString('1234556567676782')}, {
+    user_name: models.datatypes.unset
+}, function(err){
+    //user name is now unset
+})
+```
+
+## Virtual fields
+
+Your model could have some fields which are not saved on database. You can define them as `virtual`
+
+```js
+
+module.exports = {
+    "fields": {
+        "id"     : { "type": "uuid", "default": {"$db_function": "uuid()"} },
+        "name"   : { "type": "varchar", "default": "no name provided"},
+        "surname"   : { "type": "varchar", "default": "no surname provided"},
+        "complete_name" : {
+            "type": "varchar",
+            "virtual" : {
+                get: function(){return this.name + ' ' +this.surname;},
+                set: function(value){
+                    value = value.split(' ');
+                    this.name = value[0];
+                    this.surname = value[1];
+                }
+            }
+        }
+    }
+}
+
+```
+
+A virtual field is simply defined adding a `virtual` key in field description. Virtuals can have a `get` and a `set` function, both optional (you should define at least one of them!).
+`this` inside get and set functions is bound to current instance of your model.
+
+## Validators
+
+Every time you set a property for an instance of your model, an internal type validator checks that the value is valid. If not an error is thrown. But how to add a custom validator? You need to provide your custom validator in the schema definition. For example, if you want to check age to be a number greater than zero:
+
+```js
+
+module.exports = {
+    //... other properties hidden for clarity
+    age: {
+        type : "int",
+        rule : function(value){ return value > 0; }
+    }
+}
+
+```
+
+your validator must return a boolean. If someone will try to assign `john.age = -15;` an error will be thrown.
+You can also provide a message for validation error in this way
+
+```js
+
+module.exports = {
+    //... other properties hidden for clarity
+    age: {
+        type : "int",
+        rule : {
+            validator : function(value){ return value > 0; },
+            message   : 'Age must be greater than 0'
+        }
+    }
+}
+
+```
+
+then the error will have your message. Message can also be a function; in that case it must return a string:
+
+```js
+
+module.exports = {
+    //... other properties hidden for clarity
+    age: {
+        type : "int",
+        rule : {
+            validator : function(value){ return value > 0; },
+            message   : function(value){ return 'Age must be greater than 0. You provided '+ value; }
+        }
+    }
+}
+
+```
+
+The error message will be `Age must be greater than 0. You provided -15`
+
+Note that default values _are_ validated if defined either by value or as a javascript function. Defaults defined as DB functions, on the other hand, are never validated in the model as they are retrieved _after_ the corresponding data has entered the DB.
+If you need to exclude defaults from being checked you can pass an extra flag:
+
+```js
+
+module.exports = {
+    //... other properties hidden for clarity
+    email: {
+        type : "text",
+        default : "<enter your email here>",
+        rule : {
+            validator : function(value){ /* code to check that value matches an email pattern*/ },
+            ignore_default: true
+        }
+    }
+}
+
+```
+
+
+## Raw Query
+
+You can get the raw query interface from cassandra nodejs-driver using the `execute_query` method.
+
+```js
+
+var query = "Select * from user where gender=? and age > ? limit ?";
+var params = ['male', 18, 10];
+models.instance.Person.execute_query(query, params, function(err, people){
+    //people is an array of plain objects
+});
+
 ```
 
 ## Raw Batch Query
@@ -1281,6 +1280,14 @@ models.instance.Person.get_cql_client(function(err, client){
     client.eachRow('Select * from person limit 10', [], { autoPage : true }, function(n, row) {}, function(err, result){});
 });
 
+```
+
+## Debug Logging Queries
+
+You can log the generated queries by the orm if you want. Just set the `DEBUG` environment variable like the following while starting your app:
+
+```
+DEBUG=express-cassandra node app.js
 ```
 
 ## Closing connections to cassandra
