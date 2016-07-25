@@ -786,6 +786,22 @@ describe('Unit Tests', function(){
         });
     });
 
+    describe('#find using $like query on SASI index',function(){
+        it('should find the events with like query', function(done) {
+            models.instance.Event.find({body: {$like: '%ello%'}}, function(err, events){
+                if(err) throw err;
+                events[0].body.should.equal('hello1');
+                events.length.should.equal(2);
+                models.instance.Event.find({extra: {$like: 'extra%'}}, function(err, events){
+                    if(err) throw err;
+                    events[0].extra.should.equal('extra1');
+                    events.length.should.equal(2);
+                    done();
+                });
+            });
+        });
+    });
+
     describe('#verify if all inserted events went to the materialized view',function(){
         it('should find all the events filtered by id from materialized view', function(done) {
             models.instance.Event.find({id: event_id}, {materialized_view: 'event_by_id'}, function(err, events){

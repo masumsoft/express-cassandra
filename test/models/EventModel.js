@@ -21,5 +21,18 @@ module.exports = {
             key : ["id","email"],
             clustering_order: {email: "desc"}
         }
-    }
+    },
+    custom_indexes: [
+        {
+            on: 'body',
+            using: 'org.apache.cassandra.index.sasi.SASIIndex',
+            options: {'mode': 'CONTAINS'}
+        },
+        {
+            on: 'extra',
+            using: 'org.apache.cassandra.index.sasi.SASIIndex',
+            options: {}
+        }
+    ]
 };
+
