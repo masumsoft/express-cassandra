@@ -204,14 +204,16 @@ module.exports = {
         }
     },
     indexes: ["name"],
-    custom_index: {
-        on: 'age',
-        using: 'path.to.the.IndexClass',
-        options: {
-            option1 : '...',
-            option2: '...'
+    custom_indexes: [
+        {
+            on: 'age',
+            using: 'path.to.the.IndexClass',
+            options: {
+                option1 : '...',
+                option2: '...'
+            }
         }
-    },
+    ],
     table_name: "my_custom_table_name"
 }
 
@@ -245,7 +247,7 @@ Read more about the compound key here on the [compound key documentation](http:/
 
 - `indexes` are the index of your table. It's always an array of field names. You can read more on the [index documentation](http://docs.datastax.com/en/cql/3.3/cql/cql_using/usePrimaryIndex.html). This is generally suited for querying low cardinality fields, but not as low as boolean fields or fields with very limited number of variants. Very low cardinality fields are not a good separator of large datasets and hence not worthwhile to index.
 
-- `custom_index` provides the ability to define custom indexes with a Cassandra table. The `on` section should contain the column name on which the index should be built, the `using` section should contain the custom indexer class path and the `options` section should contain the passed options for the indexer class if any.
+- `custom_indexes` is an array of objects defining the custom indexes for the table. The `on` section should contain the column name on which the index should be built, the `using` section should contain the custom indexer class path and the `options` section should contain the passed options for the indexer class if any.
 
 - `table_name` provides the ability to use a different name for the actual table in cassandra. By default the lowercased modelname is used as the table name. But if you want a different table name instead, then you may want to use this optional field to specify the custom name for your cassandra table.
 
@@ -818,7 +820,7 @@ models.instance.Person.findOne({name: 'John'}, function(err, john){
 
 ```
 
-Note that, result objects here in callback will be model instances. So you may do operations like `john.save`, `john.delete` etc on the result object directly. If you want to extract the raw javascript object values from a model instance, you may use the toJSON method like `john.toJSON()`. 
+Note that, result objects here in callback will be model instances. So you may do operations like `john.save`, `john.delete` etc on the result object directly. If you want to extract the raw javascript object values from a model instance, you may use the toJSON method like `john.toJSON()`.
 
 In the above example it will perform the query `SELECT * FROM person WHERE name='john'` but `find()` allows you to perform even more complex queries on cassandra.  You should be aware of how to query cassandra. Every error will be reported to you in the `err` argument, while in `people` you'll find instances of `Person`.
 
