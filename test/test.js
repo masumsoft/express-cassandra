@@ -162,14 +162,17 @@ describe('Unit Tests', function(){
             client.close();
         });
         it('should load a schema from an object', function (done) {
-            var tmp = client.loadSchema('tempschema', {
+            var tmp = client.loadSchema('tempSchema', {
                 fields: {
+                    email: 'text',
                     name: 'text'
                 },
-                key: ['name']
+                key: ['email']
+            }, function(err){
+                if(err) throw err;
+                tmp.should.equal(client.instance.tempSchema);
+                done();
             });
-            tmp.should.equal(client.instance.tempschema);
-            done();
         });
     });
 

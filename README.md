@@ -24,23 +24,13 @@ Please note that if you use the legacy cassandra 2.x compliant version then plea
 
 ## Usage
 
+### Load models automatically from a directory
+
 ```js
 var models = require('express-cassandra');
 
 //Tell express-cassandra to use the models-directory, and
 //use bind() to load the models using cassandra configurations.
-
-//If your keyspace doesn't exist it will be created automatically
-//using the default replication strategy provided here.
-
-//If dropTableOnSchemaChange=true, then if your model schema changes,
-//the corresponding cassandra table will be dropped and recreated with
-//the new schema. Setting this to false will send an error message
-//in callback instead for any model attribute changes.
-//
-//If createKeyspace=false, then it won't be checked whether the
-//specified keyspace exists and, if not, it won't get created
-// automatically.
 models.setDirectory( __dirname + '/models').bind(
     {
         clientOptions: {
@@ -50,11 +40,20 @@ models.setDirectory( __dirname + '/models').bind(
             queryOptions: {consistency: models.consistencies.one}
         },
         ormOptions: {
+            //If your keyspace doesn't exist it will be created automatically
+            //using the default replication strategy provided here.
             defaultReplicationStrategy : {
                 class: 'SimpleStrategy',
                 replication_factor: 1
             },
-            dropTableOnSchemaChange: false, //recommended to keep it false in production, use true for development convenience.
+            //If dropTableOnSchemaChange=true, then if your model schema changes,
+            //the corresponding cassandra table will be dropped and recreated with
+            //the new schema. Setting this to false will send an error message
+            //in callback instead for any model attribute changes.
+            //recommended to keep it false in production, use true for development convenience.
+            dropTableOnSchemaChange: false,
+            //If createKeyspace=false, then it won't be checked whether the
+            //specified keyspace exists and, if not, it won't get created automatically.
             createKeyspace: true
         }
     },
@@ -66,62 +65,7 @@ models.setDirectory( __dirname + '/models').bind(
 
 ```
 
-Alternatively if you don't want to load your models automatically from a specific directory and want to define and load models yourself, then you can asynchronously load your schemas like the following:
-
-```js
-var Cassandra = require('express-cassandra');
-var cassandra = Cassandra.createClient({
-    clientOptions: {
-        contactPoints: ['127.0.0.1'],
-        protocolOptions: { port: 9042 },
-        keyspace: 'mykeyspace',
-        queryOptions: {consistency: Cassandra.consistencies.one}
-    },
-    ormOptions: {
-        defaultReplicationStrategy : {
-            class: 'SimpleStrategy',
-            replication_factor: 1
-        },
-        dropTableOnSchemaChange: false,
-        createKeyspace: true
-    }
-});
-
-
-var UserSchema = cassandra.loadSchema('users', {
-    fields: {
-        name: 'text',
-        password: 'text'
-    },
-    key: ['name']
-});
-
-cassandra.connect(function (err) {
-    if (err) {
-        console.log(err.message);
-    } else {
-        console.log(cassandra.modelInstance.users);
-        console.log(cassandra.modelInstance.users === UserSchema);
-    }
-});
-
-```
-
-For connecting to cassandra using authentication, you can use the nodejs-driver `authProvider` option in the `clientOptions` object like the following:
-
-```js
-clientOptions: {
-    contactPoints: ['127.0.0.1'],
-    protocolOptions: { port: 9042 },
-    keyspace: 'mykeyspace',
-    queryOptions: {consistency: models.consistencies.one},
-    authProvider: new models.driver.auth.PlainTextAuthProvider('my_user', 'my_password')
-}
-```
-
-Infact any of the clientOptions supported by the nodejs driver can be used. Possible options are documented in the [cassandra driver docs](http://docs.datastax.com/en/developer/nodejs-driver/3.0/common/drivers/reference/clientOptions.html).
-
-### Write a Model named `PersonModel.js` inside models directory
+Now let's write a Model named `PersonModel.js` inside models directory
 
 ```js
 
@@ -136,8 +80,74 @@ module.exports = {
 
 ```
 
-Note that a model class name should contain the word `Model` in it,
-otherwise it won't be treated as a model class.
+Note that a model class name should contain the word `Model` in it, otherwise it won't be treated as a model class.
+
+### Alternatively Load and organize models yourself
+
+Alternatively if you don't want to load your models automatically from a specific directory and want to define and load models yourself, then you can asynchronously load your schemas like the following:
+
+```js
+var Cassandra = require('express-cassandra');
+var models = Cassandra.createClient({
+    clientOptions: {
+        contactPoints: ['127.0.0.1'],
+        protocolOptions: { port: 9042 },
+        keyspace: 'mykeyspace',
+        queryOptions: {consistency: Cassandra.consistencies.one}
+    },
+    ormOptions: {
+        //If your keyspace doesn't exist it will be created automatically
+        //using the default replication strategy provided here.
+        defaultReplicationStrategy : {
+            class: 'SimpleStrategy',
+            replication_factor: 1
+        },
+        //If dropTableOnSchemaChange=true, then if your model schema changes,
+        //the corresponding cassandra table will be dropped and recreated with
+        //the new schema. Setting this to false will send an error message
+        //in callback instead for any model attribute changes.
+        //recommended to keep it false in production, use true for development convenience.
+        dropTableOnSchemaChange: false,
+        //If createKeyspace=false, then it won't be checked whether the
+        //specified keyspace exists and, if not, it won't get created automatically.
+        createKeyspace: true
+    }
+});
+
+models.connect(function (err) {
+    if (err) throw err;
+
+    var UserModel = models.loadSchema('Person', {
+        fields:{
+            name    : "text",
+            surname : "text",
+            age     : "int"
+        },
+        key:["name"]
+    }, function(err){
+        //the table in cassandra is now created
+        //the models.instance.Person or UserModel can now be used to do operations
+        console.log(models.instance.Person);
+        console.log(models.instance.Person === UserModel);
+    });
+});
+```
+
+### Connecting to cassandra using authentication
+
+For connecting to cassandra using authentication, you can use the nodejs-driver `authProvider` option in the `clientOptions` object like the following:
+
+```js
+clientOptions: {
+    contactPoints: ['127.0.0.1'],
+    protocolOptions: { port: 9042 },
+    keyspace: 'mykeyspace',
+    queryOptions: {consistency: models.consistencies.one},
+    authProvider: new models.driver.auth.PlainTextAuthProvider('my_user', 'my_password')
+}
+```
+
+Infact any of the clientOptions supported by the nodejs driver can be used. Possible options are documented in the [cassandra driver docs](http://docs.datastax.com/en/developer/nodejs-driver/3.0/common/drivers/reference/clientOptions.html).
 
 ### Let's insert some data into PersonModel
 
