@@ -1,3 +1,4 @@
+"use strict";
 var models = require('../index');
 var chai = require('chai');
 var should = chai.should();

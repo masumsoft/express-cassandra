@@ -1,3 +1,4 @@
+"use strict";
 module.exports = {
     "fields": {
         "user_id": "bigint",
