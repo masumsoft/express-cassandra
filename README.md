@@ -46,14 +46,35 @@ models.setDirectory( __dirname + '/models').bind(
                 class: 'SimpleStrategy',
                 replication_factor: 1
             },
-            //If dropTableOnSchemaChange=true, then if your model schema changes,
-            //the corresponding cassandra table will be dropped and recreated with
-            //the new schema. Setting this to false will send an error message
-            //in callback instead for any model attribute changes.
-            //recommended to keep it false in production, use true for development convenience.
-            dropTableOnSchemaChange: false,
-            //If createKeyspace=false, then it won't be checked whether the
-            //specified keyspace exists and, if not, it won't get created automatically.
+            /********************************************************************
+            Automatic migration is supported. When your model schema changes, the
+            config variable `migration` defines the migration behaviour.
+            *********************************************************************
+            `alter`, will try to alter the corresponding cassandra table to match
+            the new schema. This operation will try to keep the existing data in
+            the table and put null data in the newly created fields. Note that if
+            a field in removed in the changed schema then the column will be
+            dropped from the table and the data associated with the column or
+            field will be lost. Also for primary key or clustering_order changes,
+            the table must be dropped and data will be lost in the process because
+            cassandra won't allow altering primary key. The module will ask for a
+            confirmation from the user in the terminal whether to perform the
+            required alter/drop operations per changed table.
+            *********************************************************************
+            `drop`, will always drop and recreate the table and indexes in case
+            of schema change. This will wipe out all data in that table. It will
+            ask for a confirmation from the user in the terminal whether to perform
+            the required drop operations per changed table.
+            *********************************************************************
+            `safe` will send an error message in callback for any kind of model
+            attribute changes. You need to migrate yourself. This is the recommended
+            setting for production. Note that if NODE_ENV==="production" then
+            regardless of the migration setting, `safe` is always used to protect
+            inadvertent deletion of your data.
+            *********************************************************************/
+            migration: 'safe',
+            //If createKeyspace=false, then it won't be checked whether the specified
+            //keyspace exists and, if not, it won't get created automatically.
             createKeyspace: true
         }
     },
@@ -102,14 +123,35 @@ var models = Cassandra.createClient({
             class: 'SimpleStrategy',
             replication_factor: 1
         },
-        //If dropTableOnSchemaChange=true, then if your model schema changes,
-        //the corresponding cassandra table will be dropped and recreated with
-        //the new schema. Setting this to false will send an error message
-        //in callback instead for any model attribute changes.
-        //recommended to keep it false in production, use true for development convenience.
-        dropTableOnSchemaChange: false,
-        //If createKeyspace=false, then it won't be checked whether the
-        //specified keyspace exists and, if not, it won't get created automatically.
+        /********************************************************************
+        Automatic migration is supported. When your model schema changes, the
+        config variable `migration` defines the migration behaviour.
+        *********************************************************************
+        `alter`, will try to alter the corresponding cassandra table to match
+        the new schema. This operation will try to keep the existing data in
+        the table and put null data in the newly created fields. Note that if
+        a field in removed in the changed schema then the column will be
+        dropped from the table and the data associated with the column or
+        field will be lost. Also for primary key or clustering_order changes,
+        the table must be dropped and data will be lost in the process because
+        cassandra won't allow altering primary key. The module will ask for a
+        confirmation from the user in the terminal whether to perform the
+        required alter/drop operations per changed table.
+        *********************************************************************
+        `drop`, will always drop and recreate the table and indexes in case
+        of schema change. This will wipe out all data in that table. It will
+        ask for a confirmation from the user in the terminal whether to perform
+        the required drop operations per changed table.
+        *********************************************************************
+        `safe` will send an error message in callback for any kind of model
+        attribute changes. You need to migrate yourself. This is the recommended
+        setting for production. Note that if NODE_ENV==="production" then
+        regardless of the migration setting, `safe` is always used to protect
+        inadvertent deletion of your data.
+        *********************************************************************/
+        migration: 'safe',
+        //If createKeyspace=false, then it won't be checked whether the specified
+        //keyspace exists and, if not, it won't get created automatically.
         createKeyspace: true
     }
 });
@@ -132,6 +174,9 @@ models.connect(function (err) {
     });
 });
 ```
+
+### Important Note on Migrations Support
+Current support for migration is an experimental feature and should be set to `safe` for production environments. When set to `alter` or `drop` the ORM will try to take a conservative approach and will ask the user for confirmation when doing any data destructive operation. But as this feature is new and not yet stable, you might encounter some bugs or glitches here and there. Please report an issue in [github](https://github.com/masumsoft/express-cassandra/issues/) if you face any. The team will try their best to fix the problem within short time.
 
 ### Connecting to cassandra using authentication
 

@@ -24,7 +24,7 @@ describe('Unit Tests', function(){
                         class: 'SimpleStrategy',
                         replication_factor: 1
                     },
-                    dropTableOnSchemaChange: true,
+                    migration: 'drop',
                     createKeyspace: true,
                     udts: {
                         phone: {

@@ -6,7 +6,10 @@
     "cassandra-driver": "^3.1.1",
     "check-types": "^1.4.0",
     "debug": "^2.2.0",
-    "lodash": "^3.9.3"
+    "deep-diff": "^0.3.4",
+    "lodash": "^4.14.2",
+    "object-hash": "1.1.4",
+    "readline-sync": "^1.4.4"
   },
   "devDependencies": {
     "chai": "*",
