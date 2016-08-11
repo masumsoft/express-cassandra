@@ -1,0 +1,16 @@
+site_name: Express Cassandra
+pages:
+- Overview: index.md
+- Installation: installation.md
+- Usage Tutorial: usage.md
+- Schema Reference: schema.md
+- Virtual fields: virtual.md
+- Validators: validators.md
+- Data Management: management.md
+- Querying Data: find.md
+- Batching ORM Operations: batch.md
+- Complex Datatypes and Operations: complex.md
+- Datatype Conversions: datatypes.md
+- Other Notes: notes.md
+
+theme: readthedocs

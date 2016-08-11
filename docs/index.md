@@ -1,8 +1,4 @@
-[![Build Status](https://travis-ci.org/masumsoft/express-cassandra.svg)](https://travis-ci.org/masumsoft/express-cassandra)
-[![Download Stats](https://img.shields.io/npm/dm/express-cassandra.svg)](https://www.npmjs.com/package/express-cassandra)
-[![Npm Version](https://badge.fury.io/js/express-cassandra.svg)](https://www.npmjs.com/package/express-cassandra)
-
-# Overview
+# Welcome to Express Cassandra
 
 Express-Cassandra is an advanced Cassandra ORM for NodeJS. No more hassling with raw cql queries from your nodejs web frameworks. Express-Cassandra automatically loads your models and provides you with object oriented mapping to your cassandra tables like a standard ORM. It's framework independent nature allows you to use it with many popular nodejs frameworks with ease.
 
@@ -18,19 +14,3 @@ Express-Cassandra is an advanced Cassandra ORM for NodeJS. No more hassling with
 * builtin experimental support for automatic migrations
 
 This module uses datastax [cassandra-driver](https://github.com/datastax/nodejs-driver) for node and some of the base orm features are wrapper over a highly modified version of [apollo-cassandra](https://github.com/3logic/apollo-cassandra) module. The modifications made to the orm library was necessary to support missing features in the orm, keep it updated with the latest cassandra releases and to make it compatible with the advanced requirements of this module.
-
-# Installation
-
-For cassandra version 3.x
-
-    npm install express-cassandra
-
-For older cassandra 2.x
-
-    npm install express-cassandra@0.5.4
-
-Please note that if you use the legacy cassandra 2.x compliant version then please use the corresponding README.md file for that version. The following documentation is for version 3.x only. The materialized view support and several other part of the documentation is strictly applicable for cassandra 3.x and will not work in earlier versions of cassandra.
-
-# Documentation
-
-Read the full [ORM Documentation](express-cassandra.readthedocs.io)
