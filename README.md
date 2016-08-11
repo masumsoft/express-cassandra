@@ -33,4 +33,4 @@ Please note that if you use the legacy cassandra 2.x compliant version then plea
 
 # Documentation
 
-Read the full [ORM Documentation](express-cassandra.readthedocs.io)
+Read the full [ORM Documentation](http://express-cassandra.readthedocs.io)
