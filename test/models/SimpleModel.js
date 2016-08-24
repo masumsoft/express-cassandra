@@ -1,15 +1,14 @@
-"use strict";
 module.exports = {
-    "fields": {
-        "foo": "varchar",
-        "bar": {
-            "type": "varchar",
-            "virtual" : {
-                get: function() {
-                    return "baz"
-                }
-            }
-        }
+  fields: {
+    foo: 'varchar',
+    bar: {
+      type: 'varchar',
+      virtual: {
+        get() {
+          return 'baz';
+        },
+      },
     },
-    "key" : ["foo"]
-}
+  },
+  key: ['foo'],
+};

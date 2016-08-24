@@ -4,6 +4,7 @@
   "dependencies": {
     "async": "^1.0.0",
     "cassandra-driver": "^3.1.1",
+    "chai": "^3.5.0",
     "check-types": "^1.4.0",
     "debug": "^2.2.0",
     "deep-diff": "^0.3.4",
@@ -12,10 +13,15 @@
     "readline-sync": "^1.4.4"
   },
   "devDependencies": {
-    "chai": "*",
-    "istanbul": "*",
-    "mocha": "*",
-    "vows": "*"
+    "babel-cli": "^6.11.4",
+    "babel-preset-es2015": "^6.13.2",
+    "babel-preset-stage-3": "^6.11.0",
+    "eslint": "^3.1.1",
+    "eslint-config-airbnb-base": "^5.0.0",
+    "eslint-plugin-import": "^1.12.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.0.2",
+    "vows": "^0.8.1"
   },
   "optionalDependencies": {},
   "author": {
@@ -23,8 +29,11 @@
     "url": "https://www.codinglogs.com"
   },
   "scripts": {
-    "test": "node_modules/.bin/mocha --bail",
-    "coverage": "node_modules/.bin/istanbul cover _mocha -- -R spec"
+    "test": "babel src -d lib && mocha --bail --compilers js:babel-register && eslint src",
+    "build": "babel src -d lib",
+    "prepublish": "npm run build",
+    "lint": "eslint src; exit 0",
+    "coverage": "istanbul cover _mocha -- -R spec"
   },
   "license": "LGPL-3.0",
   "description": "Framework Independent Cassandra Object Models (ORM) for NodeJS",
@@ -32,7 +41,7 @@
     "type": "git",
     "url": "git://github.com/masumsoft/express-cassandra.git"
   },
-  "main": "index.js",
+  "main": "lib/expressCassandra.js",
   "readmeFilename": "README.md",
   "homepage": "https://github.com/masumsoft/express-cassandra",
   "bugs": {

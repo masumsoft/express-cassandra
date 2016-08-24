@@ -1,0 +1,18 @@
+{
+  "extends": "airbnb-base",
+  "rules": {
+    "global-require": 0,
+    "no-underscore-dangle": 0,
+    "no-param-reassign": 0,
+    "max-len": [
+      "error",
+      {
+        "code": 120
+      }
+    ]
+  },
+  "env": {
+    "node": true,
+    "mocha": true
+  }
+}
