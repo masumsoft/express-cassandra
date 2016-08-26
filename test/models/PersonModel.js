@@ -101,7 +101,13 @@ module.exports = {
       type: 'frozen',
       typeDef: '<map <text, frozen<address>>>',
     },
-    points: 'double',
+    points: {
+      type: 'double',
+      rule: {
+        validator: (value) => (value > 0),
+        required: true,
+      },
+    },
     active: 'boolean',
     createdAt: { type: 'timestamp', default: { $db_function: 'toTimestamp(now())' } },
   },
