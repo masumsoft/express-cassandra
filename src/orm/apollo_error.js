@@ -67,6 +67,9 @@ const AERROR_TYPES = {
   'model.save.unsetkey': {
     msg: 'Key Field: %s must be set',
   },
+  'model.save.unsetrequired': {
+    msg: 'Required Field: %s must be set',
+  },
   'model.save.invalidvalue': {
     msg: 'Invalid Value: "%s" for Field: %s (Type: %s)',
   },

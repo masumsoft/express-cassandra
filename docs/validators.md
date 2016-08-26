@@ -69,3 +69,20 @@ module.exports = {
 }
 
 ```
+
+If a field value is not set and no default value is provided, then the validators will not be executed. So if you want to have `required` fields, then you need to set the `required` flag to true like the following:
+
+```js
+
+module.exports = {
+    //... other properties hidden for clarity
+    email: {
+        type : "text",
+        rule : {
+            validator : function(value){ /* code to check that value matches an email pattern*/ },
+            required: true // If email is undefined or null, then throw validation error
+        }
+    }
+}
+
+```

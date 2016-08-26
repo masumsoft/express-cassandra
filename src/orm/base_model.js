@@ -1935,6 +1935,12 @@ BaseModel.prototype.save = function fn(options, callback) {
             return true;
           }
           throw buildError('model.save.unsetkey', f);
+        } else if (schema.fields[f].rule && schema.fields[f].rule.required) {
+          if (typeof callback === 'function') {
+            callback(buildError('model.save.unsetrequired', f));
+            return true;
+          }
+          throw buildError('model.save.unsetrequired', f);
         } else return false;
       } else if (!schema.fields[f].rule || !schema.fields[f].rule.ignore_default) {
         // did set a default value, ignore default is not set
@@ -1955,6 +1961,12 @@ BaseModel.prototype.save = function fn(options, callback) {
           return true;
         }
         throw buildError('model.save.unsetkey', f);
+      } else if (schema.fields[f].rule && schema.fields[f].rule.required) {
+        if (typeof callback === 'function') {
+          callback(buildError('model.save.unsetrequired', f));
+          return true;
+        }
+        throw buildError('model.save.unsetrequired', f);
       }
     }
 
