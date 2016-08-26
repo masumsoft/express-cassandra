@@ -81,36 +81,19 @@ CassandraClient.prototype.loadSchema = function f(modelName, modelSchema, callba
   return self.modelInstance[modelName];
 };
 
-CassandraClient.timeuuid = (date, maxOrMin) => {
-  let timeuuid;
-  if (date) {
-    if (date instanceof Date) {
-      timeuuid = cql.types.TimeUuid.fromDate(date);
-    } else if (date instanceof String) {
-      timeuuid = cql.types.TimeUuid.fromString(date);
-    } else {
-      throw (new Error('Invalid date provided to timeuuid'));
-    }
-  } else {
-    timeuuid = cql.types.TimeUuid.now();
-  }
-
-  if (maxOrMin) {
-    switch (maxOrMin.toLowerCase) {
-      case 'min':
-        timeuuid = timeuuid.min();
-        break;
-      default:
-        timeuuid = timeuuid.max();
-    }
-  }
-
-  return timeuuid;
-};
-
 CassandraClient.uuid = () => (cql.types.Uuid.random());
 
-CassandraClient.uuidFromString = (string) => (cql.types.Uuid.fromString(string));
+CassandraClient.uuidFromString = (str) => (cql.types.Uuid.fromString(str));
+
+CassandraClient.timeuuid = () => (cql.types.TimeUuid.now());
+
+CassandraClient.timeuuidFromDate = (date) => (cql.types.TimeUuid.fromDate(date));
+
+CassandraClient.timeuuidFromString = (str) => (cql.types.TimeUuid.fromString(str));
+
+CassandraClient.maxTimeuuid = (date) => (cql.types.TimeUuid.max(date));
+
+CassandraClient.minTimeuuid = (date) => (cql.types.TimeUuid.min(date));
 
 CassandraClient.prototype.doBatch = function f(queries, options, callback) {
   const randomModel = this.modelInstance[Object.keys(this.modelInstance)[0]];
@@ -133,18 +116,6 @@ CassandraClient.doBatch = function f(queries, options, callback) {
     options = { prepare: true };
   }
   CassandraClient.prototype.doBatch.call(CassandraClient, queries, options, callback);
-};
-
-CassandraClient.maxTimeuuid = (date) => (CassandraClient.timeuuid(date, 'max'));
-
-CassandraClient.minTimeuuid = (date) => (CassandraClient.timeuuid(date, 'min'));
-
-CassandraClient.prototype.maxTimeuuid = function f(date) {
-  return this.timeuuid(date, 'max');
-};
-
-CassandraClient.prototype.minTimeuuid = function f(date) {
-  return this.timeuuid(date, 'min');
 };
 
 
@@ -214,6 +185,11 @@ Object.defineProperties(CassandraClient.prototype, {
 CassandraClient.prototype.uuid = CassandraClient.uuid;
 CassandraClient.prototype.uuidFromString = CassandraClient.uuidFromString;
 CassandraClient.prototype.timeuuid = CassandraClient.timeuuid;
+CassandraClient.prototype.timeuuidFromDate = CassandraClient.timeuuidFromDate;
+CassandraClient.prototype.timeuuidFromString = CassandraClient.timeuuidFromString;
+CassandraClient.prototype.maxTimeuuid = CassandraClient.maxTimeuuid;
+CassandraClient.prototype.minTimeuuid = CassandraClient.minTimeuuid;
+
 CassandraClient.prototype._translateFileNameToModelName = CassandraClient._translateFileNameToModelName;
 
 module.exports = CassandraClient;

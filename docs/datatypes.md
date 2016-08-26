@@ -1,15 +1,17 @@
-# Datatypes and Tools
+# Datatypes and Utility Functions
 
 ## A few Handy Enums and Functions
 
 Express cassandra exposes some node driver methods for convenience. To generate uuids e.g. in field defaults:
 
 *   `models.uuid()`
-    returns a type 3 (random) uuid, suitable for Cassandra `uuid` fields, as a string
+    returns a version 4 (random) uuid as javascript type models.datatypes.Uuid, suitable for Cassandra `uuid` fields.
 *   `models.uuidFromString(str)`
-    returns a type 3 uuid from input string, suitable for Cassandra `uuid` fields
-*   `models.timeuuid() / .maxTimeuuid() / .minTimeuuid()`
-    returns a type 1 (time-based) uuid, suitable for Cassandra `timeuuid` fields, as a string. From the [Datastax documentation](https://docs.datastax.com/en/cql/3.3/cql/cql_reference/timeuuid_functions_r.html):
+    returns a version 4 uuid as javascript type models.datatypes.Uuid from input string, suitable for Cassandra `uuid` fields
+*   `models.timeuuid() / models.timeuuidFromString(str)`
+    returns a version 1 (time-based) uuid as javascript type models.datatypes.TimeUuid, suitable for Cassandra `timeuuid` fields. Parameter str should be a valid timeuuid string.
+*   `models.timeuuidFromDate(date) / .maxTimeuuid(date) / .minTimeuuid(date)`
+    returns a version 1 (time-based) uuid as javascript type models.datatypes.TimeUuid, suitable for Cassandra `timeuuid` fields. Parameter `date` should be a javascript Date object. From the [Datastax documentation](https://docs.datastax.com/en/cql/3.3/cql/cql_reference/timeuuid_functions_r.html):
 
     > The min/maxTimeuuid example selects all rows where the timeuuid column, t, is strictly later than 2013-01-01 00:05+0000 but strictly earlier than 2013-02-02 10:00+0000. The t >= maxTimeuuid('2013-01-01 00:05+0000') does not select a timeuuid generated exactly at 2013-01-01 00:05+0000 and is essentially equivalent to t > maxTimeuuid('2013-01-01 00:05+0000').
 

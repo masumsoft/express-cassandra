@@ -10,7 +10,7 @@ pages:
 - Querying Data: find.md
 - Batching ORM Operations: batch.md
 - Complex Datatypes and Operations: complex.md
-- Datatype Conversions: datatypes.md
+- Datatypes and Utility Functions: datatypes.md
 - Other Notes: notes.md
 
 theme: readthedocs
