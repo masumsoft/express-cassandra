@@ -552,6 +552,21 @@ describe('Unit Tests', () => {
         done();
       });
     });
+
+    it('should stream data from materialized_view without errors', (done) => {
+      models.instance.Person.stream(
+        { userID: 1234, age: 32, active: true },
+        { materialized_view: 'mat_view_composite' }, (reader) => {
+          let row = reader.readRow();
+          while (row) {
+            row.Name.should.equal('Mahafuzur');
+            row = reader.readRow();
+          }
+        }, (err) => {
+          if (err) throw err;
+          done();
+        });
+    });
   });
 
   describe('#find using eachRow', () => {
@@ -562,9 +577,21 @@ describe('Unit Tests', () => {
         if (err) throw err;
         if (result.nextPage) {
           result.nextPage();
-        }
-        done();
+        } else done();
       });
+    });
+
+    it('should stream data using eachRow from materialized view without errors', (done) => {
+      models.instance.Person.eachRow(
+        { userID: 1234, age: 32, active: true },
+        { fetchSize: 100, materialized_view: 'mat_view_composite' }, (n, row) => {
+          row.Name.should.equal('Mahafuzur');
+        }, (err, result) => {
+          if (err) throw err;
+          if (result.nextPage) {
+            result.nextPage();
+          } else done();
+        });
     });
   });
 

@@ -1403,7 +1403,8 @@ BaseModel.eachRow = function f(queryObject, options, onReadable, callback) {
 
   options = _.defaultsDeep(options, defaults);
 
-  const selectQuery = this.find(queryObject, { return_query: true });
+  options.return_query = true;
+  const selectQuery = this.find(queryObject, options);
 
   const queryOptions = { prepare: options.prepare };
   if (options.consistency) queryOptions.consistency = options.consistency;
@@ -1471,7 +1472,8 @@ BaseModel.stream = function f(queryObject, options, onReadable, callback) {
 
   options = _.defaultsDeep(options, defaults);
 
-  const selectQuery = this.find(queryObject, { return_query: true });
+  options.return_query = true;
+  const selectQuery = this.find(queryObject, options);
 
   const queryOptions = { prepare: options.prepare };
   if (options.consistency) queryOptions.consistency = options.consistency;
