@@ -2,6 +2,7 @@ const fs = require('fs');
 const util = require('util');
 const async = require('async');
 const cql = require('cassandra-driver');
+const _ = require('lodash');
 const ORM = require('./orm/apollo');
 
 const CassandraClient = function f(options) {
@@ -35,7 +36,12 @@ CassandraClient.bind = (options, cb) => {
 
       async.each(list, (file, callback) => {
         const fileName = util.format('%s/%s', self.directory, file);
-        if (fileName.indexOf('Model') === -1) {
+        const validFileExtensions = ['js', 'javascript', 'jsx', 'coffee', 'coffeescript', 'iced',
+                                      'script', 'ts', 'tsx', 'typescript', 'cjsx', 'co', 'json',
+                                      'json5', 'litcoffee', 'liticed', 'ls', 'node', 'toml', 'wisp'];
+        const fileExtension = _.last(fileName.split('.')).toLowerCase();
+
+        if (fileName.indexOf('Model') === -1 || validFileExtensions.indexOf(fileExtension) === -1) {
           callback();
           return;
         }
