@@ -32,7 +32,7 @@ describe('Unit Tests', () => {
                 phone_number: 'text',
                 country_code: 'int',
               },
-              address: {
+              Address: {
                 street: 'text',
                 city: 'text',
                 state: 'text',

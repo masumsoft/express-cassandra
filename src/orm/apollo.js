@@ -158,7 +158,7 @@ Apollo.prototype = {
         let query = util.format(
           "SELECT * FROM system_schema.types WHERE keyspace_name = '%s' AND type_name = '%s';",
           keyspace,
-          udtKey.toLowerCase()
+          udtKey
         );
         client.execute(query, (err, result) => {
           if (err) {
@@ -176,7 +176,7 @@ Apollo.prototype = {
               ));
             });
             query = util.format(
-              'CREATE TYPE IF NOT EXISTS %s (%s);',
+              'CREATE TYPE IF NOT EXISTS "%s" (%s);',
               udtKey,
               udtFields.toString()
             );

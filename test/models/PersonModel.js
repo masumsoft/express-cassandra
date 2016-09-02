@@ -95,11 +95,11 @@ module.exports = {
     emails: { type: 'set', typeDef: '<varchar>' },
     address: {
       type: 'frozen',
-      typeDef: '<address>',
+      typeDef: '<"Address">',
     },
     frozenMap: {
       type: 'frozen',
-      typeDef: '<map <text, frozen<address>>>',
+      typeDef: '<map <text, frozen<"Address">>>',
     },
     points: {
       type: 'double',
