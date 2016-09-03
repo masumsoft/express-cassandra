@@ -128,6 +128,14 @@ BaseModel._get_validators = function f(fieldname) {
   return validators;
 };
 
+BaseModel._ask_confirmation = function f(message) {
+  let permission = 'y';
+  if (!this._properties.disableTTYConfirmation) {
+    permission = readlineSync.question(message);
+  }
+  return permission;
+};
+
 BaseModel._ensure_connected = function f(callback) {
   if (!this._properties.cql) {
     this._properties.connect(callback);
@@ -267,7 +275,7 @@ BaseModel._create_table = function f(callback) {
         callback();
       } else {
         const dropRecreateTable = () => {
-          const permission = readlineSync.question(
+          const permission = this._ask_confirmation(
             util.format(
               'Migration: model schema changed for table "%s", drop table & recreate? (data will be lost!) (y/n): ',
               tableName
@@ -348,7 +356,7 @@ BaseModel._create_table = function f(callback) {
 
           // remove altered materialized views
           if (removedMaterializedViews.length > 0) {
-            const permission = readlineSync.question(
+            const permission = this._ask_confirmation(
               util.format(
                 'Migration: model schema for table "%s" has removed materialized_views: %j, drop them? (y/n): ',
                 tableName,
@@ -361,7 +369,7 @@ BaseModel._create_table = function f(callback) {
             }
           }
           if (removedIndexNames.length > 0) {
-            const permission = readlineSync.question(
+            const permission = this._ask_confirmation(
               util.format(
                 'Migration: model schema for table "%s" has removed indexes: %j, drop them? (y/n): ',
                 tableName,
@@ -435,7 +443,7 @@ BaseModel._create_table = function f(callback) {
           async.eachSeries(differences, (diff, next) => {
             const fieldName = diff.path[0];
             const alterFieldType = () => {
-              const permission = readlineSync.question(
+              const permission = this._ask_confirmation(
                 util.format(
                   'Migration: model schema for table "%s" has new type for field "%s", ' +
                   'alter table to update column type? (y/n): ',
@@ -540,7 +548,7 @@ BaseModel._create_table = function f(callback) {
             };
 
             if (diff.kind === 'N') {
-              const permission = readlineSync.question(
+              const permission = this._ask_confirmation(
                 util.format(
                   'Migration: model schema for table "%s" has added field "%s", alter table to add column? (y/n): ',
                   tableName,
@@ -553,7 +561,7 @@ BaseModel._create_table = function f(callback) {
                 next(buildError('model.tablecreation.schemamismatch', tableName));
               }
             } else if (diff.kind === 'D') {
-              const permission = readlineSync.question(
+              const permission = this._ask_confirmation(
                 util.format(
                   'Migration: model schema for table "%s" has removed field "%s", alter table to drop column? ' +
                   '(column data will be lost & dependent indexes/views will be recreated!) (y/n): ',
@@ -574,7 +582,7 @@ BaseModel._create_table = function f(callback) {
                   alterFieldType();
                 } else if (normalizedDBSchema.key.indexOf(fieldName) > 0) { // check if field part of clustering key
                   // alter field type impossible
-                  const permission = readlineSync.question(
+                  const permission = this._ask_confirmation(
                     util.format(
                       'Migration: model schema for table "%s" has new incompatible type for primary key field "%s", ' +
                       'proceed to recreate table? (y/n): ',
@@ -598,7 +606,7 @@ BaseModel._create_table = function f(callback) {
                   alterFieldType();
                 } else if (normalizedDBSchema.key[0].indexOf(fieldName) > -1) { // check if field part of partition key
                   // alter field type impossible
-                  const permission = readlineSync.question(
+                  const permission = this._ask_confirmation(
                     util.format(
                       'Migration: model schema for table "%s" has new incompatible type for primary key field "%s", ' +
                       'proceed to recreate table? (y/n): ',
@@ -614,7 +622,7 @@ BaseModel._create_table = function f(callback) {
                   }
                 } else {
                   // alter type impossible
-                  const permission = readlineSync.question(
+                  const permission = this._ask_confirmation(
                     util.format(
                       'Migration: model schema for table "%s" has new incompatible type for field "%s", drop column ' +
                       'and recreate? (column data will be lost & dependent indexes/views will be recreated!) (y/n): ',
@@ -633,7 +641,7 @@ BaseModel._create_table = function f(callback) {
                 }
               } else {
                 // alter type impossible
-                const permission = readlineSync.question(
+                const permission = this._ask_confirmation(
                   util.format(
                     'Migration: model schema for table "%s" has new incompatible type for field "%s", drop column ' +
                     'and recreate? (column data will be lost & dependent indexes/views will be recreated!) (y/n): ',

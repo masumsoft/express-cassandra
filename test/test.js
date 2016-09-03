@@ -26,6 +26,7 @@ describe('Unit Tests', () => {
             },
             migration: 'alter',
             createKeyspace: true,
+            disableTTYConfirmation: true,
             udts: {
               phone: {
                 alias: 'text',

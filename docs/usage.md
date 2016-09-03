@@ -58,6 +58,7 @@ setting for production. Note that if NODE_ENV==="production" then
 regardless of the migration setting, `safe` is always used to protect
 inadvertent deletion of your data.
 
+Note that some environments might not support tty console, so asking the user for confirmation in the terminal may throw errors. If you face such problems or want to automate the migration process in a dev/staging environment then you can set the property `disableTTYConfirmation: true` in the ormOptions. This will do the migrations without asking for a confirmation from the user.
 
 If `createKeyspace=false`, then it won't be checked whether the specified keyspace exists and, if not, it won't get created automatically.
 

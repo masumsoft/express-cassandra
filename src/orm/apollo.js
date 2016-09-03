@@ -560,6 +560,7 @@ Apollo.prototype = {
       connect: this.connect.bind(this),
       dropTableOnSchemaChange: this._options.dropTableOnSchemaChange,
       migration: this._options.migration,
+      disableTTYConfirmation: this._options.disableTTYConfirmation,
     };
 
     return (this._models[modelName] = this._generate_model(baseProperties, callback));
