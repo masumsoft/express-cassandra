@@ -79,17 +79,35 @@ const AERROR_TYPES = {
   'model.save.dberror': {
     msg: 'Error during save query on DB -> %s',
   },
+  'model.save.before.error': {
+    msg: 'Error in before_save lifecycle function -> %s',
+  },
+  'model.save.after.error': {
+    msg: 'Error in after_save lifecycle function -> %s',
+  },
   'model.update.invalidvalue': {
     msg: 'Invalid Value: "%s" for Field: %s',
   },
   'model.update.dberror': {
     msg: 'Error during update query on DB -> %s',
   },
+  'model.update.before.error': {
+    msg: 'Error in before_update lifecycle function -> %s',
+  },
+  'model.update.after.error': {
+    msg: 'Error in after_update lifecycle function -> %s',
+  },
   'model.delete.invalidvalue': {
     msg: 'Invalid Value: "%s" for Field: %s (Type: %s)',
   },
   'model.delete.dberror': {
     msg: 'Error during delete query on DB -> %s',
+  },
+  'model.delete.before.error': {
+    msg: 'Error in before_delete lifecycle function -> %s',
+  },
+  'model.delete.after.error': {
+    msg: 'Error in after_delete lifecycle function -> %s',
   },
 };
 

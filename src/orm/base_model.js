@@ -1775,16 +1775,52 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
   if (options.retry) queryOptions.retry = options.retry;
   if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
 
-  this._execute_table_query(query, queryParams, queryOptions, (err, results) => {
-    if (typeof callback === 'function') {
-      if (err) {
-        callback(buildError('model.update.dberror', err));
+  // set dummy hook function if not present in schema
+  const schema = this._properties.schema;
+  if (typeof schema.before_update !== 'function') {
+    schema.before_update = function f1(queryObj, updateVal, optionsObj, next) {
+      next();
+    };
+  }
+
+  if (typeof schema.after_update !== 'function') {
+    schema.after_update = function f1(queryObj, updateVal, optionsObj, next) {
+      next();
+    };
+  }
+
+  schema.before_update(queryObject, updateValues, options, (error) => {
+    if (error) {
+      if (typeof callback === 'function') {
+        callback(buildError('model.update.before.error', error));
         return;
       }
-      callback(null, results);
-    } else if (err) {
-      throw buildError('model.update.dberror', err);
+      throw buildError('model.update.before.error', error);
     }
+
+    this._execute_table_query(query, queryParams, queryOptions, (err, results) => {
+      if (typeof callback === 'function') {
+        if (err) {
+          callback(buildError('model.update.dberror', err));
+          return;
+        }
+        schema.after_update(queryObject, updateValues, options, (error1) => {
+          if (error1) {
+            callback(buildError('model.update.after.error', error1));
+            return;
+          }
+          callback(null, results);
+        });
+      } else if (err) {
+        throw buildError('model.update.dberror', err);
+      } else {
+        schema.after_update(queryObject, updateValues, options, (error1) => {
+          if (error1) {
+            throw buildError('model.update.after.error', error1);
+          }
+        });
+      }
+    });
   });
 
   return {};
@@ -1833,16 +1869,52 @@ BaseModel.delete = function f(queryObject, options, callback) {
   if (options.retry) queryOptions.retry = options.retry;
   if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
 
-  this._execute_table_query(query, queryParams, queryOptions, (err, results) => {
-    if (typeof callback === 'function') {
-      if (err) {
-        callback(buildError('model.delete.dberror', err));
+  // set dummy hook function if not present in schema
+  const schema = this._properties.schema;
+  if (typeof schema.before_delete !== 'function') {
+    schema.before_delete = function f1(queryObj, optionsObj, next) {
+      next();
+    };
+  }
+
+  if (typeof schema.after_delete !== 'function') {
+    schema.after_delete = function f1(queryObj, optionsObj, next) {
+      next();
+    };
+  }
+
+  schema.before_delete(queryObject, options, (error) => {
+    if (error) {
+      if (typeof callback === 'function') {
+        callback(buildError('model.delete.before.error', error));
         return;
       }
-      callback(null, results);
-    } else if (err) {
-      throw buildError('model.delete.dberror', err);
+      throw buildError('model.delete.before.error', error);
     }
+
+    this._execute_table_query(query, queryParams, queryOptions, (err, results) => {
+      if (typeof callback === 'function') {
+        if (err) {
+          callback(buildError('model.delete.dberror', err));
+          return;
+        }
+        schema.after_delete(queryObject, options, (error1) => {
+          if (error1) {
+            callback(buildError('model.delete.after.error', error1));
+            return;
+          }
+          callback(null, results);
+        });
+      } else if (err) {
+        throw buildError('model.delete.dberror', err);
+      } else {
+        schema.after_delete(queryObject, options, (error1) => {
+          if (error1) {
+            throw buildError('model.delete.after.error', error1);
+          }
+        });
+      }
+    });
   });
 
   return {};
@@ -2027,16 +2099,51 @@ BaseModel.prototype.save = function fn(options, callback) {
   if (options.retry) queryOptions.retry = options.retry;
   if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
 
-  this.constructor._execute_table_query(query, queryParams, queryOptions, (err, result) => {
-    if (typeof callback === 'function') {
-      if (err) {
-        callback(buildError('model.save.dberror', err));
+  // set dummy hook function if not present in schema
+  if (typeof schema.before_save !== 'function') {
+    schema.before_save = function f(instance, option, next) {
+      next();
+    };
+  }
+
+  if (typeof schema.after_save !== 'function') {
+    schema.after_save = function f(instance, option, next) {
+      next();
+    };
+  }
+
+  schema.before_save(this, options, (error) => {
+    if (error) {
+      if (typeof callback === 'function') {
+        callback(buildError('model.save.before.error', error));
         return;
       }
-      callback(null, result);
-    } else if (err) {
-      throw buildError('model.save.dberror', err);
+      throw buildError('model.save.before.error', error);
     }
+
+    this.constructor._execute_table_query(query, queryParams, queryOptions, (err, result) => {
+      if (typeof callback === 'function') {
+        if (err) {
+          callback(buildError('model.save.dberror', err));
+          return;
+        }
+        schema.after_save(this, options, (error1) => {
+          if (error1) {
+            callback(buildError('model.save.after.error', error1));
+            return;
+          }
+          callback(null, result);
+        });
+      } else if (err) {
+        throw buildError('model.save.dberror', err);
+      } else {
+        schema.after_save(this, options, (error1) => {
+          if (error1) {
+            throw buildError('model.save.after.error', error1);
+          }
+        });
+      }
+    });
   });
 
   return {};
