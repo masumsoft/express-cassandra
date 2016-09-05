@@ -1,6 +1,8 @@
 [![Build Status](https://travis-ci.org/masumsoft/express-cassandra.svg)](https://travis-ci.org/masumsoft/express-cassandra)
 [![Download Stats](https://img.shields.io/npm/dm/express-cassandra.svg)](https://www.npmjs.com/package/express-cassandra)
 [![Npm Version](https://badge.fury.io/js/express-cassandra.svg)](https://www.npmjs.com/package/express-cassandra)
+[![Documentation Status](https://readthedocs.org/projects/express-cassandra/badge/?version=latest)](http://express-cassandra.readthedocs.io/en/latest/?badge=latest)
+[![Dependency Status](https://www.versioneye.com/nodejs/express-cassandra/badge?style=flat-square)](https://www.versioneye.com/nodejs/express-cassandra/)
 
 # Overview
 
