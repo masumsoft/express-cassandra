@@ -80,7 +80,7 @@ BaseModel._set_properties = function f(properties) {
 };
 
 BaseModel._validate = function f(validators, value) {
-  if (typeof value === 'undefined' || value == null || (typeof value === 'object' && value.$db_function)) return true;
+  if (value == null || (_.isPlainObject(value) && value.$db_function)) return true;
 
   for (let v = 0; v < validators.length; v++) {
     if (!validators[v].validator(value)) {
@@ -109,7 +109,7 @@ BaseModel._get_validators = function f(fieldname) {
         message: genericValidatorMessageFunc,
       };
     } else {
-      if (typeof field.rule !== 'object' || typeof field.rule.validator === 'undefined') {
+      if (!_.isPlainObject(field.rule) || typeof field.rule.validator === 'undefined') {
         throw (new Error('Invalid validator'));
       }
       if (!field.rule.message) {
@@ -1036,11 +1036,11 @@ BaseModel._execute_table_query = function f(query, params, options, callback) {
 };
 
 BaseModel._get_db_value_expression = function f(fieldname, fieldvalue) {
-  if (typeof fieldvalue === 'undefined' || fieldvalue === null || fieldvalue === cql.types.unset) {
+  if (fieldvalue == null || fieldvalue === cql.types.unset) {
     return { query_segment: '?', parameter: fieldvalue };
   }
 
-  if (typeof fieldvalue === 'object' && fieldvalue.$db_function) {
+  if (_.isPlainObject(fieldvalue) && fieldvalue.$db_function) {
     return fieldvalue.$db_function;
   }
 
@@ -1051,7 +1051,7 @@ BaseModel._get_db_value_expression = function f(fieldname, fieldvalue) {
     const val = fieldvalue.map((v) => {
       const dbVal = this._get_db_value_expression(fieldname, v);
 
-      if (typeof dbVal === 'object' && dbVal.parameter) return dbVal.parameter;
+      if (_.isPlainObject(dbVal) && dbVal.parameter) return dbVal.parameter;
       return dbVal;
     });
 
@@ -1112,7 +1112,7 @@ BaseModel._create_where_clause = function f(queryObject) {
         $contains_key: 'CONTAINS KEY',
       };
 
-      if (typeof fieldRelation === 'object') {
+      if (_.isPlainObject(fieldRelation)) {
         const validKeys = Object.keys(cqlOperators);
         const fieldRelationKeys = Object.keys(fieldRelation);
         for (let i = 0; i < fieldRelationKeys.length; i++) {
@@ -1156,7 +1156,7 @@ BaseModel._create_where_clause = function f(queryObject) {
                 for (let tokenIndex = 0; tokenIndex < tokenFirstValue.length; tokenIndex++) {
                   tokenKeys[tokenIndex] = tokenKeys[tokenIndex].trim();
                   const dbVal = this._get_db_value_expression(tokenKeys[tokenIndex], tokenFirstValue[tokenIndex]);
-                  if (typeof dbVal === 'object' && dbVal.query_segment) {
+                  if (_.isPlainObject(dbVal) && dbVal.query_segment) {
                     tokenFirstValue[tokenIndex] = dbVal.query_segment;
                     queryParams.push(dbVal.parameter);
                   } else {
@@ -1169,7 +1169,7 @@ BaseModel._create_where_clause = function f(queryObject) {
                 ));
               } else {
                 const dbVal = this._get_db_value_expression(k, tokenFirstValue);
-                if (typeof dbVal === 'object' && dbVal.query_segment) {
+                if (_.isPlainObject(dbVal) && dbVal.query_segment) {
                   queryRelations.push(util.format(
                     whereTemplate,
                     k, op, dbVal.query_segment
@@ -1186,7 +1186,7 @@ BaseModel._create_where_clause = function f(queryObject) {
           } else if (firstKey === '$contains') {
             const fieldtype1 = schemer.get_field_type(this._properties.schema, k);
             if (['map', 'list', 'set', 'frozen'].indexOf(fieldtype1) >= 0) {
-              if (fieldtype1 === 'map' && typeof firstValue === 'object' && Object.keys(firstValue).length === 1) {
+              if (fieldtype1 === 'map' && _.isPlainObject(firstValue) && Object.keys(firstValue).length === 1) {
                 queryRelations.push(util.format(
                   '"%s"[%s] %s %s',
                   k, '?', '=', '?'
@@ -1216,7 +1216,7 @@ BaseModel._create_where_clause = function f(queryObject) {
             }
           } else {
             const dbVal = this._get_db_value_expression(k, firstValue);
-            if (typeof dbVal === 'object' && dbVal.query_segment) {
+            if (_.isPlainObject(dbVal) && dbVal.query_segment) {
               queryRelations.push(util.format(
                 whereTemplate,
                 k, op, dbVal.query_segment
@@ -1617,6 +1617,8 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
     options = {};
   }
 
+  const schema = this._properties.schema;
+
   const defaults = {
     prepare: true,
   };
@@ -1628,36 +1630,85 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
   const updateClauseArray = [];
 
   let errorHappened = Object.keys(updateValues).some((key) => {
+    if (schema.fields[key] === undefined || schema.fields[key].virtual) return false;
+
+    // check field value
+    const fieldtype = schemer.get_field_type(schema, key);
+    let fieldvalue = updateValues[key];
+
+    if (fieldvalue === undefined) {
+      fieldvalue = this._get_default_value(key);
+      if (fieldvalue === undefined) {
+        if (schema.key.indexOf(key) >= 0 || schema.key[0].indexOf(key) >= 0) {
+          if (typeof callback === 'function') {
+            callback(buildError('model.update.unsetkey', key));
+            return true;
+          }
+          throw buildError('model.update.unsetkey', key);
+        } else if (schema.fields[key].rule && schema.fields[key].rule.required) {
+          if (typeof callback === 'function') {
+            callback(buildError('model.update.unsetrequired', key));
+            return true;
+          }
+          throw buildError('model.update.unsetrequired', key);
+        } else return false;
+      } else if (!schema.fields[key].rule || !schema.fields[key].rule.ignore_default) {
+        // did set a default value, ignore default is not set
+        if (this.validate(key, fieldvalue) !== true) {
+          if (typeof callback === 'function') {
+            callback(buildError('model.update.invaliddefaultvalue', fieldvalue, key, fieldtype));
+            return true;
+          }
+          throw buildError('model.update.invaliddefaultvalue', fieldvalue, key, fieldtype);
+        }
+      }
+    }
+
+    if (fieldvalue === null || fieldvalue === cql.types.unset) {
+      if (schema.key.indexOf(key) >= 0 || schema.key[0].indexOf(key) >= 0) {
+        if (typeof callback === 'function') {
+          callback(buildError('model.update.unsetkey', key));
+          return true;
+        }
+        throw buildError('model.update.unsetkey', key);
+      } else if (schema.fields[key].rule && schema.fields[key].rule.required) {
+        if (typeof callback === 'function') {
+          callback(buildError('model.update.unsetrequired', key));
+          return true;
+        }
+        throw buildError('model.update.unsetrequired', key);
+      }
+    }
+
+
     try {
       let $add = false;
       let $append = false;
       let $prepend = false;
       let $replace = false;
       let $remove = false;
-      if (typeof updateValues[key] === 'object') {
-        if (updateValues[key].$add) {
-          updateValues[key] = updateValues[key].$add;
+      if (_.isPlainObject(fieldvalue)) {
+        if (fieldvalue.$add) {
+          fieldvalue = fieldvalue.$add;
           $add = true;
-        } else if (updateValues[key].$append) {
-          updateValues[key] = updateValues[key].$append;
+        } else if (fieldvalue.$append) {
+          fieldvalue = fieldvalue.$append;
           $append = true;
-        } else if (updateValues[key].$prepend) {
-          updateValues[key] = updateValues[key].$prepend;
+        } else if (fieldvalue.$prepend) {
+          fieldvalue = fieldvalue.$prepend;
           $prepend = true;
-        } else if (updateValues[key].$replace) {
-          updateValues[key] = updateValues[key].$replace;
+        } else if (fieldvalue.$replace) {
+          fieldvalue = fieldvalue.$replace;
           $replace = true;
-        } else if (updateValues[key].$remove) {
-          updateValues[key] = updateValues[key].$remove;
+        } else if (fieldvalue.$remove) {
+          fieldvalue = fieldvalue.$remove;
           $remove = true;
         }
       }
 
-      const dbVal = this._get_db_value_expression(key, updateValues[key]);
+      const dbVal = this._get_db_value_expression(key, fieldvalue);
 
-      const fieldtype = schemer.get_field_type(this._properties.schema, key);
-
-      if (typeof dbVal === 'object' && dbVal.query_segment) {
+      if (_.isPlainObject(dbVal) && dbVal.query_segment) {
         if (['map', 'list', 'set'].indexOf(fieldtype) > -1) {
           if ($add || $append) {
             dbVal.query_segment = util.format('"%s" + %s', key, dbVal.query_segment);
@@ -1705,10 +1756,10 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
       }
     } catch (e) {
       if (typeof callback === 'function') {
-        callback(buildError('model.update.invalidvalue', updateValues[key], key));
+        callback(buildError('model.update.invalidvalue', fieldvalue, key));
         return true;
       }
-      throw buildError('model.update.invalidvalue', updateValues[key], key);
+      throw buildError('model.update.invalidvalue', fieldvalue, key);
     }
     return false;
   });
@@ -1738,7 +1789,7 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
     errorHappened = Object.keys(options.conditions).some((key) => {
       try {
         const dbVal = this._get_db_value_expression(key, options.conditions[key]);
-        if (typeof dbVal === 'object' && dbVal.query_segment) {
+        if (_.isPlainObject(dbVal) && dbVal.query_segment) {
           updateConditionsArray.push(util.format('"%s"=%s', key, dbVal.query_segment));
           queryParams.push(dbVal.parameter);
         } else {
@@ -1776,7 +1827,6 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
   if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
 
   // set dummy hook function if not present in schema
-  const schema = this._properties.schema;
   if (typeof schema.before_update !== 'function') {
     schema.before_update = function f1(queryObj, updateVal, optionsObj, next) {
       next();
@@ -1967,7 +2017,7 @@ BaseModel.prototype._get_default_value = function f(fieldname) {
   const properties = this.constructor._properties;
   const schema = properties.schema;
 
-  if (typeof schema.fields[fieldname] === 'object' && schema.fields[fieldname].default !== undefined) {
+  if (_.isPlainObject(schema.fields[fieldname]) && schema.fields[fieldname].default !== undefined) {
     if (typeof schema.fields[fieldname].default === 'function') {
       return schema.fields[fieldname].default.call(this);
     }
@@ -2008,7 +2058,7 @@ BaseModel.prototype.save = function fn(options, callback) {
     const fieldtype = schemer.get_field_type(schema, f);
     let fieldvalue = this[f];
 
-    if (fieldvalue === undefined || fieldvalue === cql.types.unset) {
+    if (fieldvalue === undefined) {
       fieldvalue = this._get_default_value(f);
       if (fieldvalue === undefined) {
         if (schema.key.indexOf(f) >= 0 || schema.key[0].indexOf(f) >= 0) {
@@ -2036,7 +2086,7 @@ BaseModel.prototype.save = function fn(options, callback) {
       }
     }
 
-    if (fieldvalue === null) {
+    if (fieldvalue === null || fieldvalue === cql.types.unset) {
       if (schema.key.indexOf(f) >= 0 || schema.key[0].indexOf(f) >= 0) {
         if (typeof callback === 'function') {
           callback(buildError('model.save.unsetkey', f));
@@ -2056,7 +2106,7 @@ BaseModel.prototype.save = function fn(options, callback) {
 
     try {
       const dbVal = this.constructor._get_db_value_expression(f, fieldvalue);
-      if (typeof dbVal === 'object' && dbVal.query_segment) {
+      if (_.isPlainObject(dbVal) && dbVal.query_segment) {
         values.push(dbVal.query_segment);
         queryParams.push(dbVal.parameter);
       } else {

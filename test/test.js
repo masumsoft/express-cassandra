@@ -617,7 +617,8 @@ describe('Unit Tests', () => {
               (err1) => {
                 if (err1) throw err1;
                 done();
-              });
+              }
+            );
           } else done(new Error('validation rule is not working properly'));
         });
     });
@@ -638,6 +639,31 @@ describe('Unit Tests', () => {
         person.emails[0].should.equal('c@d.com');
         person.active.should.equal(false);
         person.timeId.toString().length.should.equal(36);
+        should.exist(person.intSetDefault);
+        done();
+      });
+    });
+  });
+
+  describe('#update using null', () => {
+    it('should update data on db without errors', (done) => {
+      models.instance.Person.update(
+        { userID: 1234, age: 32 },
+        { intSetDefault: null },
+        (err) => {
+          if (err) throw err;
+          done();
+        });
+    });
+  });
+
+  describe('#find after update with null', () => {
+    it('should find data as updated without errors', (done) => {
+      models.instance.Person.find({ userID: 1234, age: 32 }, (err, people) => {
+        if (err) throw err;
+        people.length.should.equal(1);
+        const person = people[0];
+        should.not.exist(person.intSetDefault);
         done();
       });
     });

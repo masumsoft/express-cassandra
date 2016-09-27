@@ -65,10 +65,10 @@ const AERROR_TYPES = {
     msg: 'Error during find query on DB -> %s',
   },
   'model.save.unsetkey': {
-    msg: 'Key Field: %s must be set',
+    msg: 'Key Field: %s must have a value',
   },
   'model.save.unsetrequired': {
-    msg: 'Required Field: %s must be set',
+    msg: 'Required Field: %s must have a value',
   },
   'model.save.invalidvalue': {
     msg: 'Invalid Value: "%s" for Field: %s (Type: %s)',
@@ -85,8 +85,17 @@ const AERROR_TYPES = {
   'model.save.after.error': {
     msg: 'Error in after_save lifecycle function -> %s',
   },
+  'model.update.unsetkey': {
+    msg: 'Key Field: %s must have a value',
+  },
+  'model.update.unsetrequired': {
+    msg: 'Required Field: %s must have a value',
+  },
   'model.update.invalidvalue': {
     msg: 'Invalid Value: "%s" for Field: %s',
+  },
+  'model.update.invaliddefaultvalue': {
+    msg: 'Invalid Default value: "%s" for Field: %s (Type: %s)',
   },
   'model.update.dberror': {
     msg: 'Error during update query on DB -> %s',

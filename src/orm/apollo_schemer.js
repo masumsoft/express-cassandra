@@ -171,7 +171,7 @@ const schemer = {
   validate_model_schema(modelSchema) {
     if (!modelSchema) throw (new Error('A schema must be specified'));
 
-    if (typeof (modelSchema.fields) !== 'object' || Object.keys(modelSchema.fields).length === 0) {
+    if (!_.isPlainObject(modelSchema.fields) || Object.keys(modelSchema.fields).length === 0) {
       throw (new Error('Schema must contain a non-empty "fields" map object'));
     }
 
@@ -233,7 +233,7 @@ const schemer = {
     }
 
     if (modelSchema.clustering_order) {
-      if (typeof (modelSchema.clustering_order) !== 'object') {
+      if (!_.isPlainObject(modelSchema.clustering_order)) {
         throw (new Error('clustering_order must be an object of clustering_key attributes'));
       }
 
@@ -249,13 +249,13 @@ const schemer = {
 
     // validate materialized_view
     if (modelSchema.materialized_views) {
-      if (typeof (modelSchema.materialized_views) !== 'object') {
+      if (!_.isPlainObject(modelSchema.materialized_views)) {
         throw (new Error('materialized_views must be an object with view names as attributes'));
       }
 
       Object.keys(modelSchema.materialized_views).forEach((mvindex) => {
         const candidateMView = modelSchema.materialized_views[mvindex];
-        if (typeof (candidateMView) !== 'object') {
+        if (!_.isPlainObject(candidateMView)) {
           throw (new Error(
             util.format('attribute "%s" under materialized_views must be an object', mvindex)
           ));
@@ -360,7 +360,7 @@ const schemer = {
         }
 
         if (candidateMView.clustering_order) {
-          if (typeof (candidateMView.clustering_order) !== 'object') {
+          if (!_.isPlainObject(candidateMView.clustering_order)) {
             throw (new Error(
               util.format(
                 'materialized_view %s: clustering_order must be an object of clustering_key attributes',
@@ -429,7 +429,7 @@ const schemer = {
     }
 
     const validateCustomIndex = (customIndex) => {
-      if (typeof (customIndex) !== 'object') {
+      if (!_.isPlainObject(customIndex)) {
         throw (new Error('custom_index must be an object with proper indexing attributes'));
       }
       if ((typeof (customIndex.on) !== 'string') || !(customIndex.on in modelSchema.fields)) {
@@ -447,7 +447,7 @@ const schemer = {
           "custom_index must have a 'using' attribute with string value"
         ));
       }
-      if (typeof (customIndex.options) !== 'object') {
+      if (!_.isPlainObject(customIndex.options)) {
         throw (new Error(
           'custom_index must have an "options" attribute and it must be an object, ' +
           'pass blank {} object if no options are required'
@@ -482,13 +482,13 @@ const schemer = {
     const fieldob = modelSchema.fields[fieldname];
 
     if (typeof fieldob === 'string') return fieldob;
-    else if (typeof fieldob === 'object') return fieldob.type;
+    else if (_.isPlainObject(fieldob)) return fieldob.type;
     throw (new Error(util.format('Field type not defined for field "%s"', fieldname)));
   },
 
   is_field_default_value_valid(modelSchema, fieldname) {
-    if (typeof modelSchema.fields[fieldname] === 'object' && modelSchema.fields[fieldname].default) {
-      if (typeof modelSchema.fields[fieldname].default === 'object'
+    if (_.isPlainObject(modelSchema.fields[fieldname]) && modelSchema.fields[fieldname].default) {
+      if (_.isPlainObject(modelSchema.fields[fieldname].default)
           && !(modelSchema.fields[fieldname].default.$db_function)) {
         if (['map', 'list', 'set', 'frozen'].indexOf(modelSchema.fields[fieldname].type) > -1) return true;
         return false;

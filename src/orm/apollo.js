@@ -249,7 +249,7 @@ Apollo.prototype = {
             util.format('No code defined for user defined function: %s', udfKey)
           ));
         }
-        if (options.udfs[udfKey].inputs && typeof options.udfs[udfKey].inputs !== 'object') {
+        if (options.udfs[udfKey].inputs && !_.isPlainObject(options.udfs[udfKey].inputs)) {
           throw (new Error(
             util.format('inputs must be an object for user defined function: %s', udfKey)
           ));
