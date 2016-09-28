@@ -85,14 +85,24 @@ user.save(function(err){
 
 ### Null and unset values
 
-To complete a distributed DELETE operation, Cassandra replaces it with a special value called a tombstone which can be propagated to replicas. When inserting or updating a field, you can set a certain field to null as a way to clear the value of a field, and it is considered a DELETE operation. In some cases, you might insert rows using null for values that are not specified, and even though our intention is to leave the value empty, Cassandra represents it as a tombstone causing unnecessary overhead.
-
-To avoid tombstones, cassandra has the concept of unset for a parameter value. So you can do the following to unset a field value for example:
+To complete a distributed DELETE operation, Cassandra replaces it with a special value called a tombstone which can be propagated to replicas. When inserting or updating a field, you can set a certain field to null as a way to clear the value of a field, and it is considered a DELETE operation on that particular column.
 
 ```js
 models.instance.User.update({user_id: models.datatypes.Long.fromString('1234556567676782')}, {
-    user_name: models.datatypes.unset
+    user_name: null
 }, function(err){
-    //user name is now unset
+    // user_name value is now cleared
 })
+```
+
+In some cases, you might want to just insert rows using null for values that are not specified, and even though our intention is to leave the value empty, Cassandra represents it as a tombstone causing unnecessary overhead. To avoid such tombstones for save operations, cassandra has the concept of unset for a parameter value. So you can do the following to unset a field value while saving for example:
+
+```js
+var user = new models.instance.User({
+    user_id: models.datatypes.Long.fromString('1234556567676782'),
+    user_name: models.datatypes.unset
+});
+user.save(function(err){
+    // user_name value is not set and does not create any unnecessary tombstone overhead
+});
 ```
