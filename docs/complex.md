@@ -7,11 +7,11 @@ Cassandra counter column increment and decrement operations are supported via th
 ```js
 //Say your model name is StatsModel that has a user_id as the primary key and visit_count as a counter column.
 
-models.instance.Stats.update({user_id:1234}, {visit_count:2}, function(err){
+models.instance.Stats.update({user_id: 1234}, {visit_count: models.datatypes.Long.fromInt(2)}, function(err){
     //visit_count will be incremented by 2
 });
 
-models.instance.Stats.update({user_id:1234}, {visit_count:-1}, function(err){
+models.instance.Stats.update({user_id: 1234}, {visit_count: models.datatypes.Long.fromInt(-1)}, function(err){
     //visit_count will be decremented by 1
 });
 ```
