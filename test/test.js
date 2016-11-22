@@ -998,7 +998,32 @@ describe('Unit Tests', () => {
   });
 
   describe('#orm batch queries', () => {
-    it('should save, update and delete data properly', (done) => {
+    it('should pass blank queries without error', (done) => {
+      const queries = [];
+
+      models.doBatch(queries, (err) => {
+        if (err) throw err;
+        done();
+      });
+    });
+    it('should pass single query without error', (done) => {
+      const queries = [];
+
+      const event = new models.instance.Event({
+        email: 'hello3@h.com',
+        id: eventID,
+        body: 'hello3',
+        tupletest: new models.datatypes.Tuple(3, 'bar', 2.1),
+      });
+
+      queries.push(event.save({ return_query: true }));
+
+      models.doBatch(queries, (err) => {
+        if (err) throw err;
+        done();
+      });
+    });
+    it('should save, update and delete in batch properly', (done) => {
       const queries = [];
 
       const event = new models.instance.Event({

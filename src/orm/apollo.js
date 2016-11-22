@@ -6,7 +6,6 @@ const cql = require('cassandra-driver');
 const BaseModel = require('./base_model');
 const schemer = require('./apollo_schemer');
 
-const types = cql.types;
 const DEFAULT_REPLICATION_FACTOR = 1;
 
 const noop = () => {};
@@ -490,16 +489,6 @@ Apollo.prototype = {
       this._models[i]._properties.cql = this._client;
       this._models[i]._properties.define_connection = this._define_connection;
     });
-  },
-
-  uuid() {
-    const uuid = types.Uuid.random();
-    return uuid.toString();
-  },
-
-  timeuuid() {
-    const timeuuid = types.TimeUuid.now();
-    return timeuuid.toString();
   },
 
   connect(callback) {

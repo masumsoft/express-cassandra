@@ -4,6 +4,7 @@ const async = require('async');
 const cql = require('cassandra-driver');
 const _ = require('lodash');
 const ORM = require('./orm/apollo');
+const debug = require('debug')('express-cassandra');
 
 const CassandraClient = function f(options) {
   const self = this;
@@ -110,10 +111,23 @@ CassandraClient.prototype.doBatch = function f(queries, options, callback) {
       params: queries[i].params,
     });
   }
-  randomModel.execute_batch(builtQueries, options, (err) => {
-    if (err) callback(err);
-    else callback();
-  });
+  if (builtQueries.length > 1) {
+    randomModel.execute_batch(builtQueries, options, (err) => {
+      if (err) callback(err);
+      else callback();
+    });
+    return;
+  }
+  if (builtQueries.length > 0) {
+    debug('single query provided for batch request, applying as non batch query');
+    randomModel.execute_query(builtQueries[0].query, builtQueries[0].params, options, (err) => {
+      if (err) callback(err);
+      else callback();
+    });
+    return;
+  }
+  debug('no queries provided for batch request, empty array found, doing nothing');
+  callback();
 };
 
 CassandraClient.doBatch = function f(queries, options, callback) {
