@@ -1079,14 +1079,25 @@ BaseModel._create_where_clause = function f(queryObject) {
 
   Object.keys(queryObject).forEach((k) => {
     if (k.indexOf('$') === 0) {
+      // search queries based on lucene index or solr
+      // escape all single quotes for queries in cassandra
       if (k === '$expr') {
-        if (queryObject[k].index && queryObject[k].query) {
+        if (typeof queryObject[k].index === 'string' && typeof queryObject[k].query === 'string') {
           queryRelations.push(util.format(
             "expr(%s,'%s')",
-            queryObject[k].index, queryObject[k].query
+            queryObject[k].index, queryObject[k].query.replace(/'/g, "''")
           ));
         } else {
           throw (buildError('model.find.invalidexpr'));
+        }
+      } else if (k === '$solr_query') {
+        if (typeof queryObject[k] === 'string') {
+          queryRelations.push(util.format(
+            "solr_query='%s'",
+            queryObject[k].replace(/'/g, "''")
+          ));
+        } else {
+          throw (buildError('model.find.invalidsolrquery'));
         }
       }
       return;

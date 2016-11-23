@@ -956,6 +956,48 @@ describe('Unit Tests', () => {
     });
   });
 
+  describe('#find using $expr query on custom index', () => {
+    it('should wait for 3 seconds while lucene index builds', function f(done) {
+      this.timeout(5000);
+      this.slow(4000);
+      setTimeout(() => {
+        done();
+      }, 3000);
+    });
+    it('should find the events with index expression query', (done) => {
+      models.instance.Event.find({ $expr: {
+        index: 'event_lucene_idx',
+        query: '{' +
+          'filter: [' +
+              '{type: "prefix", field: "body", value: "hello"}' +
+          '],' +
+          'query: {type: "match", field: "extra", value: "extra1"}' +
+        '}',
+      } }, (err, events) => {
+        if (err) throw err;
+        events.length.should.equal(1);
+        events[0].body.should.equal('hello1');
+        events[0].extra.should.equal('extra1');
+        done();
+      });
+    });
+    it('index expression query should escape properly in presense of single quote', (done) => {
+      models.instance.Event.find({ $expr: {
+        index: 'event_lucene_idx',
+        query: '{' +
+          'filter: [' +
+              '{type: "prefix", field: "body", value: "hello"}' +
+          '],' +
+          'query: {type: "phrase", field: "extra", value: "extra1\'s"}' +
+        '}',
+      } }, (err, events) => {
+        if (err) throw err;
+        events.length.should.equal(0);
+        done();
+      });
+    });
+  });
+
   describe('#verify if all inserted events went to the materialized view', () => {
     it('should find all the events filtered by id from materialized view', (done) => {
       models.instance.Event.find({ id: eventID }, { materialized_view: 'event_by_id' }, (err, events) => {

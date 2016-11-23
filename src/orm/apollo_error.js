@@ -41,7 +41,10 @@ const AERROR_TYPES = {
     msg: 'Invalid field relation: unknown operator: "%s"',
   },
   'model.find.invalidexpr': {
-    msg: 'Index expression must be an object containing the index name and query.',
+    msg: '$expr must be an object containing the index name as string and query as string.',
+  },
+  'model.find.invalidsolrquery': {
+    msg: '$solr_query must be a string containing the query for solr.',
   },
   'model.find.multiorder': {
     msg: 'Invalid order by: only one clause per object',

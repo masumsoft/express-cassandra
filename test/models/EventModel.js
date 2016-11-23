@@ -12,6 +12,7 @@ module.exports = {
       type: 'text',
       static: true,
     },
+    lucene: 'text',
   },
   key: [['email'], 'id'],
   clustering_order: { id: 'desc' },
@@ -32,6 +33,21 @@ module.exports = {
       on: 'extra',
       using: 'org.apache.cassandra.index.sasi.SASIIndex',
       options: {},
+    },
+    {
+      on: 'lucene',
+      using: 'com.stratio.cassandra.lucene.Index',
+      options: {
+        refresh_seconds: '1',
+        schema: '{' +
+          'fields: {' +
+            'id: {type : "uuid"},' +
+            'email: {type : "text"},' +
+            'body: {type : "text"},' +
+            'extra : {type : "text"}' +
+          '}' +
+        '}',
+      },
     },
   ],
 };
