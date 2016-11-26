@@ -127,7 +127,7 @@ const schemer = {
 
     if (outputSchema.indexes) {
       for (let i = 0; i < outputSchema.indexes.length; i++) {
-        const indexNameList = outputSchema.indexes[i].replace(/["\s]/g, '').split(/[\(\)]/g);
+        const indexNameList = outputSchema.indexes[i].replace(/["\s]/g, '').split(/[()]/g);
         if (indexNameList.length > 1) {
           indexNameList[0] = indexNameList[0].toLowerCase();
           if (indexNameList[0] === 'values') outputSchema.indexes[i] = indexNameList[1];
@@ -399,7 +399,7 @@ const schemer = {
           throw (new Error('indexes must be an array of strings'));
         }
 
-        const indexNameList = modelSchema.indexes[l].replace(/["\s]/g, '').split(/[\(\)]/g);
+        const indexNameList = modelSchema.indexes[l].replace(/["\s]/g, '').split(/[()]/g);
         if (indexNameList.length > 1) {
           indexNameList[0] = indexNameList[0].toLowerCase();
           if (['entries', 'keys', 'values', 'full'].indexOf(indexNameList[0]) < 0) {

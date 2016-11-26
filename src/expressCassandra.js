@@ -37,9 +37,11 @@ CassandraClient.bind = (options, cb) => {
 
       async.each(list, (file, callback) => {
         const fileName = util.format('%s/%s', self.directory, file);
-        const validFileExtensions = ['js', 'javascript', 'jsx', 'coffee', 'coffeescript', 'iced',
-                                      'script', 'ts', 'tsx', 'typescript', 'cjsx', 'co', 'json',
-                                      'json5', 'litcoffee', 'liticed', 'ls', 'node', 'toml', 'wisp'];
+        const validFileExtensions = [
+          'js', 'javascript', 'jsx', 'coffee', 'coffeescript', 'iced',
+          'script', 'ts', 'tsx', 'typescript', 'cjsx', 'co', 'json',
+          'json5', 'litcoffee', 'liticed', 'ls', 'node', 'toml', 'wisp',
+        ];
         const fileExtension = _.last(fileName.split('.')).toLowerCase();
 
         if (fileName.indexOf('Model') === -1 || validFileExtensions.indexOf(fileExtension) === -1) {

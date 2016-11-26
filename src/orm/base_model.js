@@ -490,7 +490,7 @@ BaseModel._create_table = function f(callback) {
               const dependentIndexes = [];
               const pullIndexes = [];
               normalizedDBSchema.indexes.forEach((dbIndex) => {
-                const indexSplit = dbIndex.split(/[\(\)]/g);
+                const indexSplit = dbIndex.split(/[()]/g);
                 let indexFieldName = '';
                 if (indexSplit.length > 1) indexFieldName = indexSplit[1];
                 else indexFieldName = indexSplit[0];
@@ -597,8 +597,8 @@ BaseModel._create_table = function f(callback) {
                     next(buildError('model.tablecreation.schemamismatch', tableName));
                   }
                 } else if (['text', 'ascii', 'bigint', 'boolean', 'decimal',
-                            'double', 'float', 'inet', 'int', 'timestamp', 'timeuuid',
-                            'uuid', 'varchar', 'varint'].indexOf(diff.lhs) > -1 && diff.rhs === 'blob') {
+                  'double', 'float', 'inet', 'int', 'timestamp', 'timeuuid',
+                  'uuid', 'varchar', 'varint'].indexOf(diff.lhs) > -1 && diff.rhs === 'blob') {
                   // alter field type possible
                   alterFieldType();
                 } else if (diff.lhs === 'timeuuid' && diff.rhs === 'uuid') {
@@ -813,7 +813,7 @@ BaseModel._create_materialized_view_query = function f(tableName, viewName, view
 
 BaseModel._create_index_query = function f(tableName, indexName) {
   let query;
-  const indexExpression = indexName.replace(/["\s]/g, '').split(/[\(\)]/g);
+  const indexExpression = indexName.replace(/["\s]/g, '').split(/[()]/g);
   if (indexExpression.length > 1) {
     indexExpression[0] = indexExpression[0].toLowerCase();
     query = util.format(
