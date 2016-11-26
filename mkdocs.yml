@@ -9,7 +9,7 @@ pages:
 - Data Management: management.md
 - Querying Data: find.md
 - Batching ORM Operations: batch.md
-- Complex Datatypes and Operations: complex.md
+- Advanced Datatypes and Operations: advanced.md
 - Datatypes and Utility Functions: datatypes.md
 - Other Notes: notes.md
 

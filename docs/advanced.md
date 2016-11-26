@@ -1,4 +1,4 @@
-# Complex Datatypes and Operations
+# Advanced Datatypes and Operations
 
 ## Counter Column Operations
 

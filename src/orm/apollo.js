@@ -1,7 +1,7 @@
 const async = require('async');
 const util = require('util');
 const _ = require('lodash');
-const cql = require('cassandra-driver');
+const cql = require('dse-driver');
 
 const BaseModel = require('./base_model');
 const schemer = require('./apollo_schemer');

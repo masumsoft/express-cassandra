@@ -1,5 +1,5 @@
 const util = require('util');
-const cql = require('cassandra-driver');
+const cql = require('dse-driver');
 const async = require('async');
 const _ = require('lodash');
 const deepDiff = require('deep-diff').diff;

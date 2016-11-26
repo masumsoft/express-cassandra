@@ -46,15 +46,38 @@ models.instance.Person.execute_batch(queries, function(err){
 
 ## Get the client driver instance
 
-You can get the client driver instance from cassandra nodejs-driver using the `get_cql_client` method. This will provide you a cql driver instance with which you can do anything you could possibly do with the datastax nodejs-driver version 3.0.
+You can get the client driver instance from cassandra nodejs-driver using the `get_cql_client` method. This will provide you a cql driver instance with which you can do anything you could possibly do with the datastax dse-driver version 1.1.0 and cassandra-driver 3.1.6.
 
 ```js
-
 models.instance.Person.get_cql_client(function(err, client){
     client.eachRow('Select * from person limit 10', [], { autoPage : true }, function(n, row) {}, function(err, result){});
 });
-
 ```
+
+You can also use datastax enterprise graph by using the [dse-driver](http://docs.datastax.com/en/developer/nodejs-driver-dse/1.1/#graph) client instance. You need to provide the graph options in the `clientOptions` described before in usage section like the following:
+
+```js
+clientOptions: {
+    contactPoints: ['127.0.0.1'],
+    keyspace: 'mykeyspace',
+    queryOptions: {consistency: models.consistencies.one},
+    graphOptions: { name: 'demo' }
+},
+```
+
+Now you can take the cql instance and do graph queries like the following:
+
+```js
+models.instance.Person.get_cql_client(function(err, client){
+    client.executeGraph('g.V()', function (err, result) {
+        assert.ifError(err);
+        const vertex = result.first();
+        console.log(vertex.label);
+    });
+});
+```
+
+Details of graph operations can be found in [dse-driver docs](http://docs.datastax.com/en/developer/nodejs-driver-dse/1.1/#graph) and in [datastax enterprise docs](http://docs.datastax.com/en/latest-dse/datastax_enterprise/graph/graphTOC.html).
 
 ## Debug Logging Queries
 

@@ -276,3 +276,18 @@ models.instance.Person.find(query, function(err, people){
 
 });
 ```
+
+## DataStax Enterprise Search (Not available in community edition)
+
+If you are using dse search, $solr_query can be used like the following:
+
+```js
+var query = {
+    $solr_query: 'name: cat name: dog -name:fish'
+}
+
+models.instance.Person.find(query, function(err, people){
+
+});
+
+```
