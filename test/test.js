@@ -12,7 +12,7 @@ describe('Unit Tests', () => {
     it('should connect and sync with db without errors', function f(done) {
       this.timeout(20000);
       this.slow(10000);
-      models.setDirectory(path.join(__dirname, '/models')).bind(
+      models.setDirectory(path.join(__dirname, '/models')).bindAsync(
         {
           clientOptions: {
             contactPoints: ['127.0.0.1'],
@@ -140,12 +140,13 @@ describe('Unit Tests', () => {
               },
             },
           },
-        },
-        (err) => {
-          if (err) throw err;
-          else done();
-        }
-      );
+        })
+        .then(() => {
+          done();
+        })
+        .catch((err) => {
+          throw err;
+        });
     });
   });
 
@@ -169,10 +170,13 @@ describe('Unit Tests', () => {
         },
       });
 
-      client.connect((err) => {
-        if (err) throw err;
-        else done();
-      });
+      client.connectAsync()
+        .then(() => {
+          done();
+        })
+        .catch((err) => {
+          throw err;
+        });
     });
   });
 
@@ -181,16 +185,19 @@ describe('Unit Tests', () => {
       client.close();
     });
     it('should load a schema from an object', (done) => {
-      const tmp = client.loadSchema('tempSchema', {
+      client.loadSchemaAsync('tempSchema', {
         fields: {
           email: 'text',
           name: 'text',
         },
         key: ['email'],
-      }, (err) => {
-        if (err) throw err;
+      })
+      .then((tmp) => {
         tmp.should.equal(client.instance.tempSchema);
         done();
+      })
+      .catch((err) => {
+        throw err;
       });
     });
   });
@@ -285,10 +292,13 @@ describe('Unit Tests', () => {
             if (err1) {
               err1.name.should.equal('apollo.model.save.unsetrequired');
               alex.points = 64.0;
-              alex.save((err2) => {
-                if (err2) throw err2;
-                done();
-              });
+              alex.saveAsync()
+                .then(() => {
+                  done();
+                })
+                .catch((err2) => {
+                  throw err2;
+                });
             } else done(new Error('required rule is not working properly'));
           });
         } else done(new Error('validation rule is not working properly'));
@@ -352,16 +362,19 @@ describe('Unit Tests', () => {
 
   describe('#find with raw set to true', () => {
     it('should find raw data as saved without errors', (done) => {
-      models.instance.Person.find({ userID: 1234, age: 32 }, { raw: true }, (err, people) => {
-        if (err) throw err;
-        people.length.should.equal(1);
-        people[0].Name.should.equal('Mahafuzur');
-        people[0].info.hello.should.equal('world');
-        people[0].phones[1].should.equal('234567');
-        people[0].emails[1].should.equal('c@d.com');
-        should.not.exist(people[0]._validators);
-        done();
-      });
+      models.instance.Person.findAsync({ userID: 1234, age: 32 }, { raw: true })
+        .then((people) => {
+          people.length.should.equal(1);
+          people[0].Name.should.equal('Mahafuzur');
+          people[0].info.hello.should.equal('world');
+          people[0].phones[1].should.equal('234567');
+          people[0].emails[1].should.equal('c@d.com');
+          should.not.exist(people[0]._validators);
+          done();
+        })
+        .catch((err) => {
+          throw err;
+        });
     });
   });
 
@@ -380,14 +393,17 @@ describe('Unit Tests', () => {
 
   describe('#findOne with selected columns', () => {
     it('should find a row with only selected columns', (done) => {
-      models.instance.Person.findOne({ userID: 1234, age: 32 }, { select: ['Name as name', 'info'] }, (err, user) => {
-        if (err) throw err;
-        user.name.should.equal('Mahafuzur');
-        user.info.hello.should.equal('world');
-        should.not.exist(user.phones);
-        should.not.exist(user.emails);
-        done();
-      });
+      models.instance.Person.findOneAsync({ userID: 1234, age: 32 }, { select: ['Name as name', 'info'] })
+        .then((user) => {
+          user.name.should.equal('Mahafuzur');
+          user.info.hello.should.equal('world');
+          should.not.exist(user.phones);
+          should.not.exist(user.emails);
+          done();
+        })
+        .catch((err) => {
+          throw err;
+        });
     });
   });
 
@@ -555,7 +571,7 @@ describe('Unit Tests', () => {
     });
 
     it('should stream data from materialized_view without errors', (done) => {
-      models.instance.Person.stream(
+      models.instance.Person.streamAsync(
         { userID: 1234, age: 32, active: true },
         { materialized_view: 'mat_view_composite' }, (reader) => {
           let row = reader.readRow();
@@ -563,9 +579,12 @@ describe('Unit Tests', () => {
             row.Name.should.equal('Mahafuzur');
             row = reader.readRow();
           }
-        }, (err) => {
-          if (err) throw err;
+        })
+        .then(() => {
           done();
+        })
+        .catch((err) => {
+          throw err;
         });
     });
   });
@@ -583,15 +602,18 @@ describe('Unit Tests', () => {
     });
 
     it('should stream data using eachRow from materialized view without errors', (done) => {
-      models.instance.Person.eachRow(
+      models.instance.Person.eachRowAsync(
         { userID: 1234, age: 32, active: true },
         { fetchSize: 100, materialized_view: 'mat_view_composite' }, (n, row) => {
           row.Name.should.equal('Mahafuzur');
-        }, (err, result) => {
-          if (err) throw err;
+        })
+        .then((result) => {
           if (result.nextPage) {
             result.nextPage();
           } else done();
+        })
+        .catch((err) => {
+          throw err;
         });
     });
   });
@@ -647,12 +669,14 @@ describe('Unit Tests', () => {
 
   describe('#update using null', () => {
     it('should update data on db without errors', (done) => {
-      models.instance.Person.update(
+      models.instance.Person.updateAsync(
         { userID: 1234, age: 32 },
-        { intSetDefault: null },
-        (err) => {
-          if (err) throw err;
+        { intSetDefault: null })
+        .then(() => {
           done();
+        })
+        .catch((err) => {
+          throw err;
         });
     });
   });
@@ -801,24 +825,30 @@ describe('Unit Tests', () => {
     it('should find and delete single data object without errors', (done) => {
       models.instance.Person.findOne({ userID: 1234, age: 32 }, (err, user) => {
         if (err) throw err;
-        user.delete((err1) => {
-          if (err1) throw err1;
-          models.instance.Person.findOne({ userID: 1234, age: 32 }, (err2, userNew) => {
-            if (err2) throw err2;
-            should.not.exist(userNew);
-            done();
+        user.deleteAsync()
+          .then(() => {
+            models.instance.Person.findOne({ userID: 1234, age: 32 }, (err2, userNew) => {
+              if (err2) throw err2;
+              should.not.exist(userNew);
+              done();
+            });
+          })
+          .catch((err1) => {
+            throw err1;
           });
-        });
       });
     });
   });
 
   describe('#delete', () => {
     it('should cleanup the db without errors', (done) => {
-      models.instance.Person.delete({ userID: 1234, age: 32 }, (err) => {
-        if (err) throw err;
-        done();
-      });
+      models.instance.Person.deleteAsync({ userID: 1234, age: 32 })
+        .then(() => {
+          done();
+        })
+        .catch((err) => {
+          throw err;
+        });
     });
   });
 
@@ -1083,10 +1113,13 @@ describe('Unit Tests', () => {
       );
       queries.push(models.instance.Event.delete({ email: 'hello2@h.com', id: eventID }, { return_query: true }));
 
-      models.doBatch(queries, (err) => {
-        if (err) throw err;
-        done();
-      });
+      models.doBatchAsync(queries)
+        .then(() => {
+          done();
+        })
+        .catch((err) => {
+          throw err;
+        });
     });
   });
 
@@ -1204,10 +1237,13 @@ describe('Unit Tests', () => {
 
   describe('#close cassandra connection', () => {
     it('should close connection to cassandra without errors', (done) => {
-      models.close((err) => {
-        if (err) throw err;
-        done();
-      });
+      models.closeAsync()
+        .then(() => {
+          done();
+        })
+        .catch((err) => {
+          throw err;
+        });
     });
   });
 });

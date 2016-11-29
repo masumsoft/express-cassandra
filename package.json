@@ -3,6 +3,7 @@
   "version": "1.5.0",
   "dependencies": {
     "async": "^1.0.0",
+    "bluebird": "^3.4.6",
     "chai": "^3.5.0",
     "check-types": "^1.4.0",
     "debug": "^2.2.0",
