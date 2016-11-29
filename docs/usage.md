@@ -106,14 +106,14 @@ var models = Cassandra.createClient({
 models.connect(function (err) {
     if (err) throw err;
 
-    var UserModel = models.loadSchema('Person', {
+    models.loadSchema('Person', {
         fields:{
             name    : "text",
             surname : "text",
             age     : "int"
         },
         key:["name"]
-    }, function(err){
+    }, function(err, UserModel){
         //the table in cassandra is now created
         //the models.instance.Person or UserModel can now be used to do operations
         console.log(models.instance.Person);
@@ -145,10 +145,17 @@ Infact any of the clientOptions supported by the nodejs driver can be used. Poss
 
 ```js
 
-var john = new models.instance.Person({name: "John", surname: "Doe", age: 32});
+var john = new models.instance.Person({
+    name: "John",
+    surname: "Doe",
+    age: 32
+});
 john.save(function(err){
-    if(err) console.log(err);
-    else console.log('Yuppiie!');
+    if(err) {
+        console.log(err);
+        return;
+    }
+    console.log('Yuppiie!');
 });
 
 ```
@@ -158,11 +165,50 @@ john.save(function(err){
 ```js
 
 models.instance.Person.findOne({name: 'John'}, function(err, john){
-    if(err) throw err;
-
+    if(err) {
+        console.log(err);
+        return;
+    }
     //Note that returned variable john here is an instance of your model,
     //so you can also do john.delete(), john.save() type operations on the instance.
     console.log('Found ' + john.name + ' to be ' + john.age + ' years old!');
 });
+
+```
+
+## Built-in Promise Support
+
+Express-cassandra has built-in promise support powered by [bluebird](http://bluebirdjs.com/). All the orm functions has an `Async` suffixed pair function that can be used for promise based async operations instead of using callback. For example, if you want to use promises in the above two insert and find operations, you could do the following:
+
+Insert data using promise (note the Async suffix in function name):
+
+```js
+
+var john = new models.instance.Person({
+    name: "John",
+    surname: "Doe",
+    age: 32
+});
+john.saveAsync()
+    .then(function() {
+        console.log('Yuppiie!');
+    })
+    .catch(function(err) {
+        console.log(err);
+    });
+
+```
+
+Find data using promise (note the Async suffix in function name):
+
+```js
+
+models.instance.Person.findOneAsync({name: 'John'})
+    .then(function(john) {
+        console.log('Found ' + john.name + ' to be ' + john.age + ' years old!');
+    })
+    .catch(function(err) {
+        console.log(err);
+    });
 
 ```
