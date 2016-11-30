@@ -88,9 +88,10 @@ CassandraClient.prototype.connect = function f(callback) {
 
 CassandraClient.prototype.loadSchema = function f(modelName, modelSchema, callback) {
   const self = this;
-  const cb = function(err) {
-    if(typeof callback === 'function') {
-      err ? callback(err): callback(null, self.modelInstance[modelName]);
+  const cb = function cb(err) {
+    if (typeof callback === 'function') {
+      if (err) callback(err);
+      else callback(null, self.modelInstance[modelName]);
     }
   };
   self.modelInstance[modelName] = self.orm.add_model(modelName, modelSchema, cb);
