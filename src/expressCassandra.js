@@ -88,19 +88,14 @@ CassandraClient.prototype.connect = function f(callback) {
 
 CassandraClient.prototype.loadSchema = function f(modelName, modelSchema, callback) {
   const self = this;
-  const cb = (err) => {
-    if (err) {
-      callback(err);
-      return;
+  const cb = cb(err) => {
+    if(typeof callback === 'function') {
+      err ? callback(err): callback(null, self.modelInstance[modelName]);
     }
-    callback(null, self.modelInstance[modelName]);
   };
-  self.modelInstance[modelName] = self.orm.add_model(
-    modelName,
-    modelSchema,
-    cb
-  );
+  self.modelInstance[modelName] = self.orm.add_model(modelName, modelSchema, cb);
   self.modelInstance[modelName] = Promise.promisifyAll(self.modelInstance[modelName]);
+  return self.modelInstance[modelName];
 };
 
 CassandraClient.uuid = () => (cql.types.Uuid.random());
