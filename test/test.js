@@ -184,7 +184,23 @@ describe('Unit Tests', () => {
     after(() => {
       client.close();
     });
+
     it('should load a schema from an object', (done) => {
+      const myTempModel = client.loadSchema('tempSchema', {
+        fields: {
+          email: 'text',
+          name: 'text',
+        },
+        key: ['email'],
+      }, (err, tempModel) => {
+        if (err) throw err;
+        tempModel.should.equal(client.instance.tempSchema);
+        myTempModel.should.equal(client.instance.tempSchema);
+        done();
+      });
+    });
+
+    it('should load a schema from an object using Async promise', (done) => {
       client.loadSchemaAsync('tempSchema', {
         fields: {
           email: 'text',
@@ -192,8 +208,8 @@ describe('Unit Tests', () => {
         },
         key: ['email'],
       })
-      .then((tmp) => {
-        tmp.should.equal(client.instance.tempSchema);
+      .then((tempModel) => {
+        tempModel.should.equal(client.instance.tempSchema);
         done();
       })
       .catch((err) => {

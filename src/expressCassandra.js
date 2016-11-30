@@ -10,10 +10,9 @@ const ORM = Promise.promisifyAll(require('./orm/apollo'));
 const debug = require('debug')('express-cassandra');
 
 const CassandraClient = function f(options) {
-  let self = this;
+  const self = this;
   self.modelInstance = {};
   self.orm = new ORM(options.clientOptions, options.ormOptions);
-  self = Promise.promisifyAll(self);
 };
 
 CassandraClient.createClient = (options) => (new CassandraClient(options));
@@ -24,10 +23,9 @@ CassandraClient.setDirectory = (directory) => {
 };
 
 CassandraClient.bind = (options, cb) => {
-  let self = CassandraClient;
+  const self = CassandraClient;
   self.modelInstance = {};
   self.orm = new ORM(options.clientOptions, options.ormOptions);
-  self = Promise.promisifyAll(self);
   self.orm.connect((err) => {
     if (err) {
       if (cb) cb(err);
@@ -81,26 +79,35 @@ CassandraClient.bind = (options, cb) => {
   });
 };
 
+CassandraClient.bindAsync = Promise.promisify(CassandraClient.bind);
+
 CassandraClient.prototype.connect = function f(callback) {
   const self = this;
   self.orm.connect(callback);
 };
 
+CassandraClient.prototype.connectAsync = Promise.promisify(CassandraClient.prototype.connect);
+
 CassandraClient.prototype.loadSchema = function f(modelName, modelSchema, callback) {
   const self = this;
-  const cb = (err) => {
-    if (err) {
-      callback(err);
-      return;
+  const cb = function cb(err) {
+    if (typeof callback === 'function') {
+      if (err) callback(err);
+      else callback(null, self.modelInstance[modelName]);
     }
-    callback(null, self.modelInstance[modelName]);
   };
-  self.modelInstance[modelName] = self.orm.add_model(
-    modelName,
-    modelSchema,
-    cb
-  );
+  self.modelInstance[modelName] = self.orm.add_model(modelName, modelSchema, cb);
   self.modelInstance[modelName] = Promise.promisifyAll(self.modelInstance[modelName]);
+  return self.modelInstance[modelName];
+};
+
+CassandraClient.prototype.loadSchemaAsync = function f(modelName, modelSchema) {
+  return new Promise((resolve, reject) => {
+    this.loadSchema(modelName, modelSchema, (err, Model) => {
+      if (err) reject(err);
+      else resolve(Model);
+    });
+  });
 };
 
 CassandraClient.uuid = () => (cql.types.Uuid.random());
@@ -145,6 +152,8 @@ CassandraClient.prototype.doBatch = function f(queries, options, callback) {
   callback();
 };
 
+CassandraClient.prototype.doBatchAsync = Promise.promisify(CassandraClient.prototype.doBatch);
+
 CassandraClient.doBatch = function f(queries, options, callback) {
   if (arguments.length === 2) {
     callback = options;
@@ -153,11 +162,11 @@ CassandraClient.doBatch = function f(queries, options, callback) {
   CassandraClient.prototype.doBatch.call(CassandraClient, queries, options, callback);
 };
 
+CassandraClient.doBatchAsync = Promise.promisify(CassandraClient.doBatch);
 
 CassandraClient._translateFileNameToModelName = (fileName) => (
   fileName.slice(0, fileName.lastIndexOf('.')).replace('Model', '')
 );
-
 
 Object.defineProperties(CassandraClient, {
   consistencies: {
@@ -237,4 +246,4 @@ CassandraClient.prototype.minTimeuuid = CassandraClient.minTimeuuid;
 
 CassandraClient.prototype._translateFileNameToModelName = CassandraClient._translateFileNameToModelName;
 
-module.exports = Promise.promisifyAll(CassandraClient);
+module.exports = CassandraClient;

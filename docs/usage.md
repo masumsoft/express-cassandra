@@ -106,7 +106,7 @@ var models = Cassandra.createClient({
 models.connect(function (err) {
     if (err) throw err;
 
-    models.loadSchema('Person', {
+    var MyModel = models.loadSchema('Person', {
         fields:{
             name    : "text",
             surname : "text",
@@ -115,9 +115,10 @@ models.connect(function (err) {
         key:["name"]
     }, function(err, UserModel){
         //the table in cassandra is now created
-        //the models.instance.Person or UserModel can now be used to do operations
+        //the models.instance.Person, UserModel or MyModel can now be used
         console.log(models.instance.Person);
         console.log(models.instance.Person === UserModel);
+        console.log(models.instance.Person === MyModel);
     });
 });
 ```
