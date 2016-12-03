@@ -35,6 +35,10 @@ const schemer = {
         throw ('schema field "%s" is not properly defined: %s', k, outputSchema.fields[k]);
       }
 
+      if (k === 'solr_query') {
+        delete outputSchema.fields[k];
+      }
+
       if (outputSchema.fields[k] && outputSchema.fields[k].type === 'varchar') {
         outputSchema.fields[k].type = 'text';
       }
@@ -48,10 +52,12 @@ const schemer = {
         }
       }
 
-      if (modelSchema.staticMaps && modelSchema.staticMaps[k] === true) {
-        outputSchema.fields[k].static = true;
-      } else if (modelSchema.fields[k].static) {
-        outputSchema.fields[k].static = true;
+      if (outputSchema.fields[k]) {
+        if (modelSchema.staticMaps && modelSchema.staticMaps[k] === true) {
+          outputSchema.fields[k].static = true;
+        } else if (modelSchema.fields[k].static) {
+          outputSchema.fields[k].static = true;
+        }
       }
     });
 
@@ -164,6 +170,8 @@ const schemer = {
     } else {
       outputSchema.custom_indexes = [];
     }
+
+    outputSchema.custom_indexes = _.remove(outputSchema.custom_indexes, (cindex) => (cindex.on !== 'solr_query'));
 
     return outputSchema;
   },
