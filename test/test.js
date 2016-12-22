@@ -450,7 +450,7 @@ describe('Unit Tests', () => {
 
   describe('#find with $in operator', () => {
     it('should find data as saved without errors', (done) => {
-      models.instance.Person.find({ userID: { $in: [1234, 1235] }, age: 32 }, (err, people) => {
+      models.instance.Person.find({ userID: { $in: [1234, 1235, 0] }, age: 32 }, (err, people) => {
         if (err) throw err;
         people.length.should.equal(1);
         done();

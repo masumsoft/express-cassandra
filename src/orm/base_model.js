@@ -1051,7 +1051,7 @@ BaseModel._get_db_value_expression = function f(fieldname, fieldvalue) {
     const val = fieldvalue.map((v) => {
       const dbVal = this._get_db_value_expression(fieldname, v);
 
-      if (_.isPlainObject(dbVal) && dbVal.parameter) return dbVal.parameter;
+      if (_.isPlainObject(dbVal) && dbVal.query_segment) return dbVal.parameter;
       return dbVal;
     });
 
