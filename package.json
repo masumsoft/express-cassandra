@@ -1,6 +1,6 @@
 {
   "name": "express-cassandra",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "dependencies": {
     "async": "^1.0.0",
     "bluebird": "^3.4.6",
