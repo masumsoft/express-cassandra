@@ -158,6 +158,8 @@ CassandraClient.doBatch = function f(queries, options, callback) {
   if (arguments.length === 2) {
     callback = options;
     options = { prepare: true };
+  } else if (_.isObject(options) && options.prepare !== false) {
+    options.prepare = true;
   }
   CassandraClient.prototype.doBatch.call(CassandraClient, queries, options, callback);
 };
