@@ -157,8 +157,15 @@ CassandraClient.prototype.doBatchAsync = Promise.promisify(CassandraClient.proto
 CassandraClient.doBatch = function f(queries, options, callback) {
   if (arguments.length === 2) {
     callback = options;
-    options = { prepare: true };
+    options = {};
   }
+
+  const defaults = {
+    prepare: true,
+  };
+
+  options = _.defaultsDeep(options, defaults);
+
   CassandraClient.prototype.doBatch.call(CassandraClient, queries, options, callback);
 };
 

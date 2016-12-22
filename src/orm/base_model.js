@@ -171,8 +171,15 @@ BaseModel._execute_batch = function f(queries, options, callback) {
 BaseModel.execute_batch = function f(queries, options, callback) {
   if (arguments.length === 2) {
     callback = options;
-    options = { prepare: true };
+    options = {};
   }
+
+  const defaults = {
+    prepare: true,
+  };
+
+  options = _.defaultsDeep(options, defaults);
+
   this._execute_batch(queries, options, callback);
 };
 
@@ -1015,8 +1022,14 @@ BaseModel._get_db_table_schema = function f(callback) {
 BaseModel._execute_table_query = function f(query, params, options, callback) {
   if (arguments.length === 3) {
     callback = options;
-    options = { prepare: true };
+    options = {};
   }
+
+  const defaults = {
+    prepare: true,
+  };
+
+  options = _.defaultsDeep(options, defaults);
 
   const doExecuteQuery = function f1(doquery, docallback) {
     this.execute_query(doquery, params, options, docallback);
@@ -1361,8 +1374,14 @@ BaseModel.syncDefinition = function f(callback) {
 BaseModel.execute_query = function f(query, params, options, callback) {
   if (arguments.length === 3) {
     callback = options;
-    options = { prepare: true };
+    options = {};
   }
+
+  const defaults = {
+    prepare: true,
+  };
+
+  options = _.defaultsDeep(options, defaults);
 
   this._ensure_connected((err) => {
     if (err) {
