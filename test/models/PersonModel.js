@@ -104,7 +104,6 @@ module.exports = {
     points: {
       type: 'double',
       rule: {
-        validator: (value) => (value > 0),
         required: true,
       },
     },

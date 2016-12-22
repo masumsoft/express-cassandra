@@ -83,8 +83,10 @@ BaseModel._validate = function f(validators, value) {
   if (value == null || (_.isPlainObject(value) && value.$db_function)) return true;
 
   for (let v = 0; v < validators.length; v++) {
-    if (!validators[v].validator(value)) {
-      return validators[v].message;
+    if (typeof validators[v].validator === 'function') {
+      if (!validators[v].validator(value)) {
+        return validators[v].message;
+      }
     }
   }
   return true;
@@ -109,8 +111,11 @@ BaseModel._get_validators = function f(fieldname) {
         message: genericValidatorMessageFunc,
       };
     } else {
-      if (!_.isPlainObject(field.rule) || typeof field.rule.validator === 'undefined') {
-        throw (new Error('Invalid validator'));
+      if (!_.isPlainObject(field.rule)) {
+        throw (new Error('Validation rule must be a function or an object'));
+      }
+      if (field.rule.validator && typeof field.rule.validator !== 'function') {
+        throw (new Error('Rule validator must be a valid function'));
       }
       if (!field.rule.message) {
         field.rule.message = genericValidatorMessageFunc;
