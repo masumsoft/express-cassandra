@@ -145,7 +145,7 @@ describe('Unit Tests', () => {
           done();
         })
         .catch((err) => {
-          throw err;
+          done(err);
         });
     });
   });
@@ -175,7 +175,7 @@ describe('Unit Tests', () => {
           done();
         })
         .catch((err) => {
-          throw err;
+          done(err);
         });
     });
   });
@@ -193,7 +193,7 @@ describe('Unit Tests', () => {
         },
         key: ['email'],
       }, (err, tempModel) => {
-        if (err) throw err;
+        if (err) done(err);
         tempModel.should.equal(client.instance.tempSchema);
         myTempModel.should.equal(client.instance.tempSchema);
         done();
@@ -213,7 +213,7 @@ describe('Unit Tests', () => {
         done();
       })
       .catch((err) => {
-        throw err;
+        done(err);
       });
     });
   });
@@ -302,7 +302,7 @@ describe('Unit Tests', () => {
       });
       alex.save((err) => {
         if (err) {
-          err.name.should.equal('apollo.model.save.invalidvalue');
+          err.name.should.equal('apollo.model.validator.invalidvalue');
           alex.age = 32;
           alex.save((err1) => {
             if (err1) {
@@ -313,7 +313,7 @@ describe('Unit Tests', () => {
                   done();
                 })
                 .catch((err2) => {
-                  throw err2;
+                  done(err2);
                 });
             } else done(new Error('required rule is not working properly'));
           });
@@ -325,7 +325,7 @@ describe('Unit Tests', () => {
   describe('#find after save', () => {
     it('should find data as model instances without errors', (done) => {
       models.instance.Person.find({ userID: 1234, age: 32 }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         const person = people[0];
         person.Name.should.equal('Mahafuzur');
@@ -389,7 +389,7 @@ describe('Unit Tests', () => {
           done();
         })
         .catch((err) => {
-          throw err;
+          done(err);
         });
     });
   });
@@ -397,7 +397,7 @@ describe('Unit Tests', () => {
   describe('#findOne after save', () => {
     it('should find a single data object without errors', (done) => {
       models.instance.Person.findOne({ userID: 1234, age: 32 }, (err, user) => {
-        if (err) throw err;
+        if (err) done(err);
         user.Name.should.equal('Mahafuzur');
         user.info.hello.should.equal('world');
         user.phones[1].should.equal('234567');
@@ -418,7 +418,7 @@ describe('Unit Tests', () => {
           done();
         })
         .catch((err) => {
-          throw err;
+          done(err);
         });
     });
   });
@@ -429,7 +429,7 @@ describe('Unit Tests', () => {
         { userID: 1234 },
         { select: ['fLog(points)', 'sum(age)', 'average(age)'] },
         (err, user) => {
-          if (err) throw err;
+          if (err) done(err);
           user['express_cassandra_tests_kspc1.flog(points)'].should.approximately(4.16, 0.01);
           user['system.sum(age)'].should.equal(32);
           user['express_cassandra_tests_kspc1.average(age)'].should.equal(32);
@@ -441,7 +441,7 @@ describe('Unit Tests', () => {
   describe('#find with $gt and $lt operator', () => {
     it('should find data as saved without errors', (done) => {
       models.instance.Person.find({ userID: 1234, age: { $gt: 31, $lt: 35 } }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         done();
       });
@@ -451,7 +451,7 @@ describe('Unit Tests', () => {
   describe('#find with $in operator', () => {
     it('should find data as saved without errors', (done) => {
       models.instance.Person.find({ userID: { $in: [1234, 1235, 0] }, age: 32 }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         done();
       });
@@ -461,7 +461,7 @@ describe('Unit Tests', () => {
   describe('#find with $token operator', () => {
     it('should find data as saved without errors', (done) => {
       models.instance.Person.find({ userID: { $token: { $gt: 1235, $lte: 1234 } }, $limit: 1 }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         done();
       });
@@ -474,7 +474,7 @@ describe('Unit Tests', () => {
         { 'userID,age': { $token: { $gte: [1234, 32] } } },
         { materialized_view: 'mat_view_composite', raw: true },
         (err, people) => {
-          if (err) throw err;
+          if (err) done(err);
           people.length.should.equal(1);
           people[0].Name.should.equal('Mahafuzur');
           done();
@@ -485,9 +485,9 @@ describe('Unit Tests', () => {
   describe('#find with raw driver', () => {
     it('should not through any errors', (done) => {
       models.instance.Person.get_cql_client((err, clientDriver) => {
-        if (err) throw err;
+        if (err) done(err);
         clientDriver.eachRow('Select * from person limit 10', [], { autoPage: true }, () => {}, (err1) => {
-          if (err1) throw err1;
+          if (err1) done(err1);
           done();
         });
       });
@@ -497,7 +497,7 @@ describe('Unit Tests', () => {
   describe('#find using secondary index', () => {
     it('should find data as saved without errors', (done) => {
       models.instance.Person.find({ Name: 'Mahafuzur' }, { raw: true }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         people[0].Name.should.equal('Mahafuzur');
         done();
@@ -508,7 +508,7 @@ describe('Unit Tests', () => {
   describe('#find using indexed collections', () => {
     it('should find data in a list using $contains', (done) => {
       models.instance.Person.find({ phones: { $contains: '234567' } }, { raw: true }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         people[0].Name.should.equal('Mahafuzur');
         done();
@@ -516,7 +516,7 @@ describe('Unit Tests', () => {
     });
     it('should find data in a set using $contains', (done) => {
       models.instance.Person.find({ emails: { $contains: 'c@d.com' } }, { raw: true }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         people[0].Name.should.equal('Mahafuzur');
         done();
@@ -524,7 +524,7 @@ describe('Unit Tests', () => {
     });
     it('should find data in a map using $contains_key', (done) => {
       models.instance.Person.find({ info: { $contains_key: 'hello' } }, { raw: true }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         people[0].Name.should.equal('Mahafuzur');
         done();
@@ -532,7 +532,7 @@ describe('Unit Tests', () => {
     });
     it('should find data in a map using $contains entries', (done) => {
       models.instance.Person.find({ info: { $contains: { hello: 'world' } } }, { raw: true }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         people[0].Name.should.equal('Mahafuzur');
         done();
@@ -540,7 +540,7 @@ describe('Unit Tests', () => {
     });
     it('should find data in a map using $contains values', (done) => {
       models.instance.Person.find({ info: { $contains: 'world' } }, { raw: true }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         people[0].Name.should.equal('Mahafuzur');
         done();
@@ -564,7 +564,7 @@ describe('Unit Tests', () => {
           },
         },
       }, { raw: true }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         people[0].Name.should.equal('Mahafuzur');
         done();
@@ -581,7 +581,7 @@ describe('Unit Tests', () => {
           row = reader.readRow();
         }
       }, (err) => {
-        if (err) throw err;
+        if (err) done(err);
         done();
       });
     });
@@ -600,7 +600,7 @@ describe('Unit Tests', () => {
           done();
         })
         .catch((err) => {
-          throw err;
+          done(err);
         });
     });
   });
@@ -610,7 +610,7 @@ describe('Unit Tests', () => {
       models.instance.Person.eachRow({ Name: 'Mahafuzur' }, { fetchSize: 100 }, (n, row) => {
         row.Name.should.equal('Mahafuzur');
       }, (err, result) => {
-        if (err) throw err;
+        if (err) done(err);
         if (result.nextPage) {
           result.nextPage();
         } else done();
@@ -629,7 +629,7 @@ describe('Unit Tests', () => {
           } else done();
         })
         .catch((err) => {
-          throw err;
+          done(err);
         });
     });
   });
@@ -641,7 +641,7 @@ describe('Unit Tests', () => {
         { Name: 1, info: { new: 'addition' }, phones: ['56788'], emails: ['c@d.com'] },
         (err) => {
           if (err) {
-            err.name.should.equal('apollo.model.update.invalidvalue');
+            err.name.should.equal('apollo.model.validator.invalidvalue');
             models.instance.Person.update(
               { userID: 1234, age: 32 },
               {
@@ -653,7 +653,7 @@ describe('Unit Tests', () => {
                 active: false,
               },
               (err1) => {
-                if (err1) throw err1;
+                if (err1) done(err1);
                 done();
               }
             );
@@ -665,7 +665,7 @@ describe('Unit Tests', () => {
   describe('#find after update', () => {
     it('should find data as updated without errors', (done) => {
       models.instance.Person.find({ userID: 1234, age: 32 }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         const person = people[0];
         person.Name.should.equal('Stupid');
@@ -692,7 +692,7 @@ describe('Unit Tests', () => {
           done();
         })
         .catch((err) => {
-          throw err;
+          done(err);
         });
     });
   });
@@ -700,7 +700,7 @@ describe('Unit Tests', () => {
   describe('#find after update with null', () => {
     it('should find data as updated without errors', (done) => {
       models.instance.Person.find({ userID: 1234, age: 32 }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         const person = people[0];
         should.not.exist(person.intSetDefault);
@@ -715,7 +715,7 @@ describe('Unit Tests', () => {
         { userID: 1234, age: 32 },
         { info: { $add: { new2: 'addition2' } }, phones: { $add: ['12345'] }, emails: { $add: ['e@f.com'] } },
         (err) => {
-          if (err) throw err;
+          if (err) done(err);
           done();
         });
     });
@@ -724,7 +724,7 @@ describe('Unit Tests', () => {
   describe('#find after update collections with $add', () => {
     it('should find data as updated without errors', (done) => {
       models.instance.Person.find({ userID: 1234, age: 32 }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         people[0].info.new.should.equal('addition');
         people[0].info.new2.should.equal('addition2');
@@ -742,7 +742,7 @@ describe('Unit Tests', () => {
   describe('#update list with $prepend', () => {
     it('should update data on db without errors', (done) => {
       models.instance.Person.update({ userID: 1234, age: 32 }, { phones: { $prepend: ['654532'] } }, (err) => {
-        if (err) throw err;
+        if (err) done(err);
         done();
       });
     });
@@ -751,7 +751,7 @@ describe('Unit Tests', () => {
   describe('#find after update list with $prepend', () => {
     it('should find data as updated without errors', (done) => {
       models.instance.Person.find({ userID: 1234, age: 32 }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         people[0].phones.length.should.equal(3);
         people[0].phones[0].should.equal('654532');
@@ -768,7 +768,7 @@ describe('Unit Tests', () => {
         { userID: 1234, age: 32 },
         { info: { $replace: { new: 'addition_replaced' } }, phones: { $replace: [1, '23456'] } },
         (err) => {
-          if (err) throw err;
+          if (err) done(err);
           done();
         });
     });
@@ -777,7 +777,7 @@ describe('Unit Tests', () => {
   describe('#find after update collections with $replace', () => {
     it('should find data as updated without errors', (done) => {
       models.instance.Person.find({ userID: 1234, age: 32 }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         people[0].info.new.should.equal('addition_replaced');
         people[0].phones[1].should.equal('23456');
@@ -792,7 +792,7 @@ describe('Unit Tests', () => {
         { userID: 1234, age: 32 },
         { info: { $remove: { new2: '' } }, phones: { $remove: ['23456'] }, emails: { $remove: ['e@f.com'] } },
         (err) => {
-          if (err) throw err;
+          if (err) done(err);
           done();
         });
     });
@@ -801,7 +801,7 @@ describe('Unit Tests', () => {
   describe('#find after update collections with $remove', () => {
     it('should find data as updated without errors', (done) => {
       models.instance.Person.find({ userID: 1234, age: 32 }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(1);
         const person = people[0];
         person.info.new.should.equal('addition_replaced');
@@ -819,14 +819,14 @@ describe('Unit Tests', () => {
   describe('#instance update after find', () => {
     it('should find and update single data object without errors', (done) => {
       models.instance.Person.findOne({ userID: 1234, age: 32 }, (err, user) => {
-        if (err) throw err;
+        if (err) done(err);
         user.Name = 'Updated Stupid';
         user.timeId = models.timeuuid();
         user.timeMap.three = currentTime;
         user.save((err1) => {
-          if (err1) throw err1;
+          if (err1) done(err1);
           models.instance.Person.findOne({ userID: 1234, age: 32 }, (err2, userNew) => {
-            if (err2) throw err2;
+            if (err2) done(err2);
             userNew.Name.should.equal('Updated Stupid');
             userNew.timeMap.three.should.deep.equal(new Date(currentTime));
             userNew.timeId.toString().length.should.equal(36);
@@ -840,17 +840,17 @@ describe('Unit Tests', () => {
   describe('#instance delete after find', () => {
     it('should find and delete single data object without errors', (done) => {
       models.instance.Person.findOne({ userID: 1234, age: 32 }, (err, user) => {
-        if (err) throw err;
+        if (err) done(err);
         user.deleteAsync()
           .then(() => {
             models.instance.Person.findOne({ userID: 1234, age: 32 }, (err2, userNew) => {
-              if (err2) throw err2;
+              if (err2) done(err2);
               should.not.exist(userNew);
               done();
             });
           })
           .catch((err1) => {
-            throw err1;
+            done(err1);
           });
       });
     });
@@ -863,7 +863,7 @@ describe('Unit Tests', () => {
           done();
         })
         .catch((err) => {
-          throw err;
+          done(err);
         });
     });
   });
@@ -871,7 +871,7 @@ describe('Unit Tests', () => {
   describe('#find after delete', () => {
     it('should find all data as deleted', (done) => {
       models.instance.Person.find({ userID: 1234 }, (err, people) => {
-        if (err) throw err;
+        if (err) done(err);
         people.length.should.equal(0);
         done();
       });
@@ -884,9 +884,9 @@ describe('Unit Tests', () => {
         { user_id: models.datatypes.Long.fromInt(1234) },
         { visit_count: models.datatypes.Long.fromInt(2) },
         (err) => {
-          if (err) throw err;
+          if (err) done(err);
           models.instance.Counter.findOne({ user_id: models.datatypes.Long.fromInt(1234) }, (err1, stats) => {
-            if (err1) throw err1;
+            if (err1) done(err1);
             stats.visit_count.toString().should.equal('2');
             done();
           });
@@ -898,9 +898,9 @@ describe('Unit Tests', () => {
         { user_id: models.datatypes.Long.fromInt(1234) },
         { visit_count: models.datatypes.Long.fromInt(0) },
         (err) => {
-          if (err) throw err;
+          if (err) done(err);
           models.instance.Counter.findOne({ user_id: models.datatypes.Long.fromInt(1234) }, (err1, stats) => {
-            if (err1) throw err1;
+            if (err1) done(err1);
             stats.visit_count.toString().should.equal('2');
             done();
           });
@@ -912,9 +912,9 @@ describe('Unit Tests', () => {
         { user_id: models.datatypes.Long.fromInt(1234) },
         { visit_count: models.datatypes.Long.fromInt(-2) },
         (err) => {
-          if (err) throw err;
+          if (err) done(err);
           models.instance.Counter.findOne({ user_id: models.datatypes.Long.fromInt(1234) }, (err1, stats) => {
-            if (err1) throw err1;
+            if (err1) done(err1);
             stats.visit_count.toString().should.equal('0');
             done();
           });
@@ -926,9 +926,9 @@ describe('Unit Tests', () => {
         { user_id: models.datatypes.Long.fromInt(1234) },
         { visitCount: models.datatypes.Long.fromInt(2) },
         (err) => {
-          if (err) throw err;
+          if (err) done(err);
           models.instance.Counter.findOne({ user_id: models.datatypes.Long.fromInt(1234) }, (err1, stats) => {
-            if (err1) throw err1;
+            if (err1) done(err1);
             stats.visitCount.toString().should.equal('2');
             done();
           });
@@ -940,9 +940,9 @@ describe('Unit Tests', () => {
         { user_id: models.datatypes.Long.fromInt(1234) },
         { visitCount: models.datatypes.Long.fromInt(-2) },
         (err) => {
-          if (err) throw err;
+          if (err) done(err);
           models.instance.Counter.findOne({ user_id: models.datatypes.Long.fromInt(1234) }, (err1, stats) => {
-            if (err1) throw err1;
+            if (err1) done(err1);
             stats.visitCount.toString().should.equal('0');
             done();
           });
@@ -964,9 +964,9 @@ describe('Unit Tests', () => {
       ];
 
       models.instance.Event.get_cql_client((err, cqlClient) => {
-        if (err) throw err;
+        if (err) done(err);
         cqlClient.batch(queries, { prepare: true }, (err1) => {
-          if (err1) throw err1;
+          if (err1) done(err1);
           done();
         });
       });
@@ -976,9 +976,9 @@ describe('Unit Tests', () => {
   describe('#find after raw batch events', () => {
     it('should find the event with email and timeuuid in query', (done) => {
       models.instance.Event.findOne({ email: 'hello1@h.com', id: eventID }, (err, event) => {
-        if (err) throw err;
+        if (err) done(err);
         models.instance.Event.findOne({ email: 'hello1@h.com', id: event.id }, (err1, event1) => {
-          if (err1) throw err1;
+          if (err1) done(err1);
           event1.body.should.equal('hello1');
           done();
         });
@@ -989,11 +989,11 @@ describe('Unit Tests', () => {
   describe('#find using $like query on SASI index', () => {
     it('should find the events with like query', (done) => {
       models.instance.Event.find({ body: { $like: '%ello%' } }, (err, events) => {
-        if (err) throw err;
+        if (err) done(err);
         events[0].body.should.equal('hello1');
         events.length.should.equal(2);
         models.instance.Event.find({ extra: { $like: 'extra%' } }, (err1, events1) => {
-          if (err1) throw err1;
+          if (err1) done(err1);
           events1[0].extra.should.equal('extra1');
           events1.length.should.equal(2);
           done();
@@ -1020,7 +1020,7 @@ describe('Unit Tests', () => {
           'query: {type: "match", field: "extra", value: "extra1"}' +
         '}',
       } }, (err, events) => {
-        if (err) throw err;
+        if (err) done(err);
         events.length.should.equal(1);
         events[0].body.should.equal('hello1');
         events[0].extra.should.equal('extra1');
@@ -1037,7 +1037,7 @@ describe('Unit Tests', () => {
           'query: {type: "phrase", field: "extra", value: "extra1\'s"}' +
         '}',
       } }, (err, events) => {
-        if (err) throw err;
+        if (err) done(err);
         events.length.should.equal(0);
         done();
       });
@@ -1047,7 +1047,7 @@ describe('Unit Tests', () => {
   describe('#verify if all inserted events went to the materialized view', () => {
     it('should find all the events filtered by id from materialized view', (done) => {
       models.instance.Event.find({ id: eventID }, { materialized_view: 'event_by_id' }, (err, events) => {
-        if (err) throw err;
+        if (err) done(err);
         events.length.should.equal(2);
         done();
       });
@@ -1060,11 +1060,11 @@ describe('Unit Tests', () => {
         { id: eventID, email: 'hello1@h.com' },
         { materialized_view: 'event_by_id' },
         (err, event) => {
-          if (err) throw err;
+          if (err) done(err);
           event.body = 'hello1 updated';
           event.save(() => {
             models.instance.Event.findOne({ id: eventID, email: 'hello1@h.com' }, (err1, eventUpdated) => {
-              if (err1) throw err1;
+              if (err1) done(err1);
               eventUpdated.body.should.equal('hello1 updated');
               // check if the extra section that is not part of the materialized view
               // is kept intact by the save operation
@@ -1075,7 +1075,7 @@ describe('Unit Tests', () => {
                 { id: eventID, email: 'hello1@h.com' },
                 { materialized_view: 'event_by_id' },
                 (err2, eventUpdated1) => {
-                  if (err2) throw err2;
+                  if (err2) done(err2);
                   eventUpdated1.body.should.equal('hello1 updated');
                   done();
                 });
@@ -1090,7 +1090,7 @@ describe('Unit Tests', () => {
       const queries = [];
 
       models.doBatch(queries, (err) => {
-        if (err) throw err;
+        if (err) done(err);
         done();
       });
     });
@@ -1107,7 +1107,7 @@ describe('Unit Tests', () => {
       queries.push(event.save({ return_query: true }));
 
       models.doBatch(queries, (err) => {
-        if (err) throw err;
+        if (err) done(err);
         done();
       });
     });
@@ -1134,7 +1134,7 @@ describe('Unit Tests', () => {
           done();
         })
         .catch((err) => {
-          throw err;
+          done(err);
         });
     });
   });
@@ -1142,7 +1142,7 @@ describe('Unit Tests', () => {
   describe('#find with distinct set to true', () => {
     it('should find distinct data as saved without errors', (done) => {
       models.instance.Event.find({}, { select: ['email'], distinct: true }, (err, event) => {
-        if (err) throw err;
+        if (err) done(err);
         event.length.should.equal(2);
         done();
       });
@@ -1152,7 +1152,7 @@ describe('Unit Tests', () => {
   describe('#verify orm batch modifications on table and materialized view', () => {
     it('should find modifications reflected in events', (done) => {
       models.instance.Event.find({ $limit: 10 }, (err, events) => {
-        if (err) throw err;
+        if (err) done(err);
         events.length.should.equal(2);
         events[0].body.should.equal('hello1 updated again');
         events[1].body.should.equal('hello3');
@@ -1170,7 +1170,7 @@ describe('Unit Tests', () => {
       models.instance.Event.find(
         { id: eventID, $orderby: { $asc: 'email' } },
         { materialized_view: 'event_by_id', raw: true }, (err, events) => {
-          if (err) throw err;
+          if (err) done(err);
           events.length.should.equal(2);
           events[0].body.should.equal('hello1 updated again');
           events[1].body.should.equal('hello3');
@@ -1183,7 +1183,7 @@ describe('Unit Tests', () => {
   describe('#find all remaining events and delete using orm batch', () => {
     it('should find remaining events and delete them', (done) => {
       models.instance.Event.find({ $limit: 10 }, (err, events) => {
-        if (err) throw err;
+        if (err) done(err);
 
         const queries = [];
 
@@ -1192,7 +1192,7 @@ describe('Unit Tests', () => {
         }
 
         models.doBatch(queries, (err1) => {
-          if (err1) throw err1;
+          if (err1) done(err1);
           done();
         });
       });
@@ -1202,7 +1202,7 @@ describe('Unit Tests', () => {
   describe('#verify all events are deleted', () => {
     it('should find all the events deleted from table', (done) => {
       models.instance.Event.find({ $limit: 10 }, (err, events) => {
-        if (err) throw err;
+        if (err) done(err);
         events.length.should.equal(0);
         done();
       });
@@ -1212,7 +1212,7 @@ describe('Unit Tests', () => {
   describe('#verify events are deleted from materialized view', () => {
     it('should find all the events deleted from materialized view', (done) => {
       models.instance.Event.find({ id: eventID }, { materialized_view: 'event_by_id' }, (err, events) => {
-        if (err) throw err;
+        if (err) done(err);
         events.length.should.equal(0);
         done();
       });
@@ -1233,9 +1233,9 @@ describe('Unit Tests', () => {
     it('should return the object for fetched model', (done) => {
       const simple = new models.instance.Simple({ foo: 'bar' });
       simple.save((err) => {
-        if (err) throw err;
+        if (err) done(err);
         models.instance.Simple.findOne({}, (err1, simpleModel) => {
-          if (err1) throw err1;
+          if (err1) done(err1);
           simpleModel.toJSON().should.deep.eq({
             foo: 'bar',
             bar: 'baz',
@@ -1243,7 +1243,7 @@ describe('Unit Tests', () => {
           JSON.stringify(simpleModel).should.eq('{"foo":"bar","bar":"baz"}');
           should.exist(simpleModel._validators);
           simpleModel.delete((err2) => {
-            if (err2) throw err2;
+            if (err2) done(err2);
             done();
           });
         });
@@ -1258,7 +1258,7 @@ describe('Unit Tests', () => {
           done();
         })
         .catch((err) => {
-          throw err;
+          done(err);
         });
     });
   });

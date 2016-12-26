@@ -32,7 +32,9 @@ const schemer = {
           outputSchema.fields[k] = { type: outputSchema.fields[k].type };
         }
       } else {
-        throw ('schema field "%s" is not properly defined: %s', k, outputSchema.fields[k]);
+        throw (new Error(
+          util.format('schema field "%s" is not properly defined: %s', k, outputSchema.fields[k])
+        ));
       }
 
       if (k === 'solr_query') {
@@ -276,7 +278,11 @@ const schemer = {
         }
 
         if (!(candidateMView.select instanceof Array) || !(candidateMView.key instanceof Array)) {
-          throw ('"select" and "key" attributes must be an array under attribute %s of materialized_views', mvindex);
+          throw (new Error(
+            util.format(
+              '"select" and "key" attributes must be an array under attribute %s of materialized_views', mvindex
+            )
+          ));
         }
 
         for (let selectindex = 0; selectindex < candidateMView.select.length; selectindex++) {

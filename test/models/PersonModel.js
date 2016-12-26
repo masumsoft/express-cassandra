@@ -105,6 +105,16 @@ module.exports = {
       type: 'double',
       rule: {
         required: true,
+        validators: [
+          {
+            validator: (value) => (value > 0),
+            message: (value) => (`points must be greater than 0, you provided ${value}`),
+          },
+          {
+            validator: (value) => (value < 100),
+            message: 'points must be less than 100',
+          },
+        ],
       },
     },
     active: 'boolean',

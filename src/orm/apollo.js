@@ -5,13 +5,16 @@ const cql = require('dse-driver');
 
 const BaseModel = require('./base_model');
 const schemer = require('./apollo_schemer');
+const buildError = require('./apollo_error.js');
 
 const DEFAULT_REPLICATION_FACTOR = 1;
 
 const noop = () => {};
 
 const Apollo = function f(connection, options) {
-  if (!connection) throw (new Error('Data connection configuration undefined'));
+  if (!connection) {
+    throw (buildError('model.validator.invalidconfig', 'Cassandra connection configuration undefined'));
+  }
 
   options = options || {};
 
@@ -505,7 +508,11 @@ Apollo.prototype = {
         callback(err);
         return;
       }
-      this._assert_user_defined_aggregates(onUserDefinedAggregates.bind(this));
+      try {
+        this._assert_user_defined_aggregates(onUserDefinedAggregates.bind(this));
+      } catch (e) {
+        throw (buildError('model.validator.invaliduda', e.message));
+      }
     };
 
     const onUserDefinedTypes = function f(err) {
@@ -513,7 +520,11 @@ Apollo.prototype = {
         callback(err);
         return;
       }
-      this._assert_user_defined_functions(onUserDefinedFunctions.bind(this));
+      try {
+        this._assert_user_defined_functions(onUserDefinedFunctions.bind(this));
+      } catch (e) {
+        throw (buildError('model.validator.invalidudf', e.message));
+      }
     };
 
     const onKeyspace = function f(err) {
@@ -522,7 +533,11 @@ Apollo.prototype = {
         return;
       }
       this._set_client(new cql.Client(this._connection));
-      this._assert_user_defined_types(onUserDefinedTypes.bind(this));
+      try {
+        this._assert_user_defined_types(onUserDefinedTypes.bind(this));
+      } catch (e) {
+        throw (buildError('model.validator.invalidudt', e.message));
+      }
     };
 
     if (this._keyspace && this._options.createKeyspace) {
@@ -534,10 +549,14 @@ Apollo.prototype = {
 
   add_model(modelName, modelSchema, callback) {
     if (!modelName || typeof (modelName) !== 'string') {
-      throw (new Error('Model name must be a valid string'));
+      throw (buildError('model.validator.invalidschema', 'Model name must be a valid string'));
     }
 
-    schemer.validate_model_schema(modelSchema);
+    try {
+      schemer.validate_model_schema(modelSchema);
+    } catch (e) {
+      throw (buildError('model.validator.invalidschema', e.message));
+    }
 
     const baseProperties = {
       name: modelName,

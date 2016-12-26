@@ -92,11 +92,34 @@ BaseModel._validate = function f(validators, value) {
   return true;
 };
 
+BaseModel._get_generic_validator_message = function f(value, propName, fieldtype) {
+  return util.format('Invalid Value: "%s" for Field: %s (Type: %s)', value, propName, fieldtype);
+};
+
+BaseModel._format_validator_rule = function f(rule) {
+  if (typeof rule.validator !== 'function') {
+    throw (buildError('model.validator.invalidrule', 'Rule validator must be a valid function'));
+  }
+  if (!rule.message) {
+    rule.message = this._get_generic_validator_message;
+  } else if (typeof rule.message === 'string') {
+    rule.message = function f1(message) {
+      return util.format(message);
+    }.bind(null, rule.message);
+  } else if (typeof rule.message !== 'function') {
+    throw (buildError('model.validator.invalidrule', 'Invalid validator message, must be string or a function'));
+  }
+
+  return rule;
+};
+
 BaseModel._get_validators = function f(fieldname) {
-  const genericValidatorMessageFunc = (value, propName, fieldtype) => (
-    util.format('Invalid Value: "%s" for Field: %s (Type: %s)', value, propName, fieldtype)
-  );
-  const fieldtype = schemer.get_field_type(this._properties.schema, fieldname);
+  let fieldtype;
+  try {
+    fieldtype = schemer.get_field_type(this._properties.schema, fieldname);
+  } catch (e) {
+    throw (buildError('model.validator.invalidschema', e.message));
+  }
 
   const validators = [];
   const typeFieldValidator = TYPE_MAP.generic_type_validator(fieldtype);
@@ -108,26 +131,21 @@ BaseModel._get_validators = function f(fieldname) {
     if (typeof field.rule === 'function') {
       field.rule = {
         validator: field.rule,
-        message: genericValidatorMessageFunc,
+        message: this._get_generic_validator_message,
       };
+      validators.push(field.rule);
     } else {
       if (!_.isPlainObject(field.rule)) {
-        throw (new Error('Validation rule must be a function or an object'));
+        throw (buildError('model.validator.invalidrule', 'Validation rule must be a function or an object'));
       }
-      if (field.rule.validator && typeof field.rule.validator !== 'function') {
-        throw (new Error('Rule validator must be a valid function'));
-      }
-      if (!field.rule.message) {
-        field.rule.message = genericValidatorMessageFunc;
-      } else if (typeof field.rule.message === 'string') {
-        field.rule.message = function f1(message, value, propName, fieldType) {
-          return util.format(message, value, propName, fieldType);
-        }.bind(null, field.rule.message);
-      } else if (typeof field.rule.message !== 'function') {
-        throw (new Error('Invalid validator message'));
+      if (field.rule.validator) {
+        validators.push(this._format_validator_rule(field.rule));
+      } else if (Array.isArray(field.rule.validators)) {
+        field.rule.validators.forEach((fieldrule) => {
+          validators.push(this._format_validator_rule(fieldrule));
+        });
       }
     }
-    validators.push(field.rule);
   }
 
   return validators;
@@ -222,7 +240,7 @@ BaseModel._create_table = function f(callback) {
 
     const afterCustomIndex = (err1) => {
       if (err1) {
-        callback(buildError('model.tablecreation.dbindex', err1));
+        callback(buildError('model.tablecreation.dbindexcreate', err1));
         return;
       }
       // materialized view creation
@@ -234,7 +252,7 @@ BaseModel._create_table = function f(callback) {
             modelSchema.materialized_views[viewName]
           );
           this._execute_definition_query(matViewQuery, [], (err2, result) => {
-            if (err2) next(buildError('model.tablecreation.matview', err2));
+            if (err2) next(buildError('model.tablecreation.matviewcreate', err2));
             else next(null, result);
           });
         }, callback);
@@ -243,7 +261,7 @@ BaseModel._create_table = function f(callback) {
 
     const afterDBIndex = (err1) => {
       if (err1) {
-        callback(buildError('model.tablecreation.dbindex', err1));
+        callback(buildError('model.tablecreation.dbindexcreate', err1));
         return;
       }
       // custom index creation
@@ -257,7 +275,7 @@ BaseModel._create_table = function f(callback) {
       } else if (modelSchema.custom_index) {
         const customIndexQuery = this._create_custom_index_query(tableName, modelSchema.custom_index);
         this._execute_definition_query(customIndexQuery, [], (err2, result) => {
-          if (err2) afterCustomIndex(buildError('model.tablecreation.dbindex', err2));
+          if (err2) afterCustomIndex(err2);
           else afterCustomIndex(null, result);
         });
       } else afterCustomIndex();
@@ -280,8 +298,15 @@ BaseModel._create_table = function f(callback) {
     };
 
     if (dbSchema) {
-      const normalizedModelSchema = schemer.normalize_model_schema(modelSchema);
-      const normalizedDBSchema = schemer.normalize_model_schema(dbSchema);
+      let normalizedModelSchema;
+      let normalizedDBSchema;
+
+      try {
+        normalizedModelSchema = schemer.normalize_model_schema(modelSchema);
+        normalizedDBSchema = schemer.normalize_model_schema(dbSchema);
+      } catch (e) {
+        throw (buildError('model.validator.invalidschema', e.message));
+      }
 
       if (_.isEqual(normalizedModelSchema, normalizedDBSchema)) {
         callback();
@@ -299,13 +324,13 @@ BaseModel._create_table = function f(callback) {
 
               this.drop_mviews(mviews, (err1) => {
                 if (err1) {
-                  callback(buildError('model.tablecreation.matview', err1));
+                  callback(buildError('model.tablecreation.matviewdrop', err1));
                   return;
                 }
 
                 this.drop_table((err2) => {
                   if (err2) {
-                    callback(buildError('model.tablecreation.dbcreate', err2));
+                    callback(buildError('model.tablecreation.dbdrop', err2));
                     return;
                   }
                   const createTableQuery = this._create_table_query(tableName, modelSchema);
@@ -315,7 +340,7 @@ BaseModel._create_table = function f(callback) {
             } else {
               this.drop_table((err1) => {
                 if (err1) {
-                  callback(buildError('model.tablecreation.dbcreate', err1));
+                  callback(buildError('model.tablecreation.dbdrop', err1));
                   return;
                 }
                 const createTableQuery = this._create_table_query(tableName, modelSchema);
@@ -396,14 +421,14 @@ BaseModel._create_table = function f(callback) {
 
           this.drop_mviews(removedMaterializedViews, (err2) => {
             if (err2) {
-              callback(buildError('model.tablecreation.matview', err2));
+              callback(buildError('model.tablecreation.matviewdrop', err2));
               return;
             }
 
             // remove altered indexes by index name
             this.drop_indexes(removedIndexNames, (err3) => {
               if (err3) {
-                callback(buildError('model.tablecreation.dbindex', err3));
+                callback(buildError('model.tablecreation.dbindexdrop', err3));
                 return;
               }
 
@@ -415,7 +440,7 @@ BaseModel._create_table = function f(callback) {
                 });
               }, (err4) => {
                 if (err4) {
-                  callback(buildError('model.tablecreation.dbindex', err4));
+                  callback(buildError('model.tablecreation.dbindexcreate', err4));
                   return;
                 }
 
@@ -428,7 +453,7 @@ BaseModel._create_table = function f(callback) {
                   });
                 }, (err5) => {
                   if (err5) {
-                    callback(buildError('model.tablecreation.dbindex', err5));
+                    callback(buildError('model.tablecreation.dbindexcreate', err5));
                     return;
                   }
 
@@ -440,7 +465,7 @@ BaseModel._create_table = function f(callback) {
                       modelSchema.materialized_views[viewName]
                     );
                     this._execute_definition_query(matViewQuery, [], (err6, result) => {
-                      if (err6) next(buildError('model.tablecreation.matview', err6));
+                      if (err6) next(buildError('model.tablecreation.matviewcreate', err6));
                       else next(null, result);
                     });
                   }, callback);
@@ -541,13 +566,13 @@ BaseModel._create_table = function f(callback) {
 
               this.drop_mviews(dependentViews, (err1) => {
                 if (err1) {
-                  nextCallback(buildError('model.tablecreation.matview', err1));
+                  nextCallback(buildError('model.tablecreation.matviewdrop', err1));
                   return;
                 }
 
                 this.drop_indexes(dependentIndexes, (err2) => {
                   if (err2) {
-                    nextCallback(buildError('model.tablecreation.dbindex', err2));
+                    nextCallback(buildError('model.tablecreation.dbindexdrop', err2));
                     return;
                   }
 
@@ -1076,8 +1101,9 @@ BaseModel._get_db_value_expression = function f(fieldname, fieldvalue) {
     return { query_segment: '?', parameter: val };
   }
 
-  if (this._validate(validators, fieldvalue) !== true) {
-    throw (buildError('model.value.invalidvalue', fieldvalue, fieldname, fieldtype));
+  const validationMessage = this._validate(validators, fieldvalue);
+  if (validationMessage !== true) {
+    throw (buildError('model.validator.invalidvalue', validationMessage(fieldvalue, fieldname, fieldtype)));
   }
 
   if (fieldtype === 'counter') {
@@ -1177,7 +1203,7 @@ BaseModel._create_where_clause = function f(queryObject) {
               if ((tokenFirstKey in cqlOperators) && tokenFirstKey !== '$token' && tokenFirstKey !== '$in') {
                 op = cqlOperators[tokenFirstKey];
               } else {
-                throw (buildError('model.find.invalidop', tokenFirstKey));
+                throw (buildError('model.find.invalidtokenop', tokenFirstKey));
               }
 
               if (tokenFirstValue instanceof Array) {
@@ -1230,7 +1256,7 @@ BaseModel._create_where_clause = function f(queryObject) {
                 queryParams.push(firstValue);
               }
             } else {
-              throw (new Error('$contains operator is only valid for indexed collections'));
+              throw (buildError('model.find.invalidcontainsop'));
             }
           } else if (firstKey === '$contains_key') {
             const fieldtype2 = schemer.get_field_type(this._properties.schema, k);
@@ -1241,7 +1267,7 @@ BaseModel._create_where_clause = function f(queryObject) {
               ));
               queryParams.push(firstValue);
             } else {
-              throw (new Error('$contains_key operator is only valid for indexed map collections'));
+              throw (buildError('model.find.invalidcontainskeyop'));
             }
           } else {
             const dbVal = this._get_db_value_expression(k, firstValue);
@@ -1436,8 +1462,12 @@ BaseModel.eachRow = function f(queryObject, options, onReadable, callback) {
     callback = cb;
     options = {};
   }
-  if (typeof onReadable !== 'function') throw (new Error('no valid onReadable function was provided'));
-  if (typeof callback !== 'function') throw (new Error('no valid callback function was provided'));
+  if (typeof onReadable !== 'function') {
+    throw (buildError('model.find.eachrowerror', 'no valid onReadable function was provided'));
+  }
+  if (typeof callback !== 'function') {
+    throw (buildError('model.find.cberror'));
+  }
 
   const defaults = {
     raw: false,
@@ -1505,8 +1535,13 @@ BaseModel.stream = function f(queryObject, options, onReadable, callback) {
     callback = cb;
     options = {};
   }
-  if (typeof onReadable !== 'function') throw (new Error('no valid onReadable function was provided'));
-  if (typeof callback !== 'function') throw (new Error('no valid callback function was provided'));
+
+  if (typeof onReadable !== 'function') {
+    throw (buildError('model.find.streamerror', 'no valid onReadable function was provided'));
+  }
+  if (typeof callback !== 'function') {
+    throw (buildError('model.find.cberror'));
+  }
 
   const defaults = {
     raw: false,
@@ -1556,7 +1591,7 @@ BaseModel.find = function f(queryObject, options, callback) {
     options = {};
   }
   if (typeof callback !== 'function' && !options.return_query) {
-    throw (new Error('no valid callback function was provided'));
+    throw (buildError('model.find.cberror'));
   }
 
   const defaults = {
@@ -1628,7 +1663,7 @@ BaseModel.findOne = function f(queryObject, options, callback) {
     options = {};
   }
   if (typeof callback !== 'function' && !options.return_query) {
-    throw (new Error('no valid callback function was provided'));
+    throw (buildError('model.find.cberror'));
   }
 
   queryObject.$limit = 1;
@@ -1679,13 +1714,13 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
             callback(buildError('model.update.unsetkey', key));
             return true;
           }
-          throw buildError('model.update.unsetkey', key);
+          throw (buildError('model.update.unsetkey', key));
         } else if (schema.fields[key].rule && schema.fields[key].rule.required) {
           if (typeof callback === 'function') {
             callback(buildError('model.update.unsetrequired', key));
             return true;
           }
-          throw buildError('model.update.unsetrequired', key);
+          throw (buildError('model.update.unsetrequired', key));
         } else return false;
       } else if (!schema.fields[key].rule || !schema.fields[key].rule.ignore_default) {
         // did set a default value, ignore default is not set
@@ -1694,7 +1729,7 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
             callback(buildError('model.update.invaliddefaultvalue', fieldvalue, key, fieldtype));
             return true;
           }
-          throw buildError('model.update.invaliddefaultvalue', fieldvalue, key, fieldtype);
+          throw (buildError('model.update.invaliddefaultvalue', fieldvalue, key, fieldtype));
         }
       }
     }
@@ -1705,13 +1740,13 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
           callback(buildError('model.update.unsetkey', key));
           return true;
         }
-        throw buildError('model.update.unsetkey', key);
+        throw (buildError('model.update.unsetkey', key));
       } else if (schema.fields[key].rule && schema.fields[key].rule.required) {
         if (typeof callback === 'function') {
           callback(buildError('model.update.unsetrequired', key));
           return true;
         }
-        throw buildError('model.update.unsetrequired', key);
+        throw (buildError('model.update.unsetrequired', key));
       }
     }
 
@@ -1748,8 +1783,14 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
           if ($add || $append) {
             dbVal.query_segment = util.format('"%s" + %s', key, dbVal.query_segment);
           } else if ($prepend) {
-            if (fieldtype === 'list') dbVal.query_segment = util.format('%s + "%s"', dbVal.query_segment, key);
-            else throw (util.format('%s datatypes does not support $prepend, use $add instead', fieldtype));
+            if (fieldtype === 'list') {
+              dbVal.query_segment = util.format('%s + "%s"', dbVal.query_segment, key);
+            } else {
+              throw (buildError(
+                'model.update.invalidprependop',
+                util.format('%s datatypes does not support $prepend, use $add instead', fieldtype)
+              ));
+            }
           } else if ($remove) {
             dbVal.query_segment = util.format('"%s" - %s', key, dbVal.query_segment);
             if (fieldtype === 'map') dbVal.parameter = Object.keys(dbVal.parameter);
@@ -1765,7 +1806,9 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
               queryParams.push(replaceKeys[0]);
               queryParams.push(replaceValues[0]);
             } else {
-              throw (new Error('$replace in map does not support more than one item'));
+              throw (
+                buildError('model.update.invalidreplaceop', '$replace in map does not support more than one item')
+              );
             }
           } else if (fieldtype === 'list') {
             updateClauseArray.push(util.format('"%s"[?]=%s', key, dbVal.query_segment));
@@ -1773,12 +1816,14 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
               queryParams.push(dbVal.parameter[0]);
               queryParams.push(dbVal.parameter[1]);
             } else {
-              throw (new Error(
+              throw (buildError(
+                'model.update.invalidreplaceop',
                 '$replace in list should have exactly 2 items, first one as the index and the second one as the value'
               ));
             }
           } else {
-            throw (new Error(
+            throw (buildError(
+              'model.update.invalidreplaceop',
               util.format('%s datatypes does not support $replace', fieldtype)
             ));
           }
@@ -1791,10 +1836,10 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
       }
     } catch (e) {
       if (typeof callback === 'function') {
-        callback(buildError('model.update.invalidvalue', fieldvalue, key));
+        callback(e);
         return true;
       }
-      throw buildError('model.update.invalidvalue', fieldvalue, key);
+      throw (e);
     }
     return false;
   });
@@ -1832,10 +1877,10 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
         }
       } catch (e) {
         if (typeof callback === 'function') {
-          callback(buildError('model.update.invalidvalue', options.conditions[key], key));
+          callback(e);
           return true;
         }
-        throw (buildError('model.update.invalidvalue', options.conditions[key], key));
+        throw (e);
       }
       return false;
     });
@@ -1880,7 +1925,7 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
         callback(buildError('model.update.before.error', error));
         return;
       }
-      throw buildError('model.update.before.error', error);
+      throw (buildError('model.update.before.error', error));
     }
 
     this._execute_table_query(query, queryParams, queryOptions, (err, results) => {
@@ -1897,11 +1942,11 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
           callback(null, results);
         });
       } else if (err) {
-        throw buildError('model.update.dberror', err);
+        throw (buildError('model.update.dberror', err));
       } else {
         schema.after_update(queryObject, updateValues, options, (error1) => {
           if (error1) {
-            throw buildError('model.update.after.error', error1);
+            throw (buildError('model.update.after.error', error1));
           }
         });
       }
@@ -1974,7 +2019,7 @@ BaseModel.delete = function f(queryObject, options, callback) {
         callback(buildError('model.delete.before.error', error));
         return;
       }
-      throw buildError('model.delete.before.error', error);
+      throw (buildError('model.delete.before.error', error));
     }
 
     this._execute_table_query(query, queryParams, queryOptions, (err, results) => {
@@ -1991,11 +2036,11 @@ BaseModel.delete = function f(queryObject, options, callback) {
           callback(null, results);
         });
       } else if (err) {
-        throw buildError('model.delete.dberror', err);
+        throw (buildError('model.delete.dberror', err));
       } else {
         schema.after_delete(queryObject, options, (error1) => {
           if (error1) {
-            throw buildError('model.delete.after.error', error1);
+            throw (buildError('model.delete.after.error', error1));
           }
         });
       }
@@ -2101,13 +2146,13 @@ BaseModel.prototype.save = function fn(options, callback) {
             callback(buildError('model.save.unsetkey', f));
             return true;
           }
-          throw buildError('model.save.unsetkey', f);
+          throw (buildError('model.save.unsetkey', f));
         } else if (schema.fields[f].rule && schema.fields[f].rule.required) {
           if (typeof callback === 'function') {
             callback(buildError('model.save.unsetrequired', f));
             return true;
           }
-          throw buildError('model.save.unsetrequired', f);
+          throw (buildError('model.save.unsetrequired', f));
         } else return false;
       } else if (!schema.fields[f].rule || !schema.fields[f].rule.ignore_default) {
         // did set a default value, ignore default is not set
@@ -2116,7 +2161,7 @@ BaseModel.prototype.save = function fn(options, callback) {
             callback(buildError('model.save.invaliddefaultvalue', fieldvalue, f, fieldtype));
             return true;
           }
-          throw buildError('model.save.invaliddefaultvalue', fieldvalue, f, fieldtype);
+          throw (buildError('model.save.invaliddefaultvalue', fieldvalue, f, fieldtype));
         }
       }
     }
@@ -2127,13 +2172,13 @@ BaseModel.prototype.save = function fn(options, callback) {
           callback(buildError('model.save.unsetkey', f));
           return true;
         }
-        throw buildError('model.save.unsetkey', f);
+        throw (buildError('model.save.unsetkey', f));
       } else if (schema.fields[f].rule && schema.fields[f].rule.required) {
         if (typeof callback === 'function') {
           callback(buildError('model.save.unsetrequired', f));
           return true;
         }
-        throw buildError('model.save.unsetrequired', f);
+        throw (buildError('model.save.unsetrequired', f));
       }
     }
 
@@ -2149,10 +2194,10 @@ BaseModel.prototype.save = function fn(options, callback) {
       }
     } catch (e) {
       if (typeof callback === 'function') {
-        callback(buildError('model.save.invalidvalue', fieldvalue, f, fieldtype));
+        callback(e);
         return true;
       }
-      throw buildError('model.save.invalidvalue', fieldvalue, f, fieldtype);
+      throw (e);
     }
     return false;
   });
@@ -2203,7 +2248,7 @@ BaseModel.prototype.save = function fn(options, callback) {
         callback(buildError('model.save.before.error', error));
         return;
       }
-      throw buildError('model.save.before.error', error);
+      throw (buildError('model.save.before.error', error));
     }
 
     this.constructor._execute_table_query(query, queryParams, queryOptions, (err, result) => {
@@ -2220,11 +2265,11 @@ BaseModel.prototype.save = function fn(options, callback) {
           callback(null, result);
         });
       } else if (err) {
-        throw buildError('model.save.dberror', err);
+        throw (buildError('model.save.dberror', err));
       } else {
         schema.after_save(this, options, (error1) => {
           if (error1) {
-            throw buildError('model.save.after.error', error1);
+            throw (buildError('model.save.after.error', error1));
           }
         });
       }
