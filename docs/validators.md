@@ -86,3 +86,27 @@ module.exports = {
 }
 
 ```
+
+You may also add multiple validators with a different validation message for each. Following is an example of using multiple validators:
+
+```
+module.exports = {
+  //... other properties hidden for clarity
+  age: {
+    type: "int",
+    rule: {
+      required: true,
+      validators: [
+        {
+          validator: function (value) { return value > 0; },
+          message: function (value) { return 'Age must be greater than 0. You provided ' + value; }
+        },
+        {
+          validator: function (value) { return value < 100; },
+          message: 'You\'re not that old!'
+        }
+      ]
+    }
+  }
+}
+```
