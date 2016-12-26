@@ -11,6 +11,7 @@ pages:
 - Batching ORM Operations: batch.md
 - Advanced Datatypes and Operations: advanced.md
 - Datatypes and Utility Functions: datatypes.md
+- Error Message Reference: errors.md
 - Other Notes: notes.md
 
 theme: readthedocs
