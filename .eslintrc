@@ -1,12 +1,12 @@
 {
   "extends": "airbnb-base",
   "rules": {
-    "global-require": ["off"],
-    "no-underscore-dangle": ["off"],
-    "no-param-reassign": ["off"],
+    "global-require": "off",
+    "no-underscore-dangle": "off",
+    "no-param-reassign": "off",
+    "no-plusplus": "off",
     "arrow-parens": ["error", "always"],
-    "max-len": ["error", 120],
-    "no-plusplus": ["off"]
+    "max-len": ["error", 120]
   },
   "env": {
     "node": true,
