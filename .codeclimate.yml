@@ -2,8 +2,6 @@ engines:
   eslint:
     enabled: true
     channel: "eslint-3"
-  nodesecurity:
-    enabled: true
   duplication:
     enabled: true
     config:
