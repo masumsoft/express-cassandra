@@ -9,9 +9,9 @@ engines:
     config:
       languages:
       - javascript
-  ratings:
-    paths:
-      - src/**
-  exclude_paths:
-    - node_modules/
-    - lib/
+ratings:
+  paths:
+    - src/**
+exclude_paths:
+  - node_modules/
+  - lib/
