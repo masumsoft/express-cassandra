@@ -85,7 +85,7 @@ Apollo.prototype = {
 
     let query = util.format(
       "SELECT * FROM system_schema.keyspaces WHERE keyspace_name = '%s';",
-      keyspaceName
+      keyspaceName,
     );
     client.execute(query, (err, result) => {
       if (err) {
@@ -99,7 +99,7 @@ Apollo.prototype = {
         query = util.format(
           'CREATE KEYSPACE IF NOT EXISTS "%s" WITH REPLICATION = %s;',
           keyspaceName,
-          replicationText
+          replicationText,
         );
         client.execute(query, (err1, result1) => {
           client.shutdown(() => {
@@ -114,7 +114,7 @@ Apollo.prototype = {
         query = util.format(
           'ALTER KEYSPACE "%s" WITH REPLICATION = %s;',
           keyspaceName,
-          replicationText
+          replicationText,
         );
         client.execute(query, (err1, result1) => {
           client.shutdown(() => {
@@ -160,7 +160,7 @@ Apollo.prototype = {
         let query = util.format(
           "SELECT * FROM system_schema.types WHERE keyspace_name = '%s' AND type_name = '%s';",
           keyspace,
-          udtKey
+          udtKey,
         );
         client.execute(query, (err, result) => {
           if (err) {
@@ -174,13 +174,13 @@ Apollo.prototype = {
               udtFields.push(util.format(
                 '"%s" %s',
                 field,
-                options.udts[udtKey][field]
+                options.udts[udtKey][field],
               ));
             });
             query = util.format(
               'CREATE TYPE IF NOT EXISTS "%s" (%s);',
               udtKey,
-              udtFields.toString()
+              udtFields.toString(),
             );
             client.execute(query, (err1) => {
               udtCallback(err1);
@@ -213,8 +213,8 @@ Apollo.prototype = {
                 util.format(
                   'User defined type "%s" already exists but does not match the udt definition. ' +
                   'Consider altering or droping the type.',
-                  udtKey
-                )
+                  udtKey,
+                ),
               ));
             }
           } else {
@@ -238,34 +238,34 @@ Apollo.prototype = {
       async.eachSeries(Object.keys(options.udfs), (udfKey, udfCallback) => {
         if (!options.udfs[udfKey].returnType) {
           throw (new Error(
-            util.format('No returnType defined for user defined function: %s', udfKey)
+            util.format('No returnType defined for user defined function: %s', udfKey),
           ));
         }
         if (!options.udfs[udfKey].language) {
           throw (new Error(
-            util.format('No language defined for user defined function: %s', udfKey)
+            util.format('No language defined for user defined function: %s', udfKey),
           ));
         }
         if (!options.udfs[udfKey].code) {
           throw (new Error(
-            util.format('No code defined for user defined function: %s', udfKey)
+            util.format('No code defined for user defined function: %s', udfKey),
           ));
         }
         if (options.udfs[udfKey].inputs && !_.isPlainObject(options.udfs[udfKey].inputs)) {
           throw (new Error(
-            util.format('inputs must be an object for user defined function: %s', udfKey)
+            util.format('inputs must be an object for user defined function: %s', udfKey),
           ));
         }
         if (options.udfs[udfKey].inputs instanceof Array) {
           throw (new Error(
-            util.format('inputs must be an object, not an array for user defined function: %s', udfKey)
+            util.format('inputs must be an object, not an array for user defined function: %s', udfKey),
           ));
         }
 
         let query = util.format(
           "SELECT * FROM system_schema.functions WHERE keyspace_name = '%s' AND function_name = '%s';",
           keyspace,
-          udfKey.toLowerCase()
+          udfKey.toLowerCase(),
         );
         client.execute(query, (err, result) => {
           if (err) {
@@ -280,7 +280,7 @@ Apollo.prototype = {
                 udfInputs.push(util.format(
                   '%s %s',
                   input,
-                  options.udfs[udfKey].inputs[input]
+                  options.udfs[udfKey].inputs[input],
                 ));
               });
             }
@@ -290,7 +290,7 @@ Apollo.prototype = {
               udfInputs.toString(),
               options.udfs[udfKey].returnType,
               options.udfs[udfKey].language,
-              options.udfs[udfKey].code
+              options.udfs[udfKey].code,
             );
             client.execute(query, (err1) => {
               udfCallback(err1);
@@ -363,27 +363,27 @@ Apollo.prototype = {
       async.eachSeries(Object.keys(options.udas), (udaKey, udaCallback) => {
         if (!options.udas[udaKey].input_types) {
           throw (new Error(
-            util.format('No input_types defined for user defined function: %s', udaKey)
+            util.format('No input_types defined for user defined function: %s', udaKey),
           ));
         }
         if (!(options.udas[udaKey].input_types instanceof Array)) {
           throw (new Error(
-            util.format('input_types must be an array for user defined function: %s', udaKey)
+            util.format('input_types must be an array for user defined function: %s', udaKey),
           ));
         }
         if (options.udas[udaKey].input_types.length < 1) {
           throw (new Error(
-            util.format('input_types array cannot be blank for user defined function: %s', udaKey)
+            util.format('input_types array cannot be blank for user defined function: %s', udaKey),
           ));
         }
         if (!options.udas[udaKey].sfunc) {
           throw (new Error(
-            util.format('No sfunc defined for user defined aggregate: %s', udaKey)
+            util.format('No sfunc defined for user defined aggregate: %s', udaKey),
           ));
         }
         if (!options.udas[udaKey].stype) {
           throw (new Error(
-            util.format('No stype defined for user defined aggregate: %s', udaKey)
+            util.format('No stype defined for user defined aggregate: %s', udaKey),
           ));
         }
         if (!options.udas[udaKey].initcond) {
@@ -393,7 +393,7 @@ Apollo.prototype = {
         let query = util.format(
           "SELECT * FROM system_schema.aggregates WHERE keyspace_name = '%s' AND aggregate_name = '%s';",
           keyspace,
-          udaKey.toLowerCase()
+          udaKey.toLowerCase(),
         );
         client.execute(query, (err, result) => {
           if (err) {
@@ -407,7 +407,7 @@ Apollo.prototype = {
               udaKey,
               options.udas[udaKey].input_types.toString(),
               options.udas[udaKey].sfunc,
-              options.udas[udaKey].stype
+              options.udas[udaKey].stype,
             );
             if (options.udas[udaKey].finalfunc) query += util.format(' FINALFUNC %s', options.udas[udaKey].finalfunc);
             query += util.format(' INITCOND %s;', options.udas[udaKey].initcond);

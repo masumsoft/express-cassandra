@@ -55,6 +55,7 @@ CassandraClient.bind = (options, cb) => {
         const modelName = self._translateFileNameToModelName(file);
 
         if (modelName) {
+          // eslint-disable-next-line import/no-dynamic-require
           const modelSchema = require(fileName);
           self.modelInstance[modelName] = self.orm.add_model(
             modelName.toLowerCase(),
@@ -62,7 +63,7 @@ CassandraClient.bind = (options, cb) => {
             (err2) => {
               if (err2) callback(err2);
               else callback();
-            }
+            },
           );
           self.modelInstance[modelName] = Promise.promisifyAll(self.modelInstance[modelName]);
         } else {

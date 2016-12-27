@@ -33,7 +33,7 @@ const schemer = {
         }
       } else {
         throw (new Error(
-          util.format('schema field "%s" is not properly defined: %s', k, outputSchema.fields[k])
+          util.format('schema field "%s" is not properly defined: %s', k, outputSchema.fields[k]),
         ));
       }
 
@@ -193,12 +193,12 @@ const schemer = {
       const fieldtype = this.get_field_type(modelSchema, k);
       if (!(fieldtype in TYPE_MAP)) {
         throw (new Error(
-          util.format('Given schema field type is not supported for: %s(%s)', k, modelSchema.fields[k].type)
+          util.format('Given schema field type is not supported for: %s(%s)', k, modelSchema.fields[k].type),
         ));
       }
       if (!(this.is_field_default_value_valid(modelSchema, k))) {
         throw (new Error(
-          util.format('Invalid defult definition for: %s(%s)', k, modelSchema.fields[k].type)
+          util.format('Invalid defult definition for: %s(%s)', k, modelSchema.fields[k].type),
         ));
       }
     });
@@ -221,7 +221,7 @@ const schemer = {
         }
         if (modelSchema.fields[modelSchema.key[0][j]].virtual) {
           throw (new Error(
-            "Partition Key array must contain only db field names, can't contain virtual field names"
+            "Partition Key array must contain only db field names, can't contain virtual field names",
           ));
         }
       }
@@ -236,7 +236,7 @@ const schemer = {
         }
         if (modelSchema.fields[modelSchema.key[i]].virtual) {
           throw (new Error(
-            "Clustering Keys must be db field names, can't be virtual field names"
+            "Clustering Keys must be db field names, can't be virtual field names",
           ));
         }
       }
@@ -267,21 +267,21 @@ const schemer = {
         const candidateMView = modelSchema.materialized_views[mvindex];
         if (!_.isPlainObject(candidateMView)) {
           throw (new Error(
-            util.format('attribute "%s" under materialized_views must be an object', mvindex)
+            util.format('attribute "%s" under materialized_views must be an object', mvindex),
           ));
         }
 
         if (!candidateMView.select || !candidateMView.key) {
           throw (new Error(
-            util.format('materialized_view "%s" must have "select" and "key" attributes', mvindex)
+            util.format('materialized_view "%s" must have "select" and "key" attributes', mvindex),
           ));
         }
 
         if (!(candidateMView.select instanceof Array) || !(candidateMView.key instanceof Array)) {
           throw (new Error(
             util.format(
-              '"select" and "key" attributes must be an array under attribute %s of materialized_views', mvindex
-            )
+              '"select" and "key" attributes must be an array under attribute %s of materialized_views', mvindex,
+            ),
           ));
         }
 
@@ -292,8 +292,8 @@ const schemer = {
             throw (new Error(
               util.format(
                 'the select attribute under materialized_view %s must be an array of field name strings or ["*"]',
-                mvindex
-              )
+                mvindex,
+              ),
             ));
           }
 
@@ -303,8 +303,8 @@ const schemer = {
               util.format(
                 'the select attribute under %s of materialized_views must be an array of db field names, ' +
                 'cannot contain any virtual field name',
-                mvindex
-              )
+                mvindex,
+              ),
             ));
           }
         }
@@ -313,27 +313,27 @@ const schemer = {
         if (typeof (candidateMView.key[0]) === 'string') {
           if (!(candidateMView.key[0] in modelSchema.fields)) {
             throw (new Error(
-              util.format('materialized_view %s: partition key string must match a valid field name', mvindex)
+              util.format('materialized_view %s: partition key string must match a valid field name', mvindex),
             ));
           }
           if (modelSchema.fields[candidateMView.key[0]].virtual) {
             throw (new Error(
               util.format(
                 'materialized_view %s: partition key must match a db field name, cannot be a virtual field name',
-                mvindex
-              )
+                mvindex,
+              ),
             ));
           }
         } else if (candidateMView.key[0] instanceof Array) {
           if (candidateMView.key[0].length === 0) {
             throw (new Error(
-              util.format('materialized_view %s: partition key array cannot be empty', mvindex)
+              util.format('materialized_view %s: partition key array cannot be empty', mvindex),
             ));
           }
           for (let j = 0; j < candidateMView.key[0].length; j++) {
             if ((typeof (candidateMView.key[0][j]) !== 'string') || !(candidateMView.key[0][j] in modelSchema.fields)) {
               throw (new Error(
-                util.format('materialized_view %s: partition key array must contain only valid field names', mvindex)
+                util.format('materialized_view %s: partition key array must contain only valid field names', mvindex),
               ));
             }
             if (modelSchema.fields[candidateMView.key[0][j]].virtual) {
@@ -341,8 +341,8 @@ const schemer = {
                 util.format(
                   'materialized_view %s: partition key array must contain only db field names, ' +
                   'cannot contain virtual field names',
-                  mvindex
-                )
+                  mvindex,
+                ),
               ));
             }
           }
@@ -350,8 +350,8 @@ const schemer = {
           throw (new Error(
             util.format(
               'materialized_view %s: partition key must be a field name string, or array of field names',
-              mvindex
-            )
+              mvindex,
+            ),
           ));
         }
 
@@ -359,15 +359,15 @@ const schemer = {
           if (i > 0) {
             if ((typeof (candidateMView.key[i]) !== 'string') || !(candidateMView.key[i] in modelSchema.fields)) {
               throw (new Error(
-                util.format('materialized_view %s: clustering keys must be valid field names', mvindex)
+                util.format('materialized_view %s: clustering keys must be valid field names', mvindex),
               ));
             }
             if (modelSchema.fields[candidateMView.key[i]].virtual) {
               throw (new Error(
                 util.format(
                   'materialized_view %s: clustering keys must be db field names, cannot contain virtual fields',
-                  mvindex
-                )
+                  mvindex,
+                ),
               ));
             }
           }
@@ -378,23 +378,23 @@ const schemer = {
             throw (new Error(
               util.format(
                 'materialized_view %s: clustering_order must be an object of clustering_key attributes',
-                mvindex
-              )
+                mvindex,
+              ),
             ));
           }
 
           Object.keys(candidateMView.clustering_order).forEach((cindex) => {
             if (['asc', 'desc'].indexOf(candidateMView.clustering_order[cindex].toLowerCase()) === -1) {
               throw (new Error(
-                util.format('materialized_view %s: clustering_order attribute values can only be ASC or DESC', mvindex)
+                util.format('materialized_view %s: clustering_order attribute values can only be ASC or DESC', mvindex),
               ));
             }
             if (candidateMView.key.indexOf(cindex) < 1) {
               throw (new Error(
                 util.format(
                   'materialized_view %s: clustering_order field attributes must be clustering keys only',
-                  mvindex
-                )
+                  mvindex,
+                ),
               ));
             }
           });
@@ -418,12 +418,12 @@ const schemer = {
           indexNameList[0] = indexNameList[0].toLowerCase();
           if (['entries', 'keys', 'values', 'full'].indexOf(indexNameList[0]) < 0) {
             throw (new Error(
-              util.format('index "%s" is not defined properly', modelSchema.indexes[l])
+              util.format('index "%s" is not defined properly', modelSchema.indexes[l]),
             ));
           }
           if (!(indexNameList[1] in modelSchema.fields)) {
             throw (new Error(
-              util.format('"%s" is not a valid field name, indexes must be defined on field names', indexNameList[1])
+              util.format('"%s" is not a valid field name, indexes must be defined on field names', indexNameList[1]),
             ));
           }
           if (modelSchema.fields[indexNameList[1]].virtual) {
@@ -432,7 +432,7 @@ const schemer = {
         } else {
           if (!(indexNameList[0] in modelSchema.fields)) {
             throw (new Error(
-              util.format('"%s" is not a valid field, indexes must be defined on field names', indexNameList[0])
+              util.format('"%s" is not a valid field, indexes must be defined on field names', indexNameList[0]),
             ));
           }
           if (modelSchema.fields[indexNameList[0]].virtual) {
@@ -448,30 +448,30 @@ const schemer = {
       }
       if ((typeof (customIndex.on) !== 'string') || !(customIndex.on in modelSchema.fields)) {
         throw (new Error(
-          "custom_index must have an 'on' attribute with string value and value must be a valid field name"
+          "custom_index must have an 'on' attribute with string value and value must be a valid field name",
         ));
       }
       if (modelSchema.fields[customIndex.on].virtual) {
         throw (new Error(
-          "custom_index 'on' attribute must be a db field name, can't contain virtual fields"
+          "custom_index 'on' attribute must be a db field name, can't contain virtual fields",
         ));
       }
       if (typeof (customIndex.using) !== 'string') {
         throw (new Error(
-          "custom_index must have a 'using' attribute with string value"
+          "custom_index must have a 'using' attribute with string value",
         ));
       }
       if (!_.isPlainObject(customIndex.options)) {
         throw (new Error(
           'custom_index must have an "options" attribute and it must be an object, ' +
-          'pass blank {} object if no options are required'
+          'pass blank {} object if no options are required',
         ));
       }
     };
 
     if (modelSchema.custom_index && modelSchema.custom_indexes) {
       throw (new Error(
-        'both custom_index and custom_indexes are defined in schema, only one of them should be defined'
+        'both custom_index and custom_indexes are defined in schema, only one of them should be defined',
       ));
     }
 
@@ -486,7 +486,7 @@ const schemer = {
         }
       } else {
         throw (new Error(
-          'custom_indexes must be an array with objects with proper indexing attributes'
+          'custom_indexes must be an array with objects with proper indexing attributes',
         ));
       }
     }

@@ -249,7 +249,7 @@ BaseModel._create_table = function f(callback) {
           const matViewQuery = this._create_materialized_view_query(
             tableName,
             viewName,
-            modelSchema.materialized_views[viewName]
+            modelSchema.materialized_views[viewName],
           );
           this._execute_definition_query(matViewQuery, [], (err2, result) => {
             if (err2) next(buildError('model.tablecreation.matviewcreate', err2));
@@ -315,8 +315,8 @@ BaseModel._create_table = function f(callback) {
           const permission = this._ask_confirmation(
             util.format(
               'Migration: model schema changed for table "%s", drop table & recreate? (data will be lost!) (y/n): ',
-              tableName
-            )
+              tableName,
+            ),
           );
           if (permission.toLowerCase() === 'y') {
             if (normalizedDBSchema.materialized_views) {
@@ -370,11 +370,11 @@ BaseModel._create_table = function f(callback) {
 
           const addedCustomIndexes = _.filter(
             normalizedModelSchema.custom_indexes,
-            (obj) => (!_.find(normalizedDBSchema.custom_indexes, obj))
+            (obj) => (!_.find(normalizedDBSchema.custom_indexes, obj)),
           );
           const removedCustomIndexes = _.filter(
             normalizedDBSchema.custom_indexes,
-            (obj) => (!_.find(normalizedModelSchema.custom_indexes, obj))
+            (obj) => (!_.find(normalizedModelSchema.custom_indexes, obj)),
           );
           removedCustomIndexes.forEach((removedIndex) => {
             removedIndexNames.push(dbSchema.index_names[objectHash(removedIndex)]);
@@ -383,12 +383,12 @@ BaseModel._create_table = function f(callback) {
           const addedMaterializedViews = _.filter(
             Object.keys(normalizedModelSchema.materialized_views),
             (viewName) =>
-              (!_.find(normalizedDBSchema.materialized_views, normalizedModelSchema.materialized_views[viewName]))
+              (!_.find(normalizedDBSchema.materialized_views, normalizedModelSchema.materialized_views[viewName])),
           );
           const removedMaterializedViews = _.filter(
             Object.keys(normalizedDBSchema.materialized_views),
             (viewName) =>
-              (!_.find(normalizedModelSchema.materialized_views, normalizedDBSchema.materialized_views[viewName]))
+              (!_.find(normalizedModelSchema.materialized_views, normalizedDBSchema.materialized_views[viewName])),
           );
 
           // remove altered materialized views
@@ -397,8 +397,8 @@ BaseModel._create_table = function f(callback) {
               util.format(
                 'Migration: model schema for table "%s" has removed materialized_views: %j, drop them? (y/n): ',
                 tableName,
-                removedMaterializedViews
-              )
+                removedMaterializedViews,
+              ),
             );
             if (permission.toLowerCase() !== 'y') {
               callback(buildError('model.tablecreation.schemamismatch', tableName));
@@ -410,8 +410,8 @@ BaseModel._create_table = function f(callback) {
               util.format(
                 'Migration: model schema for table "%s" has removed indexes: %j, drop them? (y/n): ',
                 tableName,
-                removedIndexNames
-              )
+                removedIndexNames,
+              ),
             );
             if (permission.toLowerCase() !== 'y') {
               callback(buildError('model.tablecreation.schemamismatch', tableName));
@@ -462,7 +462,7 @@ BaseModel._create_table = function f(callback) {
                     const matViewQuery = this._create_materialized_view_query(
                       tableName,
                       viewName,
-                      modelSchema.materialized_views[viewName]
+                      modelSchema.materialized_views[viewName],
                     );
                     this._execute_definition_query(matViewQuery, [], (err6, result) => {
                       if (err6) next(buildError('model.tablecreation.matviewcreate', err6));
@@ -485,8 +485,8 @@ BaseModel._create_table = function f(callback) {
                   'Migration: model schema for table "%s" has new type for field "%s", ' +
                   'alter table to update column type? (y/n): ',
                   tableName,
-                  fieldName
-                )
+                  fieldName,
+                ),
               );
               if (permission.toLowerCase() === 'y') {
                 this.alter_table('ALTER', fieldName, diff.rhs, (err1, result) => {
@@ -589,8 +589,8 @@ BaseModel._create_table = function f(callback) {
                 util.format(
                   'Migration: model schema for table "%s" has added field "%s", alter table to add column? (y/n): ',
                   tableName,
-                  fieldName
-                )
+                  fieldName,
+                ),
               );
               if (permission.toLowerCase() === 'y') {
                 alterAddField();
@@ -603,8 +603,8 @@ BaseModel._create_table = function f(callback) {
                   'Migration: model schema for table "%s" has removed field "%s", alter table to drop column? ' +
                   '(column data will be lost & dependent indexes/views will be recreated!) (y/n): ',
                   tableName,
-                  fieldName
-                )
+                  fieldName,
+                ),
               );
               if (permission.toLowerCase() === 'y') {
                 alterRemoveField(next);
@@ -624,8 +624,8 @@ BaseModel._create_table = function f(callback) {
                       'Migration: model schema for table "%s" has new incompatible type for primary key field "%s", ' +
                       'proceed to recreate table? (y/n): ',
                       tableName,
-                      fieldName
-                    )
+                      fieldName,
+                    ),
                   );
                   if (permission.toLowerCase() === 'y') {
                     dropRecreateTable();
@@ -648,8 +648,8 @@ BaseModel._create_table = function f(callback) {
                       'Migration: model schema for table "%s" has new incompatible type for primary key field "%s", ' +
                       'proceed to recreate table? (y/n): ',
                       tableName,
-                      fieldName
-                    )
+                      fieldName,
+                    ),
                   );
                   if (permission.toLowerCase() === 'y') {
                     dropRecreateTable();
@@ -664,8 +664,8 @@ BaseModel._create_table = function f(callback) {
                       'Migration: model schema for table "%s" has new incompatible type for field "%s", drop column ' +
                       'and recreate? (column data will be lost & dependent indexes/views will be recreated!) (y/n): ',
                       tableName,
-                      fieldName
-                    )
+                      fieldName,
+                    ),
                   );
                   if (permission.toLowerCase() === 'y') {
                     alterRemoveField((err1) => {
@@ -683,8 +683,8 @@ BaseModel._create_table = function f(callback) {
                     'Migration: model schema for table "%s" has new incompatible type for field "%s", drop column ' +
                     'and recreate? (column data will be lost & dependent indexes/views will be recreated!) (y/n): ',
                     tableName,
-                    fieldName
-                  )
+                    fieldName,
+                  ),
                 );
                 if (permission.toLowerCase() === 'y') {
                   alterRemoveField((err1) => {
@@ -784,7 +784,7 @@ BaseModel._create_table_query = function f(tableName, schema) {
     rows.join(' , '),
     partitionKey,
     clusteringKey,
-    clusteringOrderQuery
+    clusteringOrderQuery,
   );
 
   return query;
@@ -842,7 +842,7 @@ BaseModel._create_materialized_view_query = function f(tableName, viewName, view
     whereClause,
     partitionKey,
     clusteringKey,
-    clusteringOrderQuery
+    clusteringOrderQuery,
   );
 
   return query;
@@ -857,13 +857,13 @@ BaseModel._create_index_query = function f(tableName, indexName) {
       'CREATE INDEX IF NOT EXISTS ON "%s" (%s("%s"));',
       tableName,
       indexExpression[0],
-      indexExpression[1]
+      indexExpression[1],
     );
   } else {
     query = util.format(
       'CREATE INDEX IF NOT EXISTS ON "%s" ("%s");',
       tableName,
-      indexExpression[0]
+      indexExpression[0],
     );
   }
 
@@ -875,7 +875,7 @@ BaseModel._create_custom_index_query = function f(tableName, customIndex) {
     'CREATE CUSTOM INDEX IF NOT EXISTS ON "%s" ("%s") USING \'%s\'',
     tableName,
     customIndex.on,
-    customIndex.using
+    customIndex.using,
   );
 
   if (Object.keys(customIndex.options).length > 0) {
@@ -1129,7 +1129,7 @@ BaseModel._create_where_clause = function f(queryObject) {
         if (typeof queryObject[k].index === 'string' && typeof queryObject[k].query === 'string') {
           queryRelations.push(util.format(
             "expr(%s,'%s')",
-            queryObject[k].index, queryObject[k].query.replace(/'/g, "''")
+            queryObject[k].index, queryObject[k].query.replace(/'/g, "''"),
           ));
         } else {
           throw (buildError('model.find.invalidexpr'));
@@ -1138,7 +1138,7 @@ BaseModel._create_where_clause = function f(queryObject) {
         if (typeof queryObject[k] === 'string') {
           queryRelations.push(util.format(
             "solr_query='%s'",
-            queryObject[k].replace(/'/g, "''")
+            queryObject[k].replace(/'/g, "''"),
           ));
         } else {
           throw (buildError('model.find.invalidsolrquery'));
@@ -1220,20 +1220,20 @@ BaseModel._create_where_clause = function f(queryObject) {
                 }
                 queryRelations.push(util.format(
                   whereTemplate,
-                  tokenKeys.join('","'), op, tokenFirstValue.toString()
+                  tokenKeys.join('","'), op, tokenFirstValue.toString(),
                 ));
               } else {
                 const dbVal = this._get_db_value_expression(k, tokenFirstValue);
                 if (_.isPlainObject(dbVal) && dbVal.query_segment) {
                   queryRelations.push(util.format(
                     whereTemplate,
-                    k, op, dbVal.query_segment
+                    k, op, dbVal.query_segment,
                   ));
                   queryParams.push(dbVal.parameter);
                 } else {
                   queryRelations.push(util.format(
                     whereTemplate,
-                    k, op, dbVal
+                    k, op, dbVal,
                   ));
                 }
               }
@@ -1244,14 +1244,14 @@ BaseModel._create_where_clause = function f(queryObject) {
               if (fieldtype1 === 'map' && _.isPlainObject(firstValue) && Object.keys(firstValue).length === 1) {
                 queryRelations.push(util.format(
                   '"%s"[%s] %s %s',
-                  k, '?', '=', '?'
+                  k, '?', '=', '?',
                 ));
                 queryParams.push(Object.keys(firstValue)[0]);
                 queryParams.push(firstValue[Object.keys(firstValue)[0]]);
               } else {
                 queryRelations.push(util.format(
                   whereTemplate,
-                  k, op, '?'
+                  k, op, '?',
                 ));
                 queryParams.push(firstValue);
               }
@@ -1263,7 +1263,7 @@ BaseModel._create_where_clause = function f(queryObject) {
             if (['map'].indexOf(fieldtype2) >= 0) {
               queryRelations.push(util.format(
                 whereTemplate,
-                k, op, '?'
+                k, op, '?',
               ));
               queryParams.push(firstValue);
             } else {
@@ -1274,13 +1274,13 @@ BaseModel._create_where_clause = function f(queryObject) {
             if (_.isPlainObject(dbVal) && dbVal.query_segment) {
               queryRelations.push(util.format(
                 whereTemplate,
-                k, op, dbVal.query_segment
+                k, op, dbVal.query_segment,
               ));
               queryParams.push(dbVal.parameter);
             } else {
               queryRelations.push(util.format(
                 whereTemplate,
-                k, op, dbVal
+                k, op, dbVal,
               ));
             }
           }
@@ -1319,7 +1319,7 @@ BaseModel._create_find_query = function f(queryObject, options) {
         for (let i = 0; i < orderFields.length; i++) {
           orderKeys.push(util.format(
             '"%s" %s',
-            orderFields[i], cqlOrderDirection[orderItemKeys[0]]
+            orderFields[i], cqlOrderDirection[orderItemKeys[0]],
           ));
         }
       } else {
@@ -1363,7 +1363,7 @@ BaseModel._create_find_query = function f(queryObject, options) {
     options.materialized_view ? options.materialized_view : this._properties.table_name,
     whereClause.query,
     orderKeys.length ? util.format('ORDER BY %s', orderKeys.join(', ')) : ' ',
-    limit ? util.format('LIMIT %s', limit) : ' '
+    limit ? util.format('LIMIT %s', limit) : ' ',
   );
 
   if (options.allow_filtering) query += ' ALLOW FILTERING;';
@@ -1788,7 +1788,7 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
             } else {
               throw (buildError(
                 'model.update.invalidprependop',
-                util.format('%s datatypes does not support $prepend, use $add instead', fieldtype)
+                util.format('%s datatypes does not support $prepend, use $add instead', fieldtype),
               ));
             }
           } else if ($remove) {
@@ -1818,13 +1818,13 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
             } else {
               throw (buildError(
                 'model.update.invalidreplaceop',
-                '$replace in list should have exactly 2 items, first one as the index and the second one as the value'
+                '$replace in list should have exactly 2 items, first one as the index and the second one as the value',
               ));
             }
           } else {
             throw (buildError(
               'model.update.invalidreplaceop',
-              util.format('%s datatypes does not support $replace', fieldtype)
+              util.format('%s datatypes does not support $replace', fieldtype),
             ));
           }
         } else {
@@ -2208,7 +2208,7 @@ BaseModel.prototype.save = function fn(options, callback) {
     'INSERT INTO "%s" ( %s ) VALUES ( %s )',
     properties.table_name,
     identifiers.join(' , '),
-    values.join(' , ')
+    values.join(' , '),
   );
 
   if (options.if_not_exist) query += ' IF NOT EXISTS';
