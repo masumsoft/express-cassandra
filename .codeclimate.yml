@@ -11,5 +11,4 @@ ratings:
   paths:
     - src/**
 exclude_paths:
-  - node_modules/
   - lib/
