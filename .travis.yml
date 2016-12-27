@@ -8,6 +8,8 @@ addons:
   apt:
     packages:
       - oracle-java8-installer
+  code_climate:
+    repo_token: 205921b25cd059b92e7234ee98533a35f08c81c5debd68dad3e6d468258c0489
 
 before_install:
   - sudo update-java-alternatives -s java-8-oracle
