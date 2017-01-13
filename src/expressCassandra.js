@@ -130,6 +130,11 @@ CassandraClient.maxTimeuuid = (date) => (cql.types.TimeUuid.max(date));
 CassandraClient.minTimeuuid = (date) => (cql.types.TimeUuid.min(date));
 
 CassandraClient.prototype.doBatch = function f(queries, options, callback) {
+  if (arguments.length === 2) {
+    callback = options;
+    options = {};
+  }
+
   const randomModel = this.modelInstance[Object.keys(this.modelInstance)[0]];
   const builtQueries = [];
   queries.forEach((queryObject) => {
