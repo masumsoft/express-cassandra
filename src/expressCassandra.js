@@ -135,6 +135,12 @@ CassandraClient.prototype.doBatch = function f(queries, options, callback) {
     options = {};
   }
 
+  const defaults = {
+    prepare: true,
+  };
+
+  options = _.defaultsDeep(options, defaults);
+
   const randomModel = this.modelInstance[Object.keys(this.modelInstance)[0]];
   const builtQueries = [];
   queries.forEach((queryObject) => {
