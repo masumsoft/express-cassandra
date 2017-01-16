@@ -124,6 +124,20 @@ models.instance.Person.findOne({name: 'John'}, function(err, john){
 });
 ```
 
+## Truncate
+
+Truncate is a destructive operation. It deletes or clears all data in the table. The truncate function takes the following form:
+
+```js
+
+//TRUNCATE TABLE person;
+models.instance.Person.truncate(function(err){
+    if(err) console.log(err);
+    else console.log('Yuppiie!');
+});
+
+```
+
 ## Hook Functions
 
 When you perform a save/update/delete operation, a hook function helps you to tap into it in order to change data or perform other operations. Following are the available hook functions you can define in your schema:
