@@ -2050,6 +2050,14 @@ BaseModel.delete = function f(queryObject, options, callback) {
   return {};
 };
 
+BaseModel.truncate = function f(callback) {
+  const properties = this._properties;
+  const tableName = properties.table_name;
+
+  const query = util.format('TRUNCATE TABLE "%s";', tableName);
+  this._execute_definition_query(query, [], callback);
+};
+
 BaseModel.drop_mviews = function f(mviews, callback) {
   async.each(mviews, (view, viewCallback) => {
     const query = util.format('DROP MATERIALIZED VIEW IF EXISTS "%s";', view);

@@ -244,6 +244,22 @@ describe('Unit Tests', () => {
     });
   });
 
+  describe('#truncate table', () => {
+    it('should truncate all data in the models', function f(done) {
+      this.timeout(10000);
+      this.slow(5000);
+      models.instance.Person.truncateAsync()
+        .then(() => models.instance.Counter.truncateAsync())
+        .then(() => models.instance.Event.truncateAsync())
+        .then(() => models.instance.Simple.truncateAsync())
+        .then(() => {
+          done();
+        })
+        .catch((err) => {
+          done(err);
+        });
+    });
+  });
 
   describe('#save', () => {
     it('should save data to without errors', function f(done) {
