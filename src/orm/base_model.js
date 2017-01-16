@@ -883,6 +883,14 @@ BaseModel.delete = function f(queryObject, options, callback) {
   return {};
 };
 
+BaseModel.truncate = function f(callback) {
+  const properties = this._properties;
+  const tableName = properties.table_name;
+
+  const query = util.format('TRUNCATE TABLE "%s";', tableName);
+  this._execute_table_query(query, [], callback);
+};
+
 BaseModel.prototype.get_data_types = function f() {
   return cql.types;
 };
