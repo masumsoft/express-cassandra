@@ -140,7 +140,7 @@ Apollo.prototype = {
         });
 
         if (_.isEqual(dbReplication, ormReplication)) {
-          client.shutdown(function () {
+          client.shutdown(() => {
             callback();
           });
         } else {
