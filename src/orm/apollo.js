@@ -581,19 +581,21 @@ Apollo.prototype = {
   close(callback) {
     callback = callback || noop;
 
-    if (!this._client) {
-      callback();
-      return;
+    const clientsToShutdown = [];
+    if (this.orm._client) {
+      clientsToShutdown.push(this.orm._client.shutdown());
     }
-    this._client.shutdown((err) => {
-      if (!this._define_connection) {
+    if (this.orm._define_connection) {
+      clientsToShutdown.push(this.orm._define_connection.shutdown());
+    }
+
+    Promise.all(clientsToShutdown)
+      .then(() => {
+        callback();
+      })
+      .catch((err) => {
         callback(err);
-        return;
-      }
-      this._define_connection.shutdown((derr) => {
-        callback(err || derr);
       });
-    });
   },
 };
 
