@@ -140,7 +140,9 @@ Apollo.prototype = {
         });
 
         if (_.isEqual(dbReplication, ormReplication)) {
-          callback();
+          client.shutdown(function () {
+            callback();
+          });
         } else {
           alterKeyspace();
         }
