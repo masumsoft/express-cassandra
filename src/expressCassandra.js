@@ -143,29 +143,44 @@ CassandraClient.prototype.doBatch = function f(queries, options, callback) {
 
   const randomModel = this.modelInstance[Object.keys(this.modelInstance)[0]];
   const builtQueries = [];
-  queries.forEach((queryObject) => {
+  const beforeHooks = [];
+  for (let i = 0; i < queries.length; i++) {
     builtQueries.push({
-      query: queryObject.query,
-      params: queryObject.params,
+      query: queries[i].query,
+      params: queries[i].params,
     });
-  });
-  if (builtQueries.length > 1) {
-    randomModel.execute_batch(builtQueries, options, (err) => {
-      if (err) callback(err);
-      else callback();
-    });
-    return;
+    const beforeHookAsync = Promise.promisify(queries[i].before_hook);
+    beforeHooks.push(beforeHookAsync());
   }
-  if (builtQueries.length > 0) {
-    debug('single query provided for batch request, applying as non batch query');
-    randomModel.execute_query(builtQueries[0].query, builtQueries[0].params, options, (err) => {
-      if (err) callback(err);
-      else callback();
+
+  let batchResult;
+  Promise.all(beforeHooks)
+    .then(() => {
+      if (builtQueries.length > 1) {
+        return randomModel.execute_batchAsync(builtQueries, options);
+      }
+      if (builtQueries.length > 0) {
+        debug('single query provided for batch request, applying as non batch query');
+        return randomModel.execute_queryAsync(builtQueries[0].query, builtQueries[0].params, options);
+      }
+      debug('no queries provided for batch request, empty array found, doing nothing');
+      return {};
+    })
+    .then((response) => {
+      batchResult = response;
+      const afterHooks = [];
+      for (let i = 0; i < queries.length; i++) {
+        const afterHookAsync = Promise.promisify(queries[i].after_hook);
+        afterHooks.push(afterHookAsync());
+      }
+      return Promise.all(afterHooks);
+    })
+    .then(() => {
+      callback(null, batchResult);
+    })
+    .catch((err) => {
+      callback(err);
     });
-    return;
-  }
-  debug('no queries provided for batch request, empty array found, doing nothing');
-  callback();
 };
 
 CassandraClient.prototype.doBatchAsync = Promise.promisify(CassandraClient.prototype.doBatch);
