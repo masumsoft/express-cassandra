@@ -671,7 +671,7 @@ describe('Unit Tests', () => {
               (err1) => {
                 if (err1) done(err1);
                 done();
-              }
+              },
             );
           } else done(new Error('validation rule is not working properly'));
         });
@@ -1141,7 +1141,7 @@ describe('Unit Tests', () => {
       queries.push(models.instance.Event.update(
         { email: 'hello1@h.com', id: eventID },
         { body: 'hello1 updated again' },
-        { return_query: true })
+        { return_query: true }),
       );
       queries.push(models.instance.Event.delete({ email: 'hello2@h.com', id: eventID }, { return_query: true }));
 
