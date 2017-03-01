@@ -1893,19 +1893,6 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
 
   query += ';';
 
-  if (options.return_query) {
-    return { query, params: queryParams };
-  }
-
-  const queryOptions = { prepare: options.prepare };
-  if (options.consistency) queryOptions.consistency = options.consistency;
-  if (options.fetchSize) queryOptions.fetchSize = options.fetchSize;
-  if (options.autoPage) queryOptions.autoPage = options.autoPage;
-  if (options.hints) queryOptions.hints = options.hints;
-  if (options.pageState) queryOptions.pageState = options.pageState;
-  if (options.retry) queryOptions.retry = options.retry;
-  if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
-
   // set dummy hook function if not present in schema
   if (typeof schema.before_update !== 'function') {
     schema.before_update = function f1(queryObj, updateVal, optionsObj, next) {
@@ -1918,6 +1905,40 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
       next();
     };
   }
+
+  if (options.return_query) {
+    return {
+      query,
+      params: queryParams,
+      before_hook: (hookCallback) => {
+        schema.before_update(queryObject, updateValues, options, (error) => {
+          if (error) {
+            hookCallback(buildError('model.update.before.error', error));
+            return;
+          }
+          hookCallback();
+        });
+      },
+      after_hook: (hookCallback) => {
+        schema.after_update(queryObject, updateValues, options, (error) => {
+          if (error) {
+            hookCallback(buildError('model.update.after.error', error));
+            return;
+          }
+          hookCallback();
+        });
+      },
+    };
+  }
+
+  const queryOptions = { prepare: options.prepare };
+  if (options.consistency) queryOptions.consistency = options.consistency;
+  if (options.fetchSize) queryOptions.fetchSize = options.fetchSize;
+  if (options.autoPage) queryOptions.autoPage = options.autoPage;
+  if (options.hints) queryOptions.hints = options.hints;
+  if (options.pageState) queryOptions.pageState = options.pageState;
+  if (options.retry) queryOptions.retry = options.retry;
+  if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
 
   schema.before_update(queryObject, updateValues, options, (error) => {
     if (error) {
@@ -1962,6 +1983,8 @@ BaseModel.delete = function f(queryObject, options, callback) {
     options = {};
   }
 
+  const schema = this._properties.schema;
+
   const defaults = {
     prepare: true,
   };
@@ -1986,21 +2009,7 @@ BaseModel.delete = function f(queryObject, options, callback) {
 
   query = util.format(query, this._properties.table_name, where);
 
-  if (options.return_query) {
-    return { query, params: queryParams };
-  }
-
-  const queryOptions = { prepare: options.prepare };
-  if (options.consistency) queryOptions.consistency = options.consistency;
-  if (options.fetchSize) queryOptions.fetchSize = options.fetchSize;
-  if (options.autoPage) queryOptions.autoPage = options.autoPage;
-  if (options.hints) queryOptions.hints = options.hints;
-  if (options.pageState) queryOptions.pageState = options.pageState;
-  if (options.retry) queryOptions.retry = options.retry;
-  if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
-
   // set dummy hook function if not present in schema
-  const schema = this._properties.schema;
   if (typeof schema.before_delete !== 'function') {
     schema.before_delete = function f1(queryObj, optionsObj, next) {
       next();
@@ -2012,6 +2021,40 @@ BaseModel.delete = function f(queryObject, options, callback) {
       next();
     };
   }
+
+  if (options.return_query) {
+    return {
+      query,
+      params: queryParams,
+      before_hook: (hookCallback) => {
+        schema.before_delete(queryObject, options, (error) => {
+          if (error) {
+            hookCallback(buildError('model.delete.before.error', error));
+            return;
+          }
+          hookCallback();
+        });
+      },
+      after_hook: (hookCallback) => {
+        schema.after_delete(queryObject, options, (error) => {
+          if (error) {
+            hookCallback(buildError('model.delete.after.error', error));
+            return;
+          }
+          hookCallback();
+        });
+      },
+    };
+  }
+
+  const queryOptions = { prepare: options.prepare };
+  if (options.consistency) queryOptions.consistency = options.consistency;
+  if (options.fetchSize) queryOptions.fetchSize = options.fetchSize;
+  if (options.autoPage) queryOptions.autoPage = options.autoPage;
+  if (options.hints) queryOptions.hints = options.hints;
+  if (options.pageState) queryOptions.pageState = options.pageState;
+  if (options.retry) queryOptions.retry = options.retry;
+  if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
 
   schema.before_delete(queryObject, options, (error) => {
     if (error) {
@@ -2224,19 +2267,6 @@ BaseModel.prototype.save = function fn(options, callback) {
 
   query += ';';
 
-  if (options.return_query) {
-    return { query, params: queryParams };
-  }
-
-  const queryOptions = { prepare: options.prepare };
-  if (options.consistency) queryOptions.consistency = options.consistency;
-  if (options.fetchSize) queryOptions.fetchSize = options.fetchSize;
-  if (options.autoPage) queryOptions.autoPage = options.autoPage;
-  if (options.hints) queryOptions.hints = options.hints;
-  if (options.pageState) queryOptions.pageState = options.pageState;
-  if (options.retry) queryOptions.retry = options.retry;
-  if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
-
   // set dummy hook function if not present in schema
   if (typeof schema.before_save !== 'function') {
     schema.before_save = function f(instance, option, next) {
@@ -2249,6 +2279,40 @@ BaseModel.prototype.save = function fn(options, callback) {
       next();
     };
   }
+
+  if (options.return_query) {
+    return {
+      query,
+      params: queryParams,
+      before_hook: (hookCallback) => {
+        schema.before_save(this, options, (error) => {
+          if (error) {
+            hookCallback(buildError('model.save.before.error', error));
+            return;
+          }
+          hookCallback();
+        });
+      },
+      after_hook: (hookCallback) => {
+        schema.after_save(this, options, (error) => {
+          if (error) {
+            hookCallback(buildError('model.save.after.error', error));
+            return;
+          }
+          hookCallback();
+        });
+      },
+    };
+  }
+
+  const queryOptions = { prepare: options.prepare };
+  if (options.consistency) queryOptions.consistency = options.consistency;
+  if (options.fetchSize) queryOptions.fetchSize = options.fetchSize;
+  if (options.autoPage) queryOptions.autoPage = options.autoPage;
+  if (options.hints) queryOptions.hints = options.hints;
+  if (options.pageState) queryOptions.pageState = options.pageState;
+  if (options.retry) queryOptions.retry = options.retry;
+  if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
 
   schema.before_save(this, options, (error) => {
     if (error) {
