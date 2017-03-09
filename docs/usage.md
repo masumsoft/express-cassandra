@@ -136,7 +136,7 @@ clientOptions: {
     protocolOptions: { port: 9042 },
     keyspace: 'mykeyspace',
     queryOptions: {consistency: models.consistencies.one},
-    authProvider: new models.driver.auth.PlainTextAuthProvider('my_user', 'my_password')
+    authProvider: new models.driver.auth.DsePlainTextAuthProvider('my_user', 'my_password')
 }
 ```
 
