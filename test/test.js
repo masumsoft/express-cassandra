@@ -316,16 +316,26 @@ describe('Unit Tests', () => {
         },
         active: true,
       });
+      alex.isModified().should.equal(true);
+      alex.isModified('userID').should.equal(true);
+      alex.isModified('address').should.equal(true);
+      alex.isModified('someNonExistingField').should.equal(false);
       alex.save((err) => {
         if (err) {
           err.name.should.equal('apollo.model.validator.invalidvalue');
           alex.age = 32;
+          alex.isModified().should.equal(true);
+          alex.isModified('userID').should.equal(true);
+          alex.isModified('address').should.equal(true);
           alex.save((err1) => {
             if (err1) {
               err1.name.should.equal('apollo.model.save.unsetrequired');
               alex.points = 64.0;
               alex.saveAsync()
                 .then(() => {
+                  alex.isModified().should.equal(false);
+                  alex.isModified('userID').should.equal(false);
+                  alex.isModified('address').should.equal(false);
                   done();
                 })
                 .catch((err2) => {
@@ -387,6 +397,10 @@ describe('Unit Tests', () => {
         person.intMapDefault.should.deep.equal({ one: 1, two: 2 });
         person.stringListDefault.should.have.members(['one', 'two']);
         person.intSetDefault.should.have.members([1, 2]);
+        person.isModified().should.equal(false);
+        person.Name = 'john';
+        person.isModified('Name').should.equal(true);
+        person.isModified().should.equal(true);
         done();
       });
     });
