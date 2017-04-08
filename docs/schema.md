@@ -44,7 +44,11 @@ module.exports = {
             options: {}
         }
     ],
-    table_name: "my_custom_table_name"
+    table_name: "my_custom_table_name",
+    methods: {
+        myCustomMethod: function () {
+        }
+    }
 }
 
 ```
@@ -80,6 +84,8 @@ What does the above code means?
 - `custom_indexes` is an array of objects defining the custom indexes for the table. The `on` section should contain the column name on which the index should be built, the `using` section should contain the custom indexer class path and the `options` section should contain the passed options for the indexer class if any. If no `options` are required, pass a blank {} object.
 
 - `table_name` provides the ability to use a different name for the actual table in cassandra. By default the lowercased modelname is used as the table name. But if you want a different table name instead, then you may want to use this optional field to specify the custom name for your cassandra table.
+
+- `methods` allows you to define custom methods for your instances.
 
 When you instantiate a model, every field you defined in schema is automatically a property of your instances. So, you can write:
 

@@ -18,6 +18,7 @@ const BaseModel = function f(instanceValues) {
   instanceValues = instanceValues || {};
   const fieldValues = {};
   const fields = this.constructor._properties.schema.fields;
+  const methods = this.constructor._properties.schema.methods || {};
   const model = this;
 
   const defaultSetter = function f1(propName, newValue) {
@@ -61,6 +62,12 @@ const BaseModel = function f(instanceValues) {
     if (!field.virtual) {
       this[propertyName] = instanceValues[propertyName];
     }
+  }
+
+  for (let methodNames = Object.keys(methods), i = 0, len = methodNames.length; i < len; i++) {
+    const methodName = methodNames[i];
+    const method = methods[methodName];
+    this[methodName] = method;
   }
 };
 

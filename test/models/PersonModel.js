@@ -146,4 +146,9 @@ module.exports = {
   after_delete: (queryObject, options, next) => {
     next();
   },
+  methods: {
+    getName: function() {
+      return this.Name;
+    }
+  }
 };
