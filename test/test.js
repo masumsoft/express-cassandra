@@ -401,6 +401,7 @@ describe('Unit Tests', () => {
         person.Name = 'john';
         person.isModified('Name').should.equal(true);
         person.isModified().should.equal(true);
+        person.getName().should.equal('john');
         done();
       });
     });
