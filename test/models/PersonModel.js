@@ -147,8 +147,8 @@ module.exports = {
     next();
   },
   methods: {
-    getName: () => {
+    getName: function getName() {
       return this.Name;
-    }
-  }
+    },
+  },
 };

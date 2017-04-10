@@ -772,8 +772,8 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
     return {
       query,
       params: queryParams,
-      before_hook: hookRunner(schema.before_update, 'model.update.before.error');
-      after_hook: hookRunner(schema.after_update, 'model.update.after.error');
+      before_hook: hookRunner(schema.before_update, 'model.update.before.error'),
+      after_hook: hookRunner(schema.after_update, 'model.update.after.error'),
     };
   }
 
