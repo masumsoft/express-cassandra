@@ -756,29 +756,24 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
     };
   }
 
+  function hookRunner(fn, errorCode) {
+    return (hookCallback) => {
+      fn(queryObject, updateValues, options, (error) => {
+        if (error) {
+          hookCallback(buildError(errorCode, error));
+          return;
+        }
+        hookCallback();
+      });
+    };
+  }
+
   if (options.return_query) {
     return {
       query,
       params: queryParams,
-      before_hook: (hookCallback) => {
-        schema.before_update(queryObject, updateValues, options, (error) => {
-          if (error) {
-            hookCallback(buildError('model.update.before.error', error));
-            return;
-          }
-          hookCallback();
-        });
-      },
-      after_hook: (hookCallback) => {
-        queryObject._modified = {};
-        schema.after_update(queryObject, updateValues, options, (error) => {
-          if (error) {
-            hookCallback(buildError('model.update.after.error', error));
-            return;
-          }
-          hookCallback();
-        });
-      },
+      before_hook: hookRunner(schema.before_update, 'model.update.before.error');
+      after_hook: hookRunner(schema.after_update, 'model.update.after.error');
     };
   }
 

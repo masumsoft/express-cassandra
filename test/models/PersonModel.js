@@ -147,7 +147,7 @@ module.exports = {
     next();
   },
   methods: {
-    getName: function() {
+    getName: () => {
       return this.Name;
     }
   }
