@@ -400,6 +400,7 @@ describe('Unit Tests', () => {
         person.isModified().should.equal(false);
         person.Name = 'john';
         person.isModified('Name').should.equal(true);
+        person.isModified('age').should.equal(false);
         person.isModified().should.equal(true);
         person.getName().should.equal('john');
         done();
