@@ -180,3 +180,29 @@ module.exports = {
 * `before_delete` if defined, will be automatically called each time before a delete operation is performed. The `queryObject` will contain the query part of the delete operation as is, so you could modify them if required or perform other things based on them. The `options` will contain the query options being passed to cassandra. You could also modify the options or do things based on it. The `next` is a callback function and after you're done, you must call it like `next()` to let the data deleted in cassandra. Otherwise you may also send an error message like `next(err)` to halt the delete operation. In this case the data will not be deleted and the caller will receive the error message via callback.
 
 * `after_delete` if defined, will be automatically called each time after a delete operation is successfully performed. The `queryObject` will contain the query part of the delete operation as is, so you could get the query that was actually used and perform other things based on it. The `options` will contain the final query options passed to cassandra. The `next` is a callback function and after you're done, you must call it like `next()` to let the caller recieve it's callback. Otherwise you may also send an error message like `next(err)` and in this case the caller will receive the error message via callback.
+
+## Tracking changes to data
+
+The isModified operation on a model instance lets you know whether or not the entire document or a field in particular has been modified locally since it has been retrieved from the database. This can be useful if you are running expensive operations in your model hooks that do not need to be performed in case the value of a field has not changed.
+
+```js
+var john = new models.instance.Person({name: 'John', surname: 'Doe', age: 32});
+john.isModified(); // Returns true
+john.save(function(err){
+    if(err) console.log(err);
+    john.isModified(); // Returns false
+});
+
+var jane = models.instance.Person.findOne({name: 'Jane'}, (err, jane) => {
+  if(err) throw err;
+  if(jane){
+    jane.isModified('surname'); // Returns false
+    jane.surname = 'Smith';
+    jane.isModified('surname'); // Returns true
+    jane.save((err) => {
+        if(err) console.log(err);
+        jane.isModified('surname'); // Returns false
+    });
+  });
+});
+```
