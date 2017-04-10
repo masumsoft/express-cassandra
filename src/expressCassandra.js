@@ -115,11 +115,15 @@ CassandraClient.uuid = () => (cql.types.Uuid.random());
 
 CassandraClient.uuidFromString = (str) => (cql.types.Uuid.fromString(str));
 
+CassandraClient.uuidFromBuffer = (buf) => (new cql.types.Uuid(buf));
+
 CassandraClient.timeuuid = () => (cql.types.TimeUuid.now());
 
 CassandraClient.timeuuidFromDate = (date) => (cql.types.TimeUuid.fromDate(date));
 
 CassandraClient.timeuuidFromString = (str) => (cql.types.TimeUuid.fromString(str));
+
+CassandraClient.timeuuidFromBuffer = (buf) => (new cql.types.TimeUuid(buf));
 
 CassandraClient.maxTimeuuid = (date) => (cql.types.TimeUuid.max(date));
 
@@ -272,9 +276,11 @@ Object.defineProperties(CassandraClient.prototype, {
 
 CassandraClient.prototype.uuid = CassandraClient.uuid;
 CassandraClient.prototype.uuidFromString = CassandraClient.uuidFromString;
+CassandraClient.prototype.uuidFromBuffer = CassandraClient.uuidFromBuffer;
 CassandraClient.prototype.timeuuid = CassandraClient.timeuuid;
 CassandraClient.prototype.timeuuidFromDate = CassandraClient.timeuuidFromDate;
 CassandraClient.prototype.timeuuidFromString = CassandraClient.timeuuidFromString;
+CassandraClient.prototype.timeuuidFromBuffer = CassandraClient.timeuuidFromBuffer;
 CassandraClient.prototype.maxTimeuuid = CassandraClient.maxTimeuuid;
 CassandraClient.prototype.minTimeuuid = CassandraClient.minTimeuuid;
 

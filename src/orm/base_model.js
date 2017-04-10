@@ -18,8 +18,13 @@ const BaseModel = function f(instanceValues) {
   instanceValues = instanceValues || {};
   const fieldValues = {};
   const fields = this.constructor._properties.schema.fields;
+  const methods = this.constructor._properties.schema.methods || {};
+  const model = this;
 
   const defaultSetter = function f1(propName, newValue) {
+    if (this[propName] !== newValue) {
+      model._modified[propName] = true;
+    }
     this[propName] = newValue;
   };
 
@@ -27,6 +32,7 @@ const BaseModel = function f(instanceValues) {
     return this[propName];
   };
 
+  this._modified = {};
   this._validators = {};
 
   for (let fieldsKeys = Object.keys(fields), i = 0, len = fieldsKeys.length; i < len; i++) {
@@ -56,6 +62,12 @@ const BaseModel = function f(instanceValues) {
     if (!field.virtual) {
       this[propertyName] = instanceValues[propertyName];
     }
+  }
+
+  for (let methodNames = Object.keys(methods), i = 0, len = methodNames.length; i < len; i++) {
+    const methodName = methodNames[i];
+    const method = methods[methodName];
+    this[methodName] = method;
   }
 };
 
@@ -1492,6 +1504,7 @@ BaseModel.eachRow = function f(queryObject, options, onReadable, callback) {
     if (!options.raw) {
       const ModelConstructor = this._properties.get_constructor();
       row = new ModelConstructor(row);
+      row._modified = {};
     }
     onReadable(n, row);
   }, (err, result) => {
@@ -1571,7 +1584,9 @@ BaseModel.stream = function f(queryObject, options, onReadable, callback) {
       if (!row) return row;
       if (!options.raw) {
         const ModelConstructor = self._properties.get_constructor();
-        return new ModelConstructor(row);
+        const o = new ModelConstructor(row);
+        o._modified = {};
+        return o;
       }
       return row;
     };
@@ -1642,7 +1657,9 @@ BaseModel.find = function f(queryObject, options, callback) {
       const ModelConstructor = this._properties.get_constructor();
       results = results.rows.map((res) => {
         delete (res.columns);
-        return new ModelConstructor(res);
+        const o = new ModelConstructor(res);
+        o._modified = {};
+        return o;
       });
       callback(null, results);
     } else {
@@ -1906,28 +1923,24 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
     };
   }
 
+  function hookRunner(fn, errorCode) {
+    return (hookCallback) => {
+      fn(queryObject, updateValues, options, (error) => {
+        if (error) {
+          hookCallback(buildError(errorCode, error));
+          return;
+        }
+        hookCallback();
+      });
+    };
+  }
+
   if (options.return_query) {
     return {
       query,
       params: queryParams,
-      before_hook: (hookCallback) => {
-        schema.before_update(queryObject, updateValues, options, (error) => {
-          if (error) {
-            hookCallback(buildError('model.update.before.error', error));
-            return;
-          }
-          hookCallback();
-        });
-      },
-      after_hook: (hookCallback) => {
-        schema.after_update(queryObject, updateValues, options, (error) => {
-          if (error) {
-            hookCallback(buildError('model.update.after.error', error));
-            return;
-          }
-          hookCallback();
-        });
-      },
+      before_hook: hookRunner(schema.before_update, 'model.update.before.error'),
+      after_hook: hookRunner(schema.after_update, 'model.update.after.error'),
     };
   }
 
@@ -2329,6 +2342,7 @@ BaseModel.prototype.save = function fn(options, callback) {
           callback(buildError('model.save.dberror', err));
           return;
         }
+        this._modified = {};
         schema.after_save(this, options, (error1) => {
           if (error1) {
             callback(buildError('model.save.after.error', error1));
@@ -2383,6 +2397,13 @@ BaseModel.prototype.toJSON = function toJSON() {
   });
 
   return object;
+};
+
+BaseModel.prototype.isModified = function isModified(propName) {
+  if (propName) {
+    return Object.prototype.hasOwnProperty.call(this._modified, propName);
+  }
+  return Object.keys(this._modified).length !== 0;
 };
 
 module.exports = BaseModel;
