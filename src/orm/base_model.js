@@ -1065,7 +1065,9 @@ BaseModel.prototype.save = function fn(options, callback) {
           callback(buildError('model.save.dberror', err));
           return;
         }
-        this._modified = {};
+        if (!options.if_not_exist || (result.rows && result.rows[0] && result.rows[0]['[applied]'])) {
+          this._modified = {};
+        }
         schema.after_save(this, options, (error1) => {
           if (error1) {
             callback(buildError('model.save.after.error', error1));
