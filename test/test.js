@@ -336,7 +336,14 @@ describe('Unit Tests', () => {
                   alex.isModified().should.equal(false);
                   alex.isModified('userID').should.equal(false);
                   alex.isModified('address').should.equal(false);
-                  done();
+                  alex.Name = 'Alex';
+                  alex.save({ if_not_exist: true }, (err3) => {
+                    if (err3) {
+                      done(err3);
+                    }
+                    alex.isModified('Name').should.equal(true);
+                    done();
+                  });
                 })
                 .catch((err2) => {
                   done(err2);
