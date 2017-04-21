@@ -5,6 +5,8 @@ const _ = require('lodash');
 const fs = Promise.promisifyAll(require('fs'));
 const cql = Promise.promisifyAll(require('dse-driver'));
 const ORM = Promise.promisifyAll(require('./orm/apollo'));
+
+const readdirpAsync = Promise.promisify(require('readdirp'));
 const debug = require('debug')('express-cassandra');
 
 const CassandraClient = function f(options) {
@@ -21,23 +23,15 @@ CassandraClient.setDirectory = (directory) => {
 };
 
 CassandraClient.syncModelFileToDB = (file, callback) => {
-  const validFileExtensions = [
-    'js', 'javascript', 'jsx', 'coffee', 'coffeescript', 'iced',
-    'script', 'ts', 'tsx', 'typescript', 'cjsx', 'co', 'json',
-    'json5', 'litcoffee', 'liticed', 'ls', 'node', 'toml', 'wisp',
-  ];
-
-  const fileExtension = _.last(file.split('.')).toLowerCase();
-
-  if (!file.includes('Model') || !validFileExtensions.includes(fileExtension)) {
+  if (!file.name.includes('Model')) {
     callback();
     return;
   }
 
-  const modelName = CassandraClient._translateFileNameToModelName(file);
+  const modelName = CassandraClient._translateFileNameToModelName(file.name);
 
   if (modelName) {
-    const fileLocation = `${CassandraClient.directory}/${file}`;
+    const fileLocation = `${CassandraClient.directory}/${file.path}`;
     // eslint-disable-next-line import/no-dynamic-require
     const modelSchema = require(fileLocation);
     CassandraClient.modelInstance[modelName] = CassandraClient.orm.addModel(
@@ -63,10 +57,18 @@ CassandraClient.bind = (options, cb) => {
   CassandraClient.orm = new ORM(options.clientOptions, options.ormOptions);
   CassandraClient.orm = Promise.promisifyAll(CassandraClient.orm);
   CassandraClient.orm.initAsync()
-    .then(() => fs.readdirAsync(CassandraClient.directory))
+    .then(() => readdirpAsync({
+      root: CassandraClient.directory,
+      fileFilter: [
+        '*.js', '*.javascript', '*.jsx', '*.coffee', '*.coffeescript', '*.iced',
+        '*.script', '*.ts', '*.tsx', '*.typescript', '*.cjsx', '*.co', '*.json',
+        '*.json5', '*.litcoffee', '*.liticed', '*.ls', '*.node', '*.toml', '*.wisp',
+      ],
+    }))
     .then((fileList) => {
       const syncModelTasks = [];
       const syncModelFileToDBAsync = Promise.promisify(CassandraClient.syncModelFileToDB);
+      fileList = fileList.files;
       fileList.forEach((file) => {
         syncModelTasks.push(syncModelFileToDBAsync(file));
       });
@@ -76,7 +78,8 @@ CassandraClient.bind = (options, cb) => {
       if (cb) cb();
     })
     .catch((err) => {
-      if (cb) cb(err);
+      if (cb && _.isArray(err) && err.length > 0) cb(err[0]);
+      else if (cb) cb(err);
     });
 };
 
