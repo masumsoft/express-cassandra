@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 
-const fs = require('fs');
+const readdirp = require('readdirp');
 const util = require('util');
 const async = require('async');
 const _ = require('lodash');
@@ -32,31 +32,33 @@ CassandraClient.bind = (options, cb) => {
       return;
     }
 
-    fs.readdir(self.directory, (err1, list) => {
-      if (err1) {
-        if (cb) cb(err1);
+    readdirp({
+      root: self.directory,
+      fileFilter: [
+        '*.js', '*.javascript', '*.jsx', '*.coffee', '*.coffeescript', '*.iced',
+        '*.script', '*.ts', '*.tsx', '*.typescript', '*.cjsx', '*.co', '*.json',
+        '*.json5', '*.litcoffee', '*.liticed', '*.ls', '*.node', '*.toml', '*.wisp',
+      ],
+    }, (err1, list) => {
+      if (err1 && err1.length > 0) {
+        if (cb) cb(err1[0]);
         return;
       }
 
-      async.each(list, (file, callback) => {
-        const fileName = util.format('%s/%s', self.directory, file);
-        const validFileExtensions = [
-          'js', 'javascript', 'jsx', 'coffee', 'coffeescript', 'iced',
-          'script', 'ts', 'tsx', 'typescript', 'cjsx', 'co', 'json',
-          'json5', 'litcoffee', 'liticed', 'ls', 'node', 'toml', 'wisp',
-        ];
-        const fileExtension = _.last(fileName.split('.')).toLowerCase();
+      list = list.files;
 
-        if (fileName.indexOf('Model') === -1 || validFileExtensions.indexOf(fileExtension) === -1) {
+      async.each(list, (file, callback) => {
+        if (file.name.indexOf('Model') === -1) {
           callback();
           return;
         }
 
-        const modelName = self._translateFileNameToModelName(file);
+        const modelName = self._translateFileNameToModelName(file.name);
 
         if (modelName) {
+          const filePath = util.format('%s/%s', self.directory, file.path);
           // eslint-disable-next-line import/no-dynamic-require
-          const modelSchema = require(fileName);
+          const modelSchema = require(filePath);
           self.modelInstance[modelName] = self.orm.add_model(
             modelName.toLowerCase(),
             modelSchema,

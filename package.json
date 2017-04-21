@@ -11,6 +11,7 @@
     "dse-driver": "~1.2.0",
     "lodash": "^4.14.2",
     "object-hash": "1.1.4",
+    "readdirp": "^2.1.0",
     "readline-sync": "^1.4.4"
   },
   "devDependencies": {
