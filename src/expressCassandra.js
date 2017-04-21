@@ -2,7 +2,6 @@ const Promise = require('bluebird');
 
 const _ = require('lodash');
 
-const fs = Promise.promisifyAll(require('fs'));
 const cql = Promise.promisifyAll(require('dse-driver'));
 const ORM = Promise.promisifyAll(require('./orm/apollo'));
 
