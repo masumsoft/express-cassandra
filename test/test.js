@@ -1219,6 +1219,39 @@ describe('Unit Tests', () => {
     });
   });
 
+  describe('#multipleorderby tests', () => {
+
+    it('insert and delete one entry to multipleorderby table', (done) => {
+      const usr = new models.instance.multipleOrderBy({
+        user_id: '1234',
+        status: 'verified',
+        timestamp: 333,
+        first_name: 'John'
+      });
+
+      usr.save((err) => {
+        if (err) done(err);
+        models.instance.multipleOrderBy.findOne({}, (err1, multipleorderby) => {
+          if (err1) done(err1);
+          multipleorderby.toJSON().should.deep.eq({
+            user_id: '1234',
+            status: 'verified',
+            timestamp: 333,
+            first_name: 'John'
+          });
+
+          JSON.stringify(multipleorderby).should.eq('{"user_id":"1234","status":"verified","timestamp":333,"first_name":"John"}');
+          should.exist(multipleorderby._validators);
+          multipleorderby.delete((err2) => {
+            if (err2) done(err2);
+            done();
+          });
+        });
+      });
+    });
+
+  });
+
   describe('#find all remaining events and delete using orm batch', () => {
     it('should find remaining events and delete them', (done) => {
       models.instance.Event.find({ $limit: 10 }, (err, events) => {
