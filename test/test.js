@@ -1304,7 +1304,7 @@ describe('Unit Tests', () => {
     });
 
     it('should find all multipleorderby entries and delete them', (done) => {
-      models.instance.MultipleOrderBy.find({ $limit: 10 }, (err, results) => {
+      models.instance.MultipleOrderBy.find({}, (err, results) => {
         if (err) done(err);
 
         const queries = [];
