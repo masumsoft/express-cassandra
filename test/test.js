@@ -252,6 +252,7 @@ describe('Unit Tests', () => {
         .then(() => models.instance.Counter.truncateAsync())
         .then(() => models.instance.Event.truncateAsync())
         .then(() => models.instance.Simple.truncateAsync())
+        .then(() => models.instance.multipleOrderBy.truncateAsync())
         .then(() => {
           done();
         })
@@ -1221,7 +1222,7 @@ describe('Unit Tests', () => {
 
   describe('#multipleorderby tests', () => {
 
-    it('insert and delete one entry to multipleorderby table', (done) => {
+    it('should insert and delete one entry to multipleorderby table', (done) => {
       const usr = new models.instance.multipleOrderBy({
         user_id: '1234',
         status: 'verified',
@@ -1247,6 +1248,62 @@ describe('Unit Tests', () => {
             done();
           });
         });
+      });
+    });
+
+    it('should insert data into batch', (done) => {
+      let queries = [];
+      const options = { return_query: true };
+
+      const usr1 = new models.instance.multipleOrderBy({
+        user_id: '1234',
+        status: 'verified',
+        timestamp: 333,
+        first_name: 'John'
+      });
+
+      const usr2 = new models.instance.multipleOrderBy({
+        user_id: '1235',
+        status: 'verified',
+        timestamp: 334,
+        first_name: 'George'
+      });
+
+      const usr3 = new models.instance.multipleOrderBy({
+        user_id: '1234',
+        status: 'unverified',
+        timestamp: 335,
+        first_name: 'John'
+      });
+
+      queries.push(usr1.save(options), usr2.save(options), usr3.save(options));
+
+      models.doBatch(queries, (err1) => {
+        if (err1) done(err1);
+        done();
+      });
+    });
+
+    it('should find data with multiple order by', (done) => {
+      const query = {
+        user_id: '1234',
+        $orderby: {
+          $asc: 'status',
+          $desc: 'timestamp'
+        }
+      };
+
+      models.instance.multipleOrderBy.find(query, (err, results) => {
+        if (err) done(err);
+
+        const length = results.length;
+
+        length.should.eq(2);
+
+        JSON.stringify(results[0]).should.eq('{"user_id":"1234","status":"unverified","timestamp":335,"first_name":"John"}');
+        JSON.stringify(results[1]).should.eq('{"user_id":"1234","status":"verified","timestamp":333,"first_name":"John"}');
+
+        done();
       });
     });
 
