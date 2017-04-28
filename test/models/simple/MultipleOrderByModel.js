@@ -8,6 +8,6 @@ module.exports = {
   key: [['user_id'], 'status', 'timestamp'],
   clustering_order: {
     status: 'asc',
-    timestamp: 'desc'
+    timestamp: 'desc',
   }
 };
