@@ -1257,28 +1257,20 @@ describe('Unit Tests', () => {
         return_query: true,
       };
 
-      const usr1 = new models.instance.MultipleOrderBy({
+      const template = {
         user_id: '1234',
         status: 'verified',
         timestamp: 333,
         first_name: 'John',
-      });
+      };
 
-      const usr2 = new models.instance.MultipleOrderBy({
-        user_id: '1235',
-        status: 'verified',
-        timestamp: 334,
-        first_name: 'George',
-      });
+      const usr1 = new models.instance.MultipleOrderBy(template);
 
-      const usr3 = new models.instance.MultipleOrderBy({
-        user_id: '1234',
-        status: 'unverified',
-        timestamp: 335,
-        first_name: 'John',
-      });
+      template.status = 'unverified';
+      template.timestamp = 334;
+      const usr2 = new models.instance.MultipleOrderBy(template);
 
-      queries.push(usr1.save(options), usr2.save(options), usr3.save(options));
+      queries.push(usr1.save(options), usr2.save(options));
 
       models.doBatch(queries, (err1) => {
         if (err1) done(err1);
@@ -1298,7 +1290,7 @@ describe('Unit Tests', () => {
       models.instance.MultipleOrderBy.find(query, (err, results) => {
         if (err) done(err);
 
-        const expectedRes1 = '{"user_id":"1234","status":"unverified","timestamp":335,"first_name":"John"}';
+        const expectedRes1 = '{"user_id":"1234","status":"unverified","timestamp":334,"first_name":"John"}';
         const expectedRes2 = '{"user_id":"1234","status":"verified","timestamp":333,"first_name":"John"}';
         const length = results.length;
 
@@ -1311,7 +1303,7 @@ describe('Unit Tests', () => {
       });
     });
 
-    it('should find remaining multipleorderby and delete them', (done) => {
+    it('should find all multipleorderby entries and delete them', (done) => {
       models.instance.MultipleOrderBy.find({ $limit: 10 }, (err, results) => {
         if (err) done(err);
 
