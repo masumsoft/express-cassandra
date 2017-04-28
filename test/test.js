@@ -1222,6 +1222,7 @@ describe('Unit Tests', () => {
 
   describe('#multipleorderby tests', () => {
     it('should insert and delete one entry to multipleorderby table', (done) => {
+      const expectedRes = '{"user_id":"1234","status":"verified","timestamp":333,"first_name":"John"}';
       const usr = new models.instance.multipleOrderBy({
         user_id: '1234',
         status: 'verified',
@@ -1240,7 +1241,7 @@ describe('Unit Tests', () => {
             first_name: 'John',
           });
 
-          JSON.stringify(multipleorderby).should.eq('{"user_id":"1234","status":"verified","timestamp":333,"first_name":"John"}');
+          JSON.stringify(multipleorderby).should.eq(expectedRes);
           should.exist(multipleorderby._validators);
           multipleorderby.delete((err2) => {
             if (err2) done(err2);
@@ -1251,7 +1252,7 @@ describe('Unit Tests', () => {
     });
 
     it('should insert data into batch', (done) => {
-      let queries = [];
+      const queries = [];
       const options = {
         return_query: true,
       };
@@ -1326,7 +1327,6 @@ describe('Unit Tests', () => {
         });
       });
     });
-
   });
 
   describe('#find all remaining events and delete using orm batch', () => {
