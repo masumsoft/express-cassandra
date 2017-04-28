@@ -252,7 +252,7 @@ describe('Unit Tests', () => {
         .then(() => models.instance.Counter.truncateAsync())
         .then(() => models.instance.Event.truncateAsync())
         .then(() => models.instance.Simple.truncateAsync())
-        .then(() => models.instance.multipleOrderBy.truncateAsync())
+        .then(() => models.instance.MultipleOrderBy.truncateAsync())
         .then(() => {
           done();
         })
@@ -1223,7 +1223,7 @@ describe('Unit Tests', () => {
   describe('#multipleorderby tests', () => {
     it('should insert and delete one entry to multipleorderby table', (done) => {
       const expectedRes = '{"user_id":"1234","status":"verified","timestamp":333,"first_name":"John"}';
-      const usr = new models.instance.multipleOrderBy({
+      const usr = new models.instance.MultipleOrderBy({
         user_id: '1234',
         status: 'verified',
         timestamp: 333,
@@ -1232,7 +1232,7 @@ describe('Unit Tests', () => {
 
       usr.save((err) => {
         if (err) done(err);
-        models.instance.multipleOrderBy.findOne({}, (err1, multipleorderby) => {
+        models.instance.MultipleOrderBy.findOne({}, (err1, multipleorderby) => {
           if (err1) done(err1);
           multipleorderby.toJSON().should.deep.eq({
             user_id: '1234',
@@ -1257,21 +1257,21 @@ describe('Unit Tests', () => {
         return_query: true,
       };
 
-      const usr1 = new models.instance.multipleOrderBy({
+      const usr1 = new models.instance.MultipleOrderBy({
         user_id: '1234',
         status: 'verified',
         timestamp: 333,
         first_name: 'John',
       });
 
-      const usr2 = new models.instance.multipleOrderBy({
+      const usr2 = new models.instance.MultipleOrderBy({
         user_id: '1235',
         status: 'verified',
         timestamp: 334,
         first_name: 'George',
       });
 
-      const usr3 = new models.instance.multipleOrderBy({
+      const usr3 = new models.instance.MultipleOrderBy({
         user_id: '1234',
         status: 'unverified',
         timestamp: 335,
@@ -1295,7 +1295,7 @@ describe('Unit Tests', () => {
         },
       };
 
-      models.instance.multipleOrderBy.find(query, (err, results) => {
+      models.instance.MultipleOrderBy.find(query, (err, results) => {
         if (err) done(err);
 
         const expectedRes1 = '{"user_id":"1234","status":"unverified","timestamp":335,"first_name":"John"}';
@@ -1312,7 +1312,7 @@ describe('Unit Tests', () => {
     });
 
     it('should find remaining multipleorderby and delete them', (done) => {
-      models.instance.multipleOrderBy.find({ $limit: 10 }, (err, results) => {
+      models.instance.MultipleOrderBy.find({ $limit: 10 }, (err, results) => {
         if (err) done(err);
 
         const queries = [];
