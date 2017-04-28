@@ -1307,6 +1307,23 @@ describe('Unit Tests', () => {
       });
     });
 
+    it('should find remaining multipleorderby and delete them', (done) => {
+      models.instance.multipleOrderBy.find({ $limit: 10 }, (err, results) => {
+        if (err) done(err);
+
+        const queries = [];
+
+        for (let i = 0; i < results.length; i++) {
+          queries.push(results[i].delete({ return_query: true }));
+        }
+
+        models.doBatch(queries, (err1) => {
+          if (err1) done(err1);
+          done();
+        });
+      });
+    });
+
   });
 
   describe('#find all remaining events and delete using orm batch', () => {
