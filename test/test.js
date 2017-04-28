@@ -252,6 +252,7 @@ describe('Unit Tests', () => {
         .then(() => models.instance.Counter.truncateAsync())
         .then(() => models.instance.Event.truncateAsync())
         .then(() => models.instance.Simple.truncateAsync())
+        .then(() => models.instance.MultipleOrderBy.truncateAsync())
         .then(() => {
           done();
         })
@@ -1216,6 +1217,108 @@ describe('Unit Tests', () => {
 
           done();
         });
+    });
+  });
+
+  describe('#multipleorderby tests', () => {
+    it('should insert and delete one entry to multipleorderby table', (done) => {
+      const expectedRes = '{"user_id":"1234","status":"verified","timestamp":333,"first_name":"John"}';
+      const usr = new models.instance.MultipleOrderBy({
+        user_id: '1234',
+        status: 'verified',
+        timestamp: 333,
+        first_name: 'John',
+      });
+
+      usr.save((err) => {
+        if (err) done(err);
+        models.instance.MultipleOrderBy.findOne({}, (err1, multipleorderby) => {
+          if (err1) done(err1);
+          multipleorderby.toJSON().should.deep.eq({
+            user_id: '1234',
+            status: 'verified',
+            timestamp: 333,
+            first_name: 'John',
+          });
+
+          JSON.stringify(multipleorderby).should.eq(expectedRes);
+          should.exist(multipleorderby._validators);
+          multipleorderby.delete((err2) => {
+            if (err2) done(err2);
+            done();
+          });
+        });
+      });
+    });
+
+    it('should insert data into batch', (done) => {
+      const queries = [];
+      const options = {
+        return_query: true,
+      };
+
+      const template = {
+        user_id: '1234',
+        status: 'verified',
+        timestamp: 333,
+        first_name: 'John',
+      };
+
+      const usr1 = new models.instance.MultipleOrderBy(template);
+
+      template.status = 'unverified';
+      template.timestamp = 334;
+      const usr2 = new models.instance.MultipleOrderBy(template);
+
+      queries.push(usr1.save(options), usr2.save(options));
+
+      models.doBatch(queries, (err1) => {
+        if (err1) done(err1);
+        done();
+      });
+    });
+
+    it('should find data with multiple order by', (done) => {
+      const query = {
+        user_id: '1234',
+        $orderby: {
+          $asc: 'status',
+          $desc: 'timestamp',
+        },
+      };
+
+      models.instance.MultipleOrderBy.find(query, (err, results) => {
+        if (err) done(err);
+
+        const expectedRes1 = '{"user_id":"1234","status":"unverified","timestamp":334,"first_name":"John"}';
+        const expectedRes2 = '{"user_id":"1234","status":"verified","timestamp":333,"first_name":"John"}';
+        const length = results.length;
+
+        length.should.eq(2);
+
+        JSON.stringify(results[0]).should.eq(expectedRes1);
+        JSON.stringify(results[1]).should.eq(expectedRes2);
+
+        done();
+      });
+    });
+
+    it('should find all multipleorderby entries and delete them', (done) => {
+      const queries = [];
+      
+      models.instance.MultipleOrderBy.find({}, (err, results) => {
+        if (err) done(err);
+
+
+        for (let i = 0; i < results.length; i++) {
+          queries.push(results[i].delete({ return_query: true }));
+        }
+
+        models.doBatch(queries, (err1) => {
+          if (err1) done(err1);
+          done();
+        });
+      });
     });
   });
 
