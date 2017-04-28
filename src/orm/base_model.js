@@ -1320,22 +1320,23 @@ BaseModel._create_find_query = function f(queryObject, options) {
         throw (buildError('model.find.invalidorder'));
       }
       const orderItemKeys = Object.keys(queryItem);
-      if (orderItemKeys.length > 1) throw (buildError('model.find.multiorder'));
 
-      const cqlOrderDirection = { $asc: 'ASC', $desc: 'DESC' };
-      if (orderItemKeys[0].toLowerCase() in cqlOrderDirection) {
-        let orderFields = queryItem[orderItemKeys[0]];
+      for (let i = 0; i < orderItemKeys.length; i++) {
+        const cqlOrderDirection = { $asc: 'ASC', $desc: 'DESC' };
+        if (orderItemKeys[i].toLowerCase() in cqlOrderDirection) {
+          let orderFields = queryItem[orderItemKeys[i]];
 
-        if (!(orderFields instanceof Array)) orderFields = [orderFields];
+          if (!(orderFields instanceof Array)) orderFields = [orderFields];
 
-        for (let i = 0; i < orderFields.length; i++) {
-          orderKeys.push(util.format(
-            '"%s" %s',
-            orderFields[i], cqlOrderDirection[orderItemKeys[0]],
-          ));
+          for (let j = 0; j < orderFields.length; j++) {
+            orderKeys.push(util.format(
+              '"%s" %s',
+              orderFields[j], cqlOrderDirection[orderItemKeys[i]],
+            ));
+          }
+        } else {
+          throw (buildError('model.find.invalidordertype', orderItemKeys[i]));
         }
-      } else {
-        throw (buildError('model.find.invalidordertype', orderItemKeys[0]));
       }
     } else if (k.toLowerCase() === '$limit') {
       if (typeof queryItem !== 'number') throw (buildError('model.find.limittype'));
