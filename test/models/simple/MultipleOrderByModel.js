@@ -9,5 +9,5 @@ module.exports = {
   clustering_order: {
     status: 'asc',
     timestamp: 'desc',
-  }
+  },
 };
