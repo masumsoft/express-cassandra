@@ -1221,13 +1221,12 @@ describe('Unit Tests', () => {
   });
 
   describe('#multipleorderby tests', () => {
-
     it('should insert and delete one entry to multipleorderby table', (done) => {
       const usr = new models.instance.multipleOrderBy({
         user_id: '1234',
         status: 'verified',
         timestamp: 333,
-        first_name: 'John'
+        first_name: 'John',
       });
 
       usr.save((err) => {
@@ -1238,7 +1237,7 @@ describe('Unit Tests', () => {
             user_id: '1234',
             status: 'verified',
             timestamp: 333,
-            first_name: 'John'
+            first_name: 'John',
           });
 
           JSON.stringify(multipleorderby).should.eq('{"user_id":"1234","status":"verified","timestamp":333,"first_name":"John"}');
@@ -1253,27 +1252,29 @@ describe('Unit Tests', () => {
 
     it('should insert data into batch', (done) => {
       let queries = [];
-      const options = { return_query: true };
+      const options = {
+        return_query: true,
+      };
 
       const usr1 = new models.instance.multipleOrderBy({
         user_id: '1234',
         status: 'verified',
         timestamp: 333,
-        first_name: 'John'
+        first_name: 'John',
       });
 
       const usr2 = new models.instance.multipleOrderBy({
         user_id: '1235',
         status: 'verified',
         timestamp: 334,
-        first_name: 'George'
+        first_name: 'George',
       });
 
       const usr3 = new models.instance.multipleOrderBy({
         user_id: '1234',
         status: 'unverified',
         timestamp: 335,
-        first_name: 'John'
+        first_name: 'John',
       });
 
       queries.push(usr1.save(options), usr2.save(options), usr3.save(options));
@@ -1289,19 +1290,21 @@ describe('Unit Tests', () => {
         user_id: '1234',
         $orderby: {
           $asc: 'status',
-          $desc: 'timestamp'
-        }
+          $desc: 'timestamp',
+        },
       };
 
       models.instance.multipleOrderBy.find(query, (err, results) => {
         if (err) done(err);
 
+        const expectedRes1 = '{"user_id":"1234","status":"unverified","timestamp":335,"first_name":"John"}';
+        const expectedRes2 = '{"user_id":"1234","status":"verified","timestamp":333,"first_name":"John"}';
         const length = results.length;
 
         length.should.eq(2);
 
-        JSON.stringify(results[0]).should.eq('{"user_id":"1234","status":"unverified","timestamp":335,"first_name":"John"}');
-        JSON.stringify(results[1]).should.eq('{"user_id":"1234","status":"verified","timestamp":333,"first_name":"John"}');
+        JSON.stringify(results[0]).should.eq(expectedRes1);
+        JSON.stringify(results[1]).should.eq(expectedRes2);
 
         done();
       });
