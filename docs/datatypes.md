@@ -24,6 +24,8 @@ Express cassandra exposes some node driver methods for convenience. To generate 
 *   `models.datatypes`
     this object contains all the available datatypes defined by node cassandra driver, so you can for example use
     models.datatypes.Long to deal with the cassandra bigint or counter field types.
+*   `models.driver`
+    this object contains the dse-driver/cassandra-driver instance, so this can be used to access any node cassandra driver method or objects. For example, models.driver.policies contains the connection policies etc.
 
 
 ## Cassandra to Javascript Datatypes
