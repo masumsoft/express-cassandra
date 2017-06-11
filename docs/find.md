@@ -64,6 +64,26 @@ models.instance.Person.find(query, {raw: true}, function(err, people){
 
 ```
 
+### Query Operators for WHERE and IF conditions
+
+Following are the query operators and their cassandra counterparts:
+
+```
+{
+    $eq: '=',
+    $ne: '!=', // applicable for IF conditions only
+    $gt: '>',
+    $lt: '<',
+    $gte: '>=',
+    $lte: '<=',
+    $in: 'IN',
+    $like: 'LIKE', // applicable for sasi indexes only
+    $token: 'token', // applicable for token queries only
+    $contains: 'CONTAINS', // applicable for indexed collections only
+    $contains_key: 'CONTAINS KEY', // applicable for indexed maps only
+}
+```
+
 Note that all query clauses must be Cassandra compliant. You cannot, for example, use $in operator for a key which is not part of the primary key. Querying in Cassandra is very basic but could be confusing at first. Take a look at this [post](http://mechanics.flite.com/blog/2013/11/05/breaking-down-the-cql-where-clause/) and, obvsiouly, at the [cql query documentation](https://docs.datastax.com/en/cql/3.3/cql/cql_using/useQueryDataTOC.html)
 
 ## Find (results to contain only selected columns)

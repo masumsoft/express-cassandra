@@ -223,7 +223,7 @@ BaseModel._execute_table_query = function f(query, params, options, callback) {
   }
 };
 
-BaseModel._create_where_clause = function f(queryObject) {
+BaseModel._parse_query_object = function f(queryObject) {
   let queryRelations = [];
   let queryParams = [];
 
@@ -262,6 +262,7 @@ BaseModel._create_where_clause = function f(queryObject) {
 
       const cqlOperators = {
         $eq: '=',
+        $ne: '!=',
         $gt: '>',
         $lt: '<',
         $gte: '>=',
@@ -301,9 +302,33 @@ BaseModel._create_where_clause = function f(queryObject) {
   });
 
   return {
-    query: (queryRelations.length > 0 ? util.format('WHERE %s', queryRelations.join(' AND ')) : ''),
-    params: queryParams,
+    queryRelations,
+    queryParams,
   };
+};
+
+BaseModel._create_where_clause = function f(queryObject) {
+  const parsedObject = this._parse_query_object(queryObject);
+  const whereClause = {};
+  if (parsedObject.queryRelations.length > 0) {
+    whereClause.query = util.format('WHERE %s', parsedObject.queryRelations.join(' AND '));
+  } else {
+    whereClause.query = '';
+  }
+  whereClause.params = parsedObject.queryParams;
+  return whereClause;
+};
+
+BaseModel._create_if_clause = function f(queryObject) {
+  const parsedObject = this._parse_query_object(queryObject);
+  const ifClause = {};
+  if (parsedObject.queryRelations.length > 0) {
+    ifClause.query = util.format('IF %s', parsedObject.queryRelations.join(' AND '));
+  } else {
+    ifClause.query = '';
+  }
+  ifClause.params = parsedObject.queryParams;
+  return ifClause;
 };
 
 BaseModel._create_find_query = function f(queryObject, options) {
@@ -688,7 +713,7 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
 
   options = _.defaultsDeep(options, defaults);
 
-  let { updateClauses, queryParams, errorHappened } = parser.build_update_value_expression(
+  const { updateClauses, queryParams, errorHappened } = parser.build_update_value_expression(
     this, schema, updateValues, callback,
   );
 
@@ -696,13 +721,13 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
 
   let query = 'UPDATE "%s"';
   let where = '';
+  let finalParams = queryParams;
   if (options.ttl) query += util.format(' USING TTL %s', options.ttl);
   query += ' SET %s %s';
   try {
     const whereClause = this._create_where_clause(queryObject);
     where = whereClause.query;
-    queryParams = queryParams.concat(whereClause.params);
-    updateClauses = updateClauses.join(', ');
+    finalParams = finalParams.concat(whereClause.params);
   } catch (e) {
     if (typeof callback === 'function') {
       callback(e);
@@ -711,36 +736,17 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
     throw (e);
   }
 
-  query = util.format(query, this._properties.table_name, updateClauses, where);
+  query = util.format(query, this._properties.table_name, updateClauses.join(', '), where);
 
   if (options.conditions) {
-    const updateConditionsArray = [];
-
-    errorHappened = Object.keys(options.conditions).some((key) => {
-      try {
-        const dbVal = parser.build_db_value_expression(schema, key, options.conditions[key]);
-        if (_.isPlainObject(dbVal) && dbVal.query_segment) {
-          updateConditionsArray.push(util.format('"%s"=%s', key, dbVal.query_segment));
-          queryParams.push(dbVal.parameter);
-        } else {
-          updateConditionsArray.push(util.format('"%s"=%s', key, dbVal));
-        }
-      } catch (e) {
-        if (typeof callback === 'function') {
-          callback(e);
-          return true;
-        }
-        throw (e);
-      }
-      return false;
-    });
-
-    if (errorHappened) return {};
-
-    query += util.format(' IF %s', updateConditionsArray.join(' AND '));
+    const ifClause = this._create_if_clause(options.conditions);
+    if (ifClause.query) {
+      query += util.format(' %s', ifClause.query);
+      finalParams = finalParams.concat(ifClause.params);
+    }
+  } else if (options.if_exists) {
+    query += ' IF EXISTS';
   }
-
-  if (options.if_exists) query += ' IF EXISTS';
 
   query += ';';
 
@@ -772,7 +778,7 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
   if (options.return_query) {
     return {
       query,
-      params: queryParams,
+      params: finalParams,
       before_hook: hookRunner(schema.before_update, 'model.update.before.error'),
       after_hook: hookRunner(schema.after_update, 'model.update.after.error'),
     };
@@ -796,7 +802,7 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
       throw (buildError('model.update.before.error', error));
     }
 
-    this._execute_table_query(query, queryParams, queryOptions, (err, results) => {
+    this._execute_table_query(query, finalParams, queryOptions, (err, results) => {
       if (typeof callback === 'function') {
         if (err) {
           callback(buildError('model.update.dberror', err));
