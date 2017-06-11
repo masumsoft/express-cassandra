@@ -1129,7 +1129,7 @@ BaseModel._get_db_value_expression = function f(fieldname, fieldvalue) {
   return { query_segment: '?', parameter: fieldvalue };
 };
 
-BaseModel._create_where_clause = function f(queryObject) {
+BaseModel._parse_query_object = function f(queryObject) {
   const queryRelations = [];
   const queryParams = [];
 
@@ -1168,6 +1168,7 @@ BaseModel._create_where_clause = function f(queryObject) {
 
       const cqlOperators = {
         $eq: '=',
+        $ne: '!=',
         $gt: '>',
         $lt: '<',
         $gte: '>=',
@@ -1304,9 +1305,33 @@ BaseModel._create_where_clause = function f(queryObject) {
   });
 
   return {
-    query: (queryRelations.length > 0 ? util.format('WHERE %s', queryRelations.join(' AND ')) : ''),
-    params: queryParams,
+    queryRelations,
+    queryParams,
   };
+};
+
+BaseModel._create_where_clause = function f(queryObject) {
+  const parsedObject = this._parse_query_object(queryObject);
+  const whereClause = {};
+  if (parsedObject.queryRelations.length > 0) {
+    whereClause.query = util.format('WHERE %s', parsedObject.queryRelations.join(' AND '));
+  } else {
+    whereClause.query = '';
+  }
+  whereClause.params = parsedObject.queryParams;
+  return whereClause;
+};
+
+BaseModel._create_if_clause = function f(queryObject) {
+  const parsedObject = this._parse_query_object(queryObject);
+  const ifClause = {};
+  if (parsedObject.queryRelations.length > 0) {
+    ifClause.query = util.format('IF %s', parsedObject.queryRelations.join(' AND '));
+  } else {
+    ifClause.query = '';
+  }
+  ifClause.params = parsedObject.queryParams;
+  return ifClause;
 };
 
 BaseModel._create_find_query = function f(queryObject, options) {
@@ -1717,7 +1742,7 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
 
   const updateClauseArray = [];
 
-  let errorHappened = Object.keys(updateValues).some((key) => {
+  const errorHappened = Object.keys(updateValues).some((key) => {
     if (schema.fields[key] === undefined || schema.fields[key].virtual) return false;
 
     // check field value
@@ -1882,32 +1907,14 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
   query = util.format(query, this._properties.table_name, updateClauseArray.join(', '), where);
 
   if (options.conditions) {
-    const updateConditionsArray = [];
-
-    errorHappened = Object.keys(options.conditions).some((key) => {
-      try {
-        const dbVal = this._get_db_value_expression(key, options.conditions[key]);
-        if (_.isPlainObject(dbVal) && dbVal.query_segment) {
-          updateConditionsArray.push(util.format('"%s"=%s', key, dbVal.query_segment));
-          queryParams.push(dbVal.parameter);
-        } else {
-          updateConditionsArray.push(util.format('"%s"=%s', key, dbVal));
-        }
-      } catch (e) {
-        if (typeof callback === 'function') {
-          callback(e);
-          return true;
-        }
-        throw (e);
-      }
-      return false;
-    });
-
-    if (errorHappened) return {};
-
-    query += util.format(' IF %s', updateConditionsArray.join(' AND '));
+    const ifClause = this._create_if_clause(options.conditions);
+    if (ifClause.query) {
+      query += util.format(' %s', ifClause.query);
+      queryParams = queryParams.concat(ifClause.params);
+    }
+  } else if (options.if_exists) {
+    query += ' IF EXISTS';
   }
-  if (options.if_exists) query += ' IF EXISTS';
 
   query += ';';
 

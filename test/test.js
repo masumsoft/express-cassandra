@@ -737,6 +737,33 @@ describe('Unit Tests', () => {
     });
   });
 
+  describe('#update using conditional light weight transactions', () => {
+    it('should update data using if_exists without errors', (done) => {
+      models.instance.Person.updateAsync(
+        { userID: 1234, age: 32 },
+        { intSetDefault: null },
+        { if_exists: true })
+        .then(() => {
+          done();
+        })
+        .catch((err) => {
+          done(err);
+        });
+    });
+    it('should update data using conditions without errors', (done) => {
+      models.instance.Person.updateAsync(
+        { userID: 1234, age: 32 },
+        { intSetDefault: null },
+        { conditions: { intSetDefault: { $ne: null } } })
+        .then(() => {
+          done();
+        })
+        .catch((err) => {
+          done(err);
+        });
+    });
+  });
+
   describe('#find after update with null', () => {
     it('should find data as updated without errors', (done) => {
       models.instance.Person.find({ userID: 1234, age: 32 }, (err, people) => {

@@ -95,6 +95,8 @@ models.instance.Person.update(query_object, update_values_object, options, funct
 
 ```
 
+Note that the conditions object supports [query operators](find.md#query-operators-for-where-and-if-conditions). So for example, if you want to use $gt, $lt etc operators in your if conditions for light weight transactions, you can do that as well.
+
 ## Delete
 
 The delete function takes the following form:
