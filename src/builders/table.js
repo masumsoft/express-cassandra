@@ -249,7 +249,7 @@ TableBuilder.prototype = {
       for (let r = 0; r < resultIndexes.rows.length; r++) {
         const row = resultIndexes.rows[r];
 
-        if (row.index_name) {
+        if (row.index_name && row.options.target) {
           const indexOptions = row.options;
           let target = indexOptions.target;
           target = target.replace(/["\s]/g, '');
