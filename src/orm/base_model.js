@@ -964,7 +964,8 @@ BaseModel._get_db_table_schema = function f(callback) {
       for (let r = 0; r < resultIndexes.rows.length; r++) {
         const row = resultIndexes.rows[r];
 
-        if (row.index_name) {
+        //Indexes by elassandra do not have row.options.target, so we should just skip them
+        if (row.index_name && row.options.target) {
           const indexOptions = row.options;
           let target = indexOptions.target;
           target = target.replace(/["\s]/g, '');
