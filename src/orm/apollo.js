@@ -573,7 +573,8 @@ Apollo.prototype = {
       disableTTYConfirmation: this._options.disableTTYConfirmation,
     };
 
-    return (this._models[modelName] = this._generate_model(baseProperties, callback));
+    this._models[modelName] = this._generate_model(baseProperties, callback);
+    return this._models[modelName];
   },
 
   get_model(modelName) {
