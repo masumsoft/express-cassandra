@@ -207,8 +207,7 @@ Apollo.prototype = {
                 fieldTypes[i] = util.format('frozen<%s>', fieldTypes[i]);
               }
             }
-
-            if (_.isEqual(udtKeys, fieldNames) && _.isEqual(udtValues, fieldTypes)) {
+            if (_.difference(udtKeys, fieldNames).length === 0 && _.difference(udtValues, fieldTypes).length === 0) {
               udtCallback();
             } else {
               throw (new Error(
