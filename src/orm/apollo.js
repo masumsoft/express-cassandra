@@ -138,7 +138,7 @@ Apollo.prototype = {
         const fieldNames = udtObject.field_names;
         const fieldTypes = _.map(udtObject.field_types, normalizer.normalize_user_defined_type);
 
-        if (_.isEqual(udtKeys, fieldNames) && _.isEqual(udtValues, fieldTypes)) {
+        if (_.difference(udtKeys, fieldNames).length === 0 && _.difference(udtValues, fieldTypes).length === 0) {
           udtCallback();
           return;
         }
