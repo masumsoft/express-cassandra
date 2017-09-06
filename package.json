@@ -4,15 +4,16 @@
   "dependencies": {
     "async": "^1.5.2",
     "bluebird": "^3.4.6",
+    "cassandra-driver": "^3.2.2",
     "chai": "^3.5.0",
     "check-types": "^1.4.0",
     "debug": "^2.2.0",
     "deep-diff": "^0.3.4",
-    "dse-driver": "~1.2.0",
     "lodash": "^4.14.2",
     "object-hash": "1.1.4",
     "readdirp": "^2.1.0",
-    "readline-sync": "^1.4.4"
+    "readline-sync": "^1.4.4",
+    "try-require": "^1.2.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

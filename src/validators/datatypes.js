@@ -1,6 +1,10 @@
+const tryRequire = require('try-require');
+
+const dseDriver = tryRequire('dse-driver');
+
 const check = require('check-types');
 const util = require('util');
-const cql = require('dse-driver');
+const cql = dseDriver || require('cassandra-driver');
 
 const validators = {};
 validators.is_array = (obj) => (check.array(obj));

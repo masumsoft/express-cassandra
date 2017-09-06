@@ -1,8 +1,11 @@
 const Promise = require('bluebird');
+const tryRequire = require('try-require');
+
+const dseDriver = tryRequire('dse-driver');
 
 const _ = require('lodash');
 
-const cql = Promise.promisifyAll(require('dse-driver'));
+const cql = Promise.promisifyAll(dseDriver || require('cassandra-driver'));
 const ORM = Promise.promisifyAll(require('./orm/apollo'));
 
 const readdirpAsync = Promise.promisify(require('readdirp'));
