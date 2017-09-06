@@ -1,5 +1,9 @@
+const tryRequire = require('try-require');
+
+const dseDriver = tryRequire('dse-driver');
+
 const util = require('util');
-const cql = require('dse-driver');
+const cql = dseDriver || require('cassandra-driver');
 const async = require('async');
 const _ = require('lodash');
 const deepDiff = require('deep-diff').diff;
