@@ -54,7 +54,7 @@ models.instance.Person.get_cql_client(function(err, client){
 });
 ```
 
-You can also use datastax enterprise graph by using the [dse-driver](http://docs.datastax.com/en/developer/nodejs-driver-dse/1.1/#graph) client instance. You need to provide the graph options in the `clientOptions` described before in usage section like the following:
+You can also use datastax enterprise graph by using the [dse-driver](http://docs.datastax.com/en/developer/nodejs-driver-dse/1.3/#graph) client instance. You need to provide the graph options in the `clientOptions` described before in usage section like the following:
 
 ```js
 clientOptions: {
@@ -77,7 +77,7 @@ models.instance.Person.get_cql_client(function(err, client){
 });
 ```
 
-Details of graph operations can be found in [dse-driver docs](http://docs.datastax.com/en/developer/nodejs-driver-dse/1.1/#graph) and in [datastax enterprise docs](http://docs.datastax.com/en/latest-dse/datastax_enterprise/graph/graphTOC.html).
+Details of graph operations can be found in [dse-driver docs](http://docs.datastax.com/en/developer/nodejs-driver-dse/1.3/#graph) and in [datastax enterprise docs](http://docs.datastax.com/en/latest-dse/datastax_enterprise/graph/graphTOC.html).
 
 ## Debug Logging Queries
 
