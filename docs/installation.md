@@ -6,7 +6,7 @@ For apache cassandra version 3.x
 
 For datastax enterprise version 5.x
 
-    npm install express-cassandra dse-driver
+    npm install express-cassandra dse-driver@1.2.0
 
 For older cassandra 2.x
 
