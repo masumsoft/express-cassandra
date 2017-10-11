@@ -103,7 +103,7 @@ var models = Cassandra.createClient({
     }
 });
 
-models.connect(function (err) {
+models.init(function (err) {
     if (err) throw err;
 
     var MyModel = models.loadSchema('Person', {

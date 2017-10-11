@@ -15,7 +15,6 @@ The errors generated from express-cassandra uses the base error class defined by
 | apollo.model.validator.invalidudf          | invalid user defined function definition               |
 | apollo.model.validator.invaliduda          | invalid user defined aggregate definition              |
 | apollo.model.validator.invalidschema       | invalid model schema definition                        |
-| apollo.model.validator.invalidrule         | invalid validation rule in schema                      |
 | apollo.model.validator.invalidvalue        | invalid data value for model field                     |
 | apollo.model.tablecreation.invalidname     | invalid cassandra table name                           |
 | apollo.model.tablecreation.dbschemaquery   | error while retrieving table schema for cassandra      |

@@ -30,7 +30,7 @@ describe('Unit Tests', () => {
             udts: {
               phone: {
                 alias: 'text',
-                phone_number: 'text',
+                phone_number: 'varchar',
                 country_code: 'int',
               },
               Address: {
@@ -170,7 +170,7 @@ describe('Unit Tests', () => {
         },
       });
 
-      client.connectAsync()
+      client.initAsync()
         .then(() => {
           done();
         })

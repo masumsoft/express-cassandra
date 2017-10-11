@@ -1,18 +1,16 @@
 const Promise = require('bluebird');
 
-const fs = require('fs');
-const util = require('util');
-const async = require('async');
 const _ = require('lodash');
 
+const fs = Promise.promisifyAll(require('fs'));
 const cql = Promise.promisifyAll(require('dse-driver'));
 const ORM = Promise.promisifyAll(require('./orm/apollo'));
 const debug = require('debug')('express-cassandra');
 
 const CassandraClient = function f(options) {
-  const self = this;
-  self.modelInstance = {};
-  self.orm = new ORM(options.clientOptions, options.ormOptions);
+  this.modelInstance = {};
+  this.orm = new ORM(options.clientOptions, options.ormOptions);
+  this.orm = Promise.promisifyAll(this.orm);
 };
 
 CassandraClient.createClient = (options) => (new CassandraClient(options));
@@ -22,84 +20,90 @@ CassandraClient.setDirectory = (directory) => {
   return CassandraClient;
 };
 
-CassandraClient.bind = (options, cb) => {
-  const self = CassandraClient;
-  self.modelInstance = {};
-  self.orm = new ORM(options.clientOptions, options.ormOptions);
-  self.orm.connect((err) => {
-    if (err) {
-      if (cb) cb(err);
-      return;
-    }
+CassandraClient.syncModelFileToDB = (file, callback) => {
+  const validFileExtensions = [
+    'js', 'javascript', 'jsx', 'coffee', 'coffeescript', 'iced',
+    'script', 'ts', 'tsx', 'typescript', 'cjsx', 'co', 'json',
+    'json5', 'litcoffee', 'liticed', 'ls', 'node', 'toml', 'wisp',
+  ];
 
-    fs.readdir(self.directory, (err1, list) => {
-      if (err1) {
-        if (cb) cb(err1);
-        return;
-      }
+  const fileExtension = _.last(file.split('.')).toLowerCase();
 
-      async.each(list, (file, callback) => {
-        const fileName = util.format('%s/%s', self.directory, file);
-        const validFileExtensions = [
-          'js', 'javascript', 'jsx', 'coffee', 'coffeescript', 'iced',
-          'script', 'ts', 'tsx', 'typescript', 'cjsx', 'co', 'json',
-          'json5', 'litcoffee', 'liticed', 'ls', 'node', 'toml', 'wisp',
-        ];
-        const fileExtension = _.last(fileName.split('.')).toLowerCase();
+  if (!file.includes('Model') || !validFileExtensions.includes(fileExtension)) {
+    callback();
+    return;
+  }
 
-        if (fileName.indexOf('Model') === -1 || validFileExtensions.indexOf(fileExtension) === -1) {
-          callback();
+  const modelName = CassandraClient._translateFileNameToModelName(file);
+
+  if (modelName) {
+    const fileLocation = `${CassandraClient.directory}/${file}`;
+    // eslint-disable-next-line import/no-dynamic-require
+    const modelSchema = require(fileLocation);
+    CassandraClient.modelInstance[modelName] = CassandraClient.orm.addModel(
+      modelName.toLowerCase(),
+      modelSchema,
+      (err) => {
+        if (err) {
+          callback(err);
           return;
         }
+        callback();
+      },
+    );
+    CassandraClient.modelInstance[modelName] = Promise.promisifyAll(CassandraClient.modelInstance[modelName]);
+    return;
+  }
 
-        const modelName = self._translateFileNameToModelName(file);
+  callback();
+};
 
-        if (modelName) {
-          // eslint-disable-next-line import/no-dynamic-require
-          const modelSchema = require(fileName);
-          self.modelInstance[modelName] = self.orm.add_model(
-            modelName.toLowerCase(),
-            modelSchema,
-            (err2) => {
-              if (err2) callback(err2);
-              else callback();
-            },
-          );
-          self.modelInstance[modelName] = Promise.promisifyAll(self.modelInstance[modelName]);
-        } else {
-          callback();
-        }
-      }, (err3) => {
-        if (err3 && cb) {
-          cb(err3);
-        } else if (cb) {
-          cb();
-        }
+CassandraClient.bind = (options, cb) => {
+  CassandraClient.modelInstance = {};
+  CassandraClient.orm = new ORM(options.clientOptions, options.ormOptions);
+  CassandraClient.orm = Promise.promisifyAll(CassandraClient.orm);
+  CassandraClient.orm.initAsync()
+    .then(() => fs.readdirAsync(CassandraClient.directory))
+    .then((fileList) => {
+      const syncModelTasks = [];
+      const syncModelFileToDBAsync = Promise.promisify(CassandraClient.syncModelFileToDB);
+      fileList.forEach((file) => {
+        syncModelTasks.push(syncModelFileToDBAsync(file));
       });
+      return Promise.all(syncModelTasks);
+    })
+    .then(() => {
+      if (cb) cb();
+    })
+    .catch((err) => {
+      if (cb) cb(err);
     });
-  });
 };
 
 CassandraClient.bindAsync = Promise.promisify(CassandraClient.bind);
 
-CassandraClient.prototype.connect = function f(callback) {
-  const self = this;
-  self.orm.connect(callback);
+CassandraClient.prototype.init = function f(callback) {
+  this.orm.init(callback);
 };
 
-CassandraClient.prototype.connectAsync = Promise.promisify(CassandraClient.prototype.connect);
+CassandraClient.prototype.initAsync = Promise.promisify(CassandraClient.prototype.init);
 
 CassandraClient.prototype.loadSchema = function f(modelName, modelSchema, callback) {
-  const self = this;
-  const cb = function cb(err) {
-    if (typeof callback === 'function') {
-      if (err) callback(err);
-      else callback(null, self.modelInstance[modelName]);
-    }
-  };
-  self.modelInstance[modelName] = self.orm.add_model(modelName, modelSchema, cb);
-  self.modelInstance[modelName] = Promise.promisifyAll(self.modelInstance[modelName]);
-  return self.modelInstance[modelName];
+  this.modelInstance[modelName] = this.orm.addModel(
+    modelName,
+    modelSchema,
+    (err) => {
+      if (typeof callback === 'function') {
+        if (err) {
+          callback(err);
+          return;
+        }
+        callback(null, this.modelInstance[modelName]);
+      }
+    },
+  );
+  this.modelInstance[modelName] = Promise.promisifyAll(this.modelInstance[modelName]);
+  return this.modelInstance[modelName];
 };
 
 CassandraClient.prototype.loadSchemaAsync = function f(modelName, modelSchema) {
@@ -128,12 +132,12 @@ CassandraClient.minTimeuuid = (date) => (cql.types.TimeUuid.min(date));
 CassandraClient.prototype.doBatch = function f(queries, options, callback) {
   const randomModel = this.modelInstance[Object.keys(this.modelInstance)[0]];
   const builtQueries = [];
-  for (let i = 0; i < queries.length; i++) {
+  queries.forEach((queryObject) => {
     builtQueries.push({
-      query: queries[i].query,
-      params: queries[i].params,
+      query: queryObject.query,
+      params: queryObject.params,
     });
-  }
+  });
   if (builtQueries.length > 1) {
     randomModel.execute_batch(builtQueries, options, (err) => {
       if (err) callback(err);
@@ -242,7 +246,6 @@ Object.defineProperties(CassandraClient.prototype, {
     },
   },
 });
-
 
 CassandraClient.prototype.uuid = CassandraClient.uuid;
 CassandraClient.prototype.uuidFromString = CassandraClient.uuidFromString;

@@ -1,4 +1,15 @@
 {
-  "presets": ["es2015", "stage-3"],
-  "sourceMaps": "inline"
+  "presets": [
+    ["env", {
+      "targets": {
+        "node": "4"
+      }
+    }]
+  ],
+  "sourceMaps": "inline",
+  "env": {
+    "test": {
+      "plugins": ["istanbul"]
+    }
+  }
 }

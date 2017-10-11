@@ -61,25 +61,4 @@ TYPE_MAP.generic_type_validator = function f(fieldtype) {
   };
 };
 
-TYPE_MAP.extract_type = function f(val) {
-  // decompose composite types
-  const decomposed = val ? val.replace(/[\s]/g, '').split(/[<,>]/g) : [''];
-
-  for (let d = 0; d < decomposed.length; d++) {
-    if (Object.keys(this).indexOf(decomposed[d]) > -1) {
-      return decomposed[d];
-    }
-  }
-
-  return val;
-};
-
-TYPE_MAP.extract_typeDef = function f(val) {
-  // decompose composite types
-  let decomposed = val ? val.replace(/[\s]/g, '') : '';
-  decomposed = decomposed.substr(decomposed.indexOf('<'), decomposed.length - decomposed.indexOf('<'));
-
-  return decomposed;
-};
-
 module.exports = TYPE_MAP;

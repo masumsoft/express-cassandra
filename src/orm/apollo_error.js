@@ -19,9 +19,6 @@ const AERROR_TYPES = {
   'model.validator.invalidschema': {
     msg: '%s',
   },
-  'model.validator.invalidrule': {
-    msg: '%s',
-  },
   'model.validator.invalidvalue': {
     msg: '%s',
   },
@@ -32,7 +29,7 @@ const AERROR_TYPES = {
     msg: 'Error while retrieveing Schema of DB Table "%s"',
   },
   'model.tablecreation.schemamismatch': {
-    msg: 'Given Schema does not match existing DB Table "%s"',
+    msg: 'Given Schema does not match existing DB Table "%s"\n%s',
   },
   'model.tablecreation.dbcreate': {
     msg: 'Error while creating DB Table -> %s',

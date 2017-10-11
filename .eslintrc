@@ -6,7 +6,23 @@
     "no-param-reassign": "off",
     "no-plusplus": "off",
     "arrow-parens": ["error", "always"],
-    "max-len": ["error", 120]
+    "complexity": ["error", 20],
+    "max-depth": ["error", 4],
+    "max-nested-callbacks": ["error", 3],
+    "max-params": ["error", 5],
+    "max-statements": ["error", 50],
+    "max-len": ["error", 120, 2, {
+      "ignoreUrls": true,
+      "ignoreComments": false,
+      "ignoreRegExpLiterals": true,
+      "ignoreStrings": true,
+      "ignoreTemplateLiterals": true
+    }],
+    "max-lines": ["error", {
+      "max": 1000,
+      "skipBlankLines": true,
+      "skipComments": true
+    }]
   },
   "env": {
     "node": true,

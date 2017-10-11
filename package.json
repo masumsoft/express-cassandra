@@ -2,7 +2,7 @@
   "name": "express-cassandra",
   "version": "1.7.0",
   "dependencies": {
-    "async": "^1.0.0",
+    "async": "^1.5.2",
     "bluebird": "^3.4.6",
     "chai": "^3.5.0",
     "check-types": "^1.4.0",
@@ -14,15 +14,20 @@
     "readline-sync": "^1.4.4"
   },
   "devDependencies": {
-    "babel-cli": "^6.11.4",
-    "babel-preset-es2015": "^6.13.2",
-    "babel-preset-stage-3": "^6.11.0",
-    "babel-register": "^6.14.0",
+    "babel-cli": "^6.26.0",
+    "babel-plugin-istanbul": "^4.1.4",
+    "babel-preset-env": "^1.6.0",
+    "babel-register": "^6.26.0",
+    "codeclimate-test-reporter": "^0.5.0",
+    "cross-env": "^5.0.5",
+    "echo-cli": "^1.0.8",
     "eslint": "^3.12.2",
     "eslint-config-airbnb-base": "^11.0.0",
     "eslint-plugin-import": "^2.2.0",
     "istanbul": "^0.4.5",
-    "mocha": "^3.0.2",
+    "mocha": "^3.5.3",
+    "mocha-silent-reporter": "^1.0.0",
+    "nyc": "^11.2.1",
     "vows": "^0.8.1"
   },
   "optionalDependencies": {},
@@ -31,11 +36,13 @@
     "url": "https://www.codinglogs.com"
   },
   "scripts": {
-    "test": "babel src -d lib && mocha --bail --compilers js:babel-register && eslint src",
-    "build": "babel src -d lib",
-    "prepublish": "npm run build",
-    "lint": "eslint src; exit 0",
-    "coverage": "istanbul cover _mocha -- -R spec"
+    "test": "npm run build --silent && npm run mocha --silent && npm run cover --silent && npm run lint --silent && npm run codeclimate --silent",
+    "build": "echo-cli 'building babel sources, please wait...' && babel src -d lib",
+    "prepublish": "npm run build --silent",
+    "mocha": "echo-cli 'starting mocha test runner...' && mocha --compilers js:babel-core/register --bail",
+    "lint": "echo-cli 'checking for eslint errors...' && eslint src && eslint test",
+    "cover": "echo-cli 'building coverage data, please wait...' && nyc --reporter=lcov --reporter=text-summary --require babel-register mocha --reporter mocha-silent-reporter",
+    "codeclimate": "codeclimate-test-reporter < coverage/lcov.info || true"
   },
   "license": "LGPL-3.0",
   "description": "Framework Independent Cassandra Object Models (ORM) for NodeJS",
@@ -66,5 +73,5 @@
     "javascript",
     "js"
   ],
-  "engine": "node >= 0.10.x"
+  "engine": "node >= 4.x"
 }
