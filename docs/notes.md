@@ -1,11 +1,27 @@
 # Notes
 
+## Prepared Queries
+
 All queries except schema definition related queries (i.e. create table etc.) are prepared by default. If you don't want to prepare queries, just set `prepare=false` in the options object.
 
 ```js
 models.instance.Person.find(query, {prepare: false}, function(err, people){
     //people is an array of plain objects
 });
+```
+
+## Get Cassandra Table Name
+
+To get the cassandra table name for your model instance, you can use the `get_table_name()` function.
+
+```js
+
+models.instance.Person.get_table_name(); // returns 'person'
+
+models.instance.Person.findOne({ name: 'alex' }, (err, alex) => {
+    alex.get_table_name(); // returns 'person'
+});
+
 ```
 
 ## Raw Query

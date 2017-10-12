@@ -962,6 +962,10 @@ BaseModel.prototype.get_data_types = function f() {
   return cql.types;
 };
 
+BaseModel.prototype.get_table_name = function f() {
+  return this.constructor.get_table_name();
+};
+
 BaseModel.prototype._get_default_value = function f(fieldname) {
   const properties = this.constructor._properties;
   const schema = properties.schema;

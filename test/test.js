@@ -411,6 +411,7 @@ describe('Unit Tests', () => {
         person.isModified('age').should.equal(false);
         person.isModified().should.equal(true);
         person.getName().should.equal('john');
+        person.get_table_name().should.equal('person');
         done();
       });
     });
