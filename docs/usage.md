@@ -16,8 +16,6 @@ models.setDirectory( __dirname + '/models').bind(
             queryOptions: {consistency: models.consistencies.one}
         },
         ormOptions: {
-            //If your keyspace doesn't exist it will be created automatically
-            //using the default replication strategy provided here.
             defaultReplicationStrategy : {
                 class: 'SimpleStrategy',
                 replication_factor: 1
@@ -33,6 +31,17 @@ models.setDirectory( __dirname + '/models').bind(
 );
 
 ```
+
+> clientOptions
+
+Any of the `clientOptions` supported by the cassandra nodejs driver can be used. Possible options are documented in the [cassandra driver docs](http://docs.datastax.com/en/developer/nodejs-driver/3.3/api/type.ClientOptions/).
+
+
+> ormOptions
+
+If your keyspace doesn't exist it will be created automatically using the `defaultReplicationStrategy` provided here.
+
+To know more about cassandra replication strategies read the [replication docs](http://docs.datastax.com/en/cassandra/3.0/cassandra/architecture/archDataDistributeReplication.html) and for available options for creating keyspace, read the [create keyspace docs](https://docs.datastax.com/en/cql/3.3/cql/cql_reference/cqlCreateKeyspace.html#cqlCreateKeyspace__description)
 
 Automatic migration is supported. When your model schema changes, the config variable `migration` defines the migration behaviour.
 
@@ -60,7 +69,7 @@ inadvertent deletion of your data.
 
 Note that some environments might not support tty console, so asking the user for confirmation in the terminal may throw errors. If you face such problems or want to automate the migration process in a dev/staging environment then you can set the property `disableTTYConfirmation: true` in the ormOptions. This will do the migrations without asking for a confirmation from the user.
 
-If `createKeyspace=false`, then it won't be checked whether the specified keyspace exists and, if not, it won't get created automatically.
+The `createKeyspace` is a boolean representing whether the keyspace should be created automatically if it does not exist. If `createKeyspace: false`, then it won't be checked whether the specified keyspace exists and, if not, it won't get created automatically.
 
 
 ### Now Define a Model named `PersonModel.js` inside Models Directory
@@ -136,11 +145,11 @@ clientOptions: {
     protocolOptions: { port: 9042 },
     keyspace: 'mykeyspace',
     queryOptions: {consistency: models.consistencies.one},
-    authProvider: new models.driver.auth.DsePlainTextAuthProvider('my_user', 'my_password')
+    authProvider: new models.driver.auth.PlainTextAuthProvider('my_user', 'my_password')
 }
 ```
 
-Infact any of the clientOptions supported by the nodejs driver can be used. Possible options are documented in the [cassandra driver docs](http://docs.datastax.com/en/developer/nodejs-driver/3.0/common/drivers/reference/clientOptions.html).
+If you are using datastax enterprise then please use the auth provider `DsePlainTextAuthProvider` from dse-driver instead.
 
 ## Let's Insert Some Data into PersonModel
 

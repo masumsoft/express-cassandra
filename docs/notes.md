@@ -46,7 +46,7 @@ models.instance.Person.execute_batch(queries, function(err){
 
 ## Get the client driver instance
 
-You can get the client driver instance from cassandra nodejs-driver using the `get_cql_client` method. This will provide you a cql driver instance with which you can do anything you could possibly do with the datastax dse-driver for datastax enterprise or cassandra-driver for apache cassandra.
+You can get the client driver instance from cassandra nodejs-driver using the `get_cql_client` method. This will provide you a cql driver instance with which you can do anything you could possibly do with the cassandra-driver for apache cassandra or datastax dse-driver for datastax enterprise, depending on which driver you are using.
 
 ```js
 models.instance.Person.get_cql_client(function(err, client){
