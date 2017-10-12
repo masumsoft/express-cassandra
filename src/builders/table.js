@@ -348,9 +348,9 @@ TableBuilder.prototype = {
   },
 
   drop_indexes(indexes, callback) {
-    async.each(indexes, (index, indexCallback) => {
-      const query = util.format('DROP INDEX IF EXISTS "%s";', index);
-      this._driver.execute_definition_query(query, [], indexCallback);
+    async.each(indexes, (idx, next) => {
+      const query = util.format('DROP INDEX IF EXISTS "%s";', idx);
+      this._driver.execute_definition_query(query, [], next);
     }, (err) => {
       if (err) callback(buildError('model.tablecreation.dbindexdrop', err));
       else callback();
@@ -505,9 +505,9 @@ TableBuilder.prototype = {
   },
 
   drop_mviews(mviews, callback) {
-    async.each(mviews, (view, viewCallback) => {
+    async.each(mviews, (view, next) => {
       const query = util.format('DROP MATERIALIZED VIEW IF EXISTS "%s";', view);
-      this._driver.execute_definition_query(query, [], viewCallback);
+      this._driver.execute_definition_query(query, [], next);
     }, (err) => {
       if (err) callback(buildError('model.tablecreation.matviewdrop', err));
       else callback();

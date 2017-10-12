@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const _ = require('lodash');
+const path = require('path');
 const tryRequire = require('try-require');
 
 const dseDriver = tryRequire('dse-driver');
@@ -31,7 +32,7 @@ CassandraClient.syncModelFileToDB = (file, callback) => {
   const modelName = CassandraClient._translateFileNameToModelName(file.name);
 
   if (modelName) {
-    const fileLocation = `${CassandraClient.directory}/${file.path}`;
+    const fileLocation = path.join(CassandraClient.directory, file.path);
     // eslint-disable-next-line import/no-dynamic-require
     const modelSchema = require(fileLocation);
     CassandraClient.modelInstance[modelName] = CassandraClient.orm.addModel(
