@@ -1,6 +1,10 @@
+const Promise = require('bluebird');
 const _ = require('lodash');
 const util = require('util');
-const cql = require('dse-driver');
+const tryRequire = require('try-require');
+
+const dseDriver = tryRequire('dse-driver');
+const cql = Promise.promisifyAll(dseDriver || require('cassandra-driver'));
 
 const buildError = require('../orm/apollo_error.js');
 const datatypes = require('../validators/datatypes');

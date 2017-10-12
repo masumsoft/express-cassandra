@@ -1,10 +1,10 @@
+const Promise = require('bluebird');
+const _ = require('lodash');
+const util = require('util');
 const tryRequire = require('try-require');
 
 const dseDriver = tryRequire('dse-driver');
-
-const util = require('util');
-const cql = dseDriver || require('cassandra-driver');
-const _ = require('lodash');
+const cql = Promise.promisifyAll(dseDriver || require('cassandra-driver'));
 
 const buildError = require('./apollo_error.js');
 const schemer = require('../validators/schema');

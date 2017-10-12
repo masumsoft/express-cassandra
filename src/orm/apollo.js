@@ -1,12 +1,10 @@
 const Promise = require('bluebird');
-
+const util = require('util');
+const _ = require('lodash');
 const tryRequire = require('try-require');
 
 const dseDriver = tryRequire('dse-driver');
-
-const util = require('util');
-const _ = require('lodash');
-const cql = dseDriver || require('cassandra-driver');
+const cql = Promise.promisifyAll(dseDriver || require('cassandra-driver'));
 
 const BaseModel = require('./base_model');
 const schemer = require('../validators/schema');

@@ -1,6 +1,7 @@
-const models = require('../lib/expressCassandra');
 const path = require('path');
 const chai = require('chai');
+
+const models = require('../lib/expressCassandra');
 
 const should = chai.should();
 const currentTime = Date.now();

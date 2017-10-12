@@ -1,10 +1,10 @@
+const Promise = require('bluebird');
+const util = require('util');
+const check = require('check-types');
 const tryRequire = require('try-require');
 
 const dseDriver = tryRequire('dse-driver');
-
-const check = require('check-types');
-const util = require('util');
-const cql = dseDriver || require('cassandra-driver');
+const cql = Promise.promisifyAll(dseDriver || require('cassandra-driver'));
 
 const validators = {};
 validators.is_array = (obj) => (check.array(obj));
