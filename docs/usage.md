@@ -133,7 +133,26 @@ models.init(function (err) {
 ```
 
 ## Important Note on Migrations Support
+
 Current support for migration is an experimental feature and should be set to `safe` for production environments. When set to `alter` or `drop` the ORM will try to take a conservative approach and will ask the user for confirmation when doing any data destructive operation. But as this feature is new and not yet stable, you might encounter some bugs or glitches here and there. Please report an issue in [github](https://github.com/masumsoft/express-cassandra/issues/) if you face any. The team will try their best to fix the problem within short time.
+
+## Export/Import Fixture Data
+
+You can dump all table data into json fixture files and reload them back into the tables later on. It's sometimes useful to take a snapshot of current data in your cassandra tables and later populate your database with that data when you're first setting up your app in a new cassandra instance. Also you may use this as a programmable backup system for your app data or whatever use case you can think of.
+
+```js
+// exports all table data in current keyspace to the
+// directory: 'fixtures' inside current script directory
+models.export(__dirname + '/fixtures', function(err){
+
+});
+
+// imports all table data to current keyspace from the
+// directory: 'fixtures' inside current script directory
+models.import(__dirname + '/fixtures', function(err){
+
+});
+```
 
 ## Connecting to Cassandra Using Authentication
 

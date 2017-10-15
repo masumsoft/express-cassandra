@@ -10,6 +10,9 @@ const ORM = Promise.promisifyAll(require('./orm/apollo'));
 const readdirpAsync = Promise.promisify(require('readdirp'));
 const debug = require('debug')('express-cassandra');
 
+const exporter = require('./utils/exporter');
+const importer = require('./utils/importer');
+
 const CassandraClient = function f(options) {
   this.modelInstance = {};
   this.orm = new ORM(options.clientOptions, options.ormOptions);
@@ -91,6 +94,79 @@ CassandraClient.prototype.init = function f(callback) {
 };
 
 CassandraClient.prototype.initAsync = Promise.promisify(CassandraClient.prototype.init);
+
+CassandraClient.getTableList = function f(callback) {
+  const systemClient = this.orm.get_system_client();
+  const keyspace = this.orm.get_keyspace_name();
+  const tables = [];
+
+  systemClient.connect()
+    .then(() => {
+      const systemQuery = 'SELECT table_name FROM system_schema.tables WHERE keyspace_name = ?';
+      debug(`Finding tables in keyspace: ${keyspace}`);
+      return systemClient.execute(systemQuery, [keyspace]);
+    })
+    .then((result) => {
+      for (let i = 0; i < result.rows.length; i++) {
+        tables.push(result.rows[i].table_name);
+      }
+    })
+    .then(() => systemClient.shutdown())
+    .then(() => {
+      callback(null, tables);
+    })
+    .catch((err) => {
+      callback(err);
+    });
+};
+
+CassandraClient.getTableListAsync = Promise.promisify(CassandraClient.getTableList);
+
+CassandraClient.export = function f(fixtureDirectory, callback) {
+  const systemClient = this.orm.get_system_client();
+  const keyspace = this.orm.get_keyspace_name();
+
+  systemClient.connect()
+    .then(() => this.getTableListAsync())
+    .then((tables) => Promise.each(tables, (table) => exporter.processTableExport(
+      systemClient, fixtureDirectory, keyspace, table,
+    )))
+    .then(() => systemClient.shutdown())
+    .then(() => {
+      debug('==================================================');
+      debug(`Completed exporting all tables from keyspace: ${keyspace}`);
+      callback();
+    })
+    .catch((err) => {
+      debug(err);
+      callback(err);
+    });
+};
+
+CassandraClient.exportAsync = Promise.promisify(CassandraClient.export);
+
+CassandraClient.import = function f(fixtureDirectory, callback) {
+  const systemClient = this.orm.get_system_client();
+  const keyspace = this.orm.get_keyspace_name();
+
+  systemClient.connect()
+    .then(() => this.getTableListAsync())
+    .then((tables) => Promise.each(tables, (table) => importer.processTableImport(
+      systemClient, fixtureDirectory, keyspace, table,
+    )))
+    .then(() => systemClient.shutdown())
+    .then(() => {
+      debug('==================================================');
+      debug(`Completed importing to keyspace: ${keyspace}`);
+      callback();
+    })
+    .catch((err) => {
+      debug(err);
+      callback(err);
+    });
+};
+
+CassandraClient.importAsync = Promise.promisify(CassandraClient.import);
 
 CassandraClient.prototype.loadSchema = function f(modelName, modelSchema, callback) {
   this.modelInstance[modelName] = this.orm.addModel(

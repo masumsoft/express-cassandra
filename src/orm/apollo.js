@@ -65,16 +65,20 @@ Apollo.prototype = {
     return Model;
   },
 
-  _get_system_client() {
+  get_system_client() {
     const connection = _.cloneDeep(this._connection);
     delete connection.keyspace;
 
     return new cql.Client(connection);
   },
 
+  get_keyspace_name() {
+    return this._keyspace;
+  },
+
   _assert_keyspace(callback) {
-    const client = this._get_system_client();
-    const keyspaceName = this._connection.keyspace;
+    const client = this.get_system_client();
+    const keyspaceName = this._keyspace;
     const options = this._options;
 
     const keyspaceBuilder = new KeyspaceBuilder(client);

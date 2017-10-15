@@ -12,8 +12,10 @@ Express-Cassandra is an advanced Cassandra ORM for NodeJS. No more hassling with
 * support for user defined types/functions/aggregates
 * support for batching ORM operations for atomic updates
 * support for before and after hook functions for save/update/delete
+* promise support with async suffixed functions
 * built-in experimental support for automatic migrations
-* built-in promise support with Async suffixed functions
+* built-in experimental support for fixture data import/export
+* optional support for query debug and progress logs
 
 This module uses datastax [cassandra-driver](https://github.com/datastax/nodejs-driver) by default or uses the [dse-driver](https://github.com/datastax/nodejs-driver-dse) if already installed.
 
