@@ -540,23 +540,33 @@ TableBuilder.prototype = {
       removedIndexNames.push(dbSchema.index_names[objectHash(removedIndex)]);
     });
 
-    const addedMaterializedViews = _.filter(
+    const addedMaterializedViewsNames = _.filter(
       Object.keys(normalizedModelSchema.materialized_views),
-      (viewName) =>
-        (!_.find(normalizedDBSchema.materialized_views, normalizedModelSchema.materialized_views[viewName])),
-    );
-    const removedMaterializedViews = _.filter(
-      Object.keys(normalizedDBSchema.materialized_views),
-      (viewName) =>
-        (!_.find(normalizedModelSchema.materialized_views, normalizedDBSchema.materialized_views[viewName])),
+      (viewName) => (!_.isEqual(
+        normalizedDBSchema.materialized_views[viewName],
+        normalizedModelSchema.materialized_views[viewName],
+      )),
     );
 
+    const removedMaterializedViewNames = _.filter(
+      Object.keys(normalizedDBSchema.materialized_views),
+      (viewName) => (!_.isEqual(
+        normalizedDBSchema.materialized_views[viewName],
+        normalizedModelSchema.materialized_views[viewName],
+      )),
+    );
+
+    const addedMaterializedViews = {};
+    addedMaterializedViewsNames.forEach((viewName) => {
+      addedMaterializedViews[viewName] = normalizedModelSchema.materialized_views[viewName];
+    });
+
     // remove altered materialized views
-    if (removedMaterializedViews.length > 0) {
+    if (removedMaterializedViewNames.length > 0) {
       const message = util.format(
         'Schema for table "%s" has removed materialized_views: %j, are you sure you want to drop them?',
         tableName,
-        removedMaterializedViews,
+        removedMaterializedViewNames,
       );
       const permission = this._confirm_migration(message);
       if (permission !== 'y') {
@@ -565,7 +575,7 @@ TableBuilder.prototype = {
       }
     }
 
-    this.drop_mviews(removedMaterializedViews, (err2) => {
+    this.drop_mviews(removedMaterializedViewNames, (err2) => {
       if (err2) {
         callback(err2);
         return;
@@ -663,27 +673,14 @@ TableBuilder.prototype = {
           message,
           operation: 'DROP',
         });
-        normalizer.remove_dependent_index_views_from_normalized_schema(normalizedDBSchema, dbSchema, fieldName);
         next();
         return;
       }
       if (diff.kind === 'E') {
         // check if the alter field type is possible, otherwise try D and then N
         if (diff.path[1] === 'type') {
-          if (diff.lhs === 'int' && diff.rhs === 'varint') {
-            // alter field type possible
-            const message = util.format(
-              'Schema for table "%s" has new type for field "%s", are you sure you want to alter to update the field type?',
-              tableName,
-              fieldName,
-            );
-            alterOperations.push({
-              fieldName,
-              message,
-              operation: 'ALTER',
-              type: diff.rhs,
-            });
-          } else if (normalizedDBSchema.key.indexOf(fieldName) > 0) { // check if field part of clustering key
+          // check if field part of primary key
+          if (normalizedDBSchema.key[0].includes(fieldName) || normalizedDBSchema.key.indexOf(fieldName) > 0) {
             // alter field type impossible
             next(new Error('alter_impossible'));
           } else if (['text', 'ascii', 'bigint', 'boolean', 'decimal',
@@ -701,6 +698,21 @@ TableBuilder.prototype = {
               operation: 'ALTER',
               type: diff.rhs,
             });
+            next();
+          } else if (diff.lhs === 'int' && diff.rhs === 'varint') {
+            // alter field type possible
+            const message = util.format(
+              'Schema for table "%s" has new type for field "%s", are you sure you want to alter to update the field type?',
+              tableName,
+              fieldName,
+            );
+            alterOperations.push({
+              fieldName,
+              message,
+              operation: 'ALTER',
+              type: diff.rhs,
+            });
+            next();
           } else if (diff.lhs === 'timeuuid' && diff.rhs === 'uuid') {
             // alter field type possible
             const message = util.format(
@@ -714,9 +726,7 @@ TableBuilder.prototype = {
               operation: 'ALTER',
               type: diff.rhs,
             });
-          } else if (normalizedDBSchema.key[0].includes(fieldName)) { // check if field part of partition key
-            // alter field type impossible
-            next(new Error('alter_impossible'));
+            next();
           } else {
             // alter type impossible
             const message = util.format(
@@ -724,19 +734,20 @@ TableBuilder.prototype = {
               tableName,
               fieldName,
             );
+
             alterOperations.push({
               fieldName,
               message,
               operation: 'DROP',
             });
 
-            normalizer.remove_dependent_index_views_from_normalized_schema(normalizedDBSchema, dbSchema, fieldName);
-
             alterOperations.push({
               fieldName,
               operation: 'ADD',
               type: parser.extract_altered_type(normalizedModelSchema, diff),
             });
+
+            normalizer.remove_dependent_views_from_normalized_schema(normalizedDBSchema, dbSchema, fieldName);
 
             next();
           }
@@ -747,19 +758,21 @@ TableBuilder.prototype = {
             tableName,
             fieldName,
           );
+
           alterOperations.push({
             fieldName,
             message,
             operation: 'DROP',
           });
 
-          normalizer.remove_dependent_index_views_from_normalized_schema(normalizedDBSchema, dbSchema, fieldName);
-
           alterOperations.push({
             fieldName,
             operation: 'ADD',
             type: parser.extract_altered_type(normalizedModelSchema, diff),
           });
+
+          normalizer.remove_dependent_views_from_normalized_schema(normalizedDBSchema, dbSchema, fieldName);
+
           next();
         }
         return;

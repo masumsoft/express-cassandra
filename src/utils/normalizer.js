@@ -1,6 +1,5 @@
 const _ = require('lodash');
 const util = require('util');
-const objectHash = require('object-hash');
 
 const arraySort = (a, b) => {
   if (a > b) return 1;
@@ -203,32 +202,7 @@ const normalizer = {
     return outputSchema;
   },
 
-  remove_dependent_index_views_from_normalized_schema(normalizedDBSchema, dbSchema, fieldName) {
-    // remove dependent indexes/custom_indexes/materialized_views,
-    // update them in normalizedDBSchema before doing alter
-    const dependentIndexes = [];
-    const pullIndexes = [];
-    normalizedDBSchema.indexes.forEach((dbIndex) => {
-      const indexSplit = dbIndex.split(/[()]/g);
-      let indexFieldName = '';
-      if (indexSplit.length > 1) indexFieldName = indexSplit[1];
-      else indexFieldName = indexSplit[0];
-      if (indexFieldName === fieldName) {
-        dependentIndexes.push(dbSchema.index_names[dbIndex]);
-        pullIndexes.push(dbIndex);
-      }
-    });
-    _.pullAll(normalizedDBSchema.indexes, pullIndexes);
-
-    const pullCustomIndexes = [];
-    normalizedDBSchema.custom_indexes.forEach((dbIndex) => {
-      if (dbIndex.on === fieldName) {
-        dependentIndexes.push(dbSchema.index_names[objectHash(dbIndex)]);
-        pullCustomIndexes.push(dbIndex);
-      }
-    });
-    _.pullAll(normalizedDBSchema.custom_indexes, pullCustomIndexes);
-
+  remove_dependent_views_from_normalized_schema(normalizedDBSchema, dbSchema, fieldName) {
     const dependentViews = [];
     Object.keys(normalizedDBSchema.materialized_views).forEach((dbViewName) => {
       if (normalizedDBSchema.materialized_views[dbViewName].select.includes(fieldName)) {
@@ -243,7 +217,7 @@ const normalizer = {
       }
     });
     dependentViews.forEach((viewName) => {
-      delete normalizedDBSchema.materialized_views[viewName];
+      normalizedDBSchema.materialized_views[viewName] = {};
     });
   },
 };
