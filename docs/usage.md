@@ -80,7 +80,8 @@ module.exports = {
     fields:{
         name    : "text",
         surname : "text",
-        age     : "int"
+        age     : "int",
+        created : "timestamp"
     },
     key:["name"]
 }
@@ -119,7 +120,8 @@ models.init(function (err) {
         fields:{
             name    : "text",
             surname : "text",
-            age     : "int"
+            age     : "int",
+            created : "timestamp"
         },
         key:["name"]
     }, function(err, UserModel){
@@ -177,7 +179,8 @@ If you are using datastax enterprise then please use the auth provider `DsePlain
 var john = new models.instance.Person({
     name: "John",
     surname: "Doe",
-    age: 32
+    age: 32,
+    created: Date.now()
 });
 john.save(function(err){
     if(err) {
@@ -201,6 +204,28 @@ models.instance.Person.findOne({name: 'John'}, function(err, john){
     //Note that returned variable john here is an instance of your model,
     //so you can also do john.delete(), john.save() type operations on the instance.
     console.log('Found ' + john.name + ' to be ' + john.age + ' years old!');
+});
+
+```
+
+## Cassandra DB Functions Support
+
+You can use cassandra provided db functions instead of providing a value for a field while inserting, updating or finding an object. For example, we could use the `$db_function` operator to get the current time for the `created` field while inserting data for John Doe into the model:
+
+```js
+
+var john = new models.instance.Person({
+    name: "John",
+    surname: "Doe",
+    age: 32,
+    created: { $db_function: 'toTimestamp(now())' }
+});
+john.save(function(err){
+    if(err) {
+        console.log(err);
+        return;
+    }
+    console.log('Yuppiie!');
 });
 
 ```

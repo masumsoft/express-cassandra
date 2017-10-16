@@ -59,7 +59,7 @@ module.exports = {
 
 ```
 
-What does the above code means?
+What does the above code mean?
 
 - `fields` are the columns of your table. For each column name the value can be a string representing the type or an object containing more specific informations. i.e.
     + ` "id"     : { "type": "uuid", "default": {"$db_function": "uuid()"} },` in this example id type is `uuid` and the default value is a cassandra function (so it will be executed from the database).

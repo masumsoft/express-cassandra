@@ -317,6 +317,7 @@ describe('Unit Tests', () => {
           },
         },
         active: true,
+        timestamp: { $db_function: 'toTimestamp(now())' },
       });
       alex.isModified().should.equal(true);
       alex.isModified('userID').should.equal(true);
@@ -385,6 +386,7 @@ describe('Unit Tests', () => {
         person.points.should.approximately(64.0, 0.1);
         person.uniId.toString().length.should.equal(36);
         person.timeId.toString().length.should.equal(36);
+        should.exist(person.timestamp);
         should.exist(person.createdAt);
         // test virtual field
         person.ageString.should.equal('32');
@@ -693,6 +695,7 @@ describe('Unit Tests', () => {
                 phones: ['56788'],
                 emails: ['c@d.com'],
                 active: false,
+                timestamp: { $db_function: 'toTimestamp(now())' },
               },
               (err1) => {
                 if (err1) done(err1);

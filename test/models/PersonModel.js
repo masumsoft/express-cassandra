@@ -118,6 +118,7 @@ module.exports = {
       },
     },
     active: 'boolean',
+    timestamp: 'timestamp',
     createdAt: { type: 'timestamp', default: { $db_function: 'toTimestamp(now())' } },
   },
   key: [['userID'], 'age'],
