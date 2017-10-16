@@ -316,7 +316,7 @@ describe('Unit Tests', () => {
             ],
           },
         },
-        active: true,
+        active: false,
         timestamp: { $db_function: 'toTimestamp(now())' },
       });
       alex.isModified().should.equal(true);

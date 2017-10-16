@@ -233,8 +233,6 @@ CassandraClient.prototype.doBatch = function f(queries, options, callback) {
       query: queries[i].query,
       params: queries[i].params,
     });
-    const beforeHookAsync = Promise.promisify(queries[i].before_hook);
-    beforeHooks.push(beforeHookAsync());
   }
 
   let batchResult;

@@ -113,10 +113,10 @@ const AERROR_TYPES = {
     msg: 'Error during save query on DB -> %s',
   },
   'model.save.before.error': {
-    msg: 'Error in before_save lifecycle function -> %s',
+    msg: 'Error in before_save lifecycle function',
   },
   'model.save.after.error': {
-    msg: 'Error in after_save lifecycle function -> %s',
+    msg: 'Error in after_save lifecycle function',
   },
   'model.update.unsetkey': {
     msg: 'Primary Key Field: %s must have a value',
@@ -137,19 +137,19 @@ const AERROR_TYPES = {
     msg: 'Error during update query on DB -> %s',
   },
   'model.update.before.error': {
-    msg: 'Error in before_update lifecycle function -> %s',
+    msg: 'Error in before_update lifecycle function',
   },
   'model.update.after.error': {
-    msg: 'Error in after_update lifecycle function -> %s',
+    msg: 'Error in after_update lifecycle function',
   },
   'model.delete.dberror': {
     msg: 'Error during delete query on DB -> %s',
   },
   'model.delete.before.error': {
-    msg: 'Error in before_delete lifecycle function -> %s',
+    msg: 'Error in before_delete lifecycle function',
   },
   'model.delete.after.error': {
-    msg: 'Error in after_delete lifecycle function -> %s',
+    msg: 'Error in after_delete lifecycle function',
   },
 };
 

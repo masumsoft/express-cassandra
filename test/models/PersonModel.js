@@ -129,23 +129,9 @@ module.exports = {
       key: [['userID', 'age'], 'active'],
     },
   },
-  before_save: (instance, options, next) => {
-    next();
-  },
-  after_save: (instance, options, next) => {
-    next();
-  },
-  before_update: (queryObject, updateValues, options, next) => {
-    next();
-  },
-  after_update: (queryObject, updateValues, options, next) => {
-    next();
-  },
-  before_delete: (queryObject, options, next) => {
-    next();
-  },
-  after_delete: (queryObject, options, next) => {
-    next();
+  before_save: (instance) => {
+    instance.active = true;
+    return true;
   },
   methods: {
     getName: function getName() {

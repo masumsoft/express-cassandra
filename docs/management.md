@@ -150,38 +150,38 @@ module.exports = {
         ...
     },
     key: [...],
-    before_save: function (instance, options, next) {
-        next();
+    before_save: function (instance, options) {
+        return true;
     },
-    after_save: function (instance, options, next) {
-        next();
+    after_save: function (instance, options) {
+        return true;
     },
-    before_update: function (queryObject, updateValues, options, next) {
-        next();
+    before_update: function (queryObject, updateValues, options) {
+        return true;
     },
-    after_update: function (queryObject, updateValues, options, next) {
-        next();
+    after_update: function (queryObject, updateValues, options) {
+        return true;
     },
-    before_delete: function (queryObject, options, next) {
-        next();
+    before_delete: function (queryObject, options) {
+        return true;
     },
-    after_delete: function (queryObject, options, next) {
-        next();
+    after_delete: function (queryObject, options) {
+        return true;
     },
 }
 ```
 
-* `before_save` if defined, will be automatically called each time before a save operation is performed. The `instance` will contain the model instance, so you could modify instance values or perform other things based on it. The `options` will contain the query options being passed to cassandra. You could also modify the options or do things based on it. The `next` is a callback function and after you're done, you must call it like `next()` to let the data saved in cassandra. Otherwise you may also send an error message like `next(err)` to halt the save operation. In this case the data will not be saved and the caller will receive the error message via callback.
+* `before_save` if defined, will be automatically called each time before a save operation is performed. The `instance` will contain the model instance, so you could modify instance values or perform other things based on it. The `options` will contain the query options being passed to cassandra. You could also modify the options or do things based on it. After you're done, you should `return true;` to let the data saved in cassandra. Otherwise you may also `return false;` to halt the save operation. In this case the data will not be saved and the caller will receive an error message via callback.
 
-* `after_save` if defined, will be automatically called each time after a save operation is successfully performed. The `instance` will contain the model instance, so you could get the instance values that were actually used and perform other things based on it. Note that if you performed any database functions then the output of those functions will not be available in the instance object. For example if you used the `$db_function: 'uuid()'` to generate your id field, then the actual saved value will not be available in the instance object. If you need to know what id was generated, then you need to use the utility function `models.uuid()` in javascript and send that value in the id field instead of using $db_function. The `options` will contain the final query options passed to cassandra. The `next` is a callback function and after you're done, you must call it like `next()` to let the caller recieve it's callback. Otherwise you may also send an error message like `next(err)` and in this case the caller will receive the error message via callback.
+* `after_save` if defined, will be automatically called each time after a save operation is successfully performed. The `instance` will contain the model instance, so you could get the instance values that were actually used and perform other things based on it. Note that if you performed any database functions then the output of those functions will not be available in the instance object. For example if you used the `$db_function: 'uuid()'` to generate your id field, then the actual saved value will not be available in the instance object. If you need to know what id was generated, then you need to use the utility function `models.uuid()` in javascript and send that value in the id field instead of using $db_function. The `options` will contain the final query options passed to cassandra. After you're done, you should `return true;` to let the caller recieve it's callback. Otherwise you may also `return false;` and in this case the caller will receive an error message via callback.
 
-* `before_update` if defined, will be automatically called each time before an update operation is performed. The `queryObject` and the `updateValues` will contain the query and updated values part of the update operation as is, so you could modify them if required or perform other things based on them. The `options` will contain the query options being passed to cassandra. You could also modify the options or do things based on it. The `next` is a callback function and after you're done, you must call it like `next()` to let the data updated in cassandra. Otherwise you may also send an error message like `next(err)` to halt the update operation. In this case the data will not be updated and the caller will receive the error message via callback.
+* `before_update` if defined, will be automatically called each time before an update operation is performed. The `queryObject` and the `updateValues` will contain the query and updated values part of the update operation as is, so you could modify them if required or perform other things based on them. The `options` will contain the query options being passed to cassandra. You could also modify the options or do things based on it. After you're done, you should `return true;` to let the data updated in cassandra. Otherwise you may also `return false;` to halt the update operation. In this case the data will not be updated and the caller will receive an error message via callback.
 
-* `after_update` if defined, will be automatically called each time after an update operation is successfully performed. The `queryObject` and the `updateValues` will contain the query and updated values part of the update operation as is, so you could get the query and values that were actually used and perform other things based on them. Note that if you performed any database functions then the output of those functions will not be available in the updateValues object. For example if you used the `$db_function: 'now()'` to update your `updatedAt` field, then the actual updated value will not be available in the `updateValues` object. If you need to know the updated value of the `updatedAt` field, then you need to generate the current timestamp in javascript and send that value in the updatedAt field instead of using $db_function. The `options` will contain the final query options passed to cassandra. The `next` is a callback function and after you're done, you must call it like `next()` to let the caller recieve it's callback. Otherwise you may also send an error message like `next(err)` and in this case the caller will receive the error message via callback.
+* `after_update` if defined, will be automatically called each time after an update operation is successfully performed. The `queryObject` and the `updateValues` will contain the query and updated values part of the update operation as is, so you could get the query and values that were actually used and perform other things based on them. Note that if you performed any database functions then the output of those functions will not be available in the updateValues object. For example if you used the `$db_function: 'now()'` to update your `updatedAt` field, then the actual updated value will not be available in the `updateValues` object. If you need to know the updated value of the `updatedAt` field, then you need to generate the current timestamp in javascript and send that value in the updatedAt field instead of using $db_function. The `options` will contain the final query options passed to cassandra. After you're done, you should `return true;` to let the caller recieve it's callback. Otherwise you may also `return false;` and in this case the caller will receive an error message via callback.
 
-* `before_delete` if defined, will be automatically called each time before a delete operation is performed. The `queryObject` will contain the query part of the delete operation as is, so you could modify them if required or perform other things based on them. The `options` will contain the query options being passed to cassandra. You could also modify the options or do things based on it. The `next` is a callback function and after you're done, you must call it like `next()` to let the data deleted in cassandra. Otherwise you may also send an error message like `next(err)` to halt the delete operation. In this case the data will not be deleted and the caller will receive the error message via callback.
+* `before_delete` if defined, will be automatically called each time before a delete operation is performed. The `queryObject` will contain the query part of the delete operation as is, so you could modify them if required or perform other things based on them. The `options` will contain the query options being passed to cassandra. You could also modify the options or do things based on it. After you're done, you should `return true;` to let the data deleted in cassandra. Otherwise you may also `return false;` to halt the delete operation. In this case the data will not be deleted and the caller will receive an error message via callback.
 
-* `after_delete` if defined, will be automatically called each time after a delete operation is successfully performed. The `queryObject` will contain the query part of the delete operation as is, so you could get the query that was actually used and perform other things based on it. The `options` will contain the final query options passed to cassandra. The `next` is a callback function and after you're done, you must call it like `next()` to let the caller recieve it's callback. Otherwise you may also send an error message like `next(err)` and in this case the caller will receive the error message via callback.
+* `after_delete` if defined, will be automatically called each time after a delete operation is successfully performed. The `queryObject` will contain the query part of the delete operation as is, so you could get the query that was actually used and perform other things based on it. The `options` will contain the final query options passed to cassandra. After you're done, you should `return true;` to let the caller recieve it's callback. Otherwise you may also `return false;` and in this case the caller will receive an error message via callback.
 
 ## Tracking changes to data
 
