@@ -54,7 +54,16 @@ module.exports = {
             return callback();
           });
         }
-    }
+    },
+    options: {
+        timestamps: {
+            createdAt: 'created_at', // defaults to createdAt
+            updatedAt: 'updated_at' // defaults to updatedAt
+        },
+        versions: {
+            key: '__v' // defaults to __v
+        }
+    },
 }
 
 ```
@@ -92,6 +101,12 @@ What does the above code mean?
 - `table_name` provides the ability to use a different name for the actual table in cassandra. By default the lowercased modelname is used as the table name. But if you want a different table name instead, then you may want to use this optional field to specify the custom name for your cassandra table.
 
 - `methods` allows you to define custom methods for your instances. This can be useful when a single model method should act on various fields and therefore cannot be mapped to a virtual field, or when an asynchronous operation is required for reading or updating a field, such as hashing a password or retrieving related data against a database.
+
+- `options` allows you to tell express-cassandra to automatically manage timestamp and version information in your data.
+
+> The `timestamps` option if set assigns createdAt and updatedAt fields to your schema and the assigned type is timestamp. Whenever a new document is saved for the schema the createdAt and updatedAt is set automatically to the current timestamp. All save or update operations on the document afterwards will update the updatedAt field automatically. By default, the name of two fields are createdAt and updatedAt, but you can customize the field names by setting timestamps.createdAt and timestamps.updatedAt attributes.
+
+> The `versions` option if set assigns a version field to your schema and the assigned type is a timeuuid. It automatically saves a unique timeuuid each time the document is saved or updated. By default the name of the field will be __v, but you can customize the field name by setting the versions.key attribute.
 
 When you instantiate a model, every field you defined in schema is automatically a property of your instances. So, you can write:
 

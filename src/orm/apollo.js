@@ -384,6 +384,41 @@ Apollo.prototype = {
       throw (buildError('model.validator.invalidschema', e.message));
     }
 
+    if (modelSchema.options && modelSchema.options.timestamps) {
+      const timestampOptions = {
+        createdAt: modelSchema.options.timestamps.createdAt || 'createdAt',
+        updatedAt: modelSchema.options.timestamps.updatedAt || 'updatedAt',
+      };
+      modelSchema.options.timestamps = timestampOptions;
+
+      modelSchema.fields[modelSchema.options.timestamps.createdAt] = {
+        type: 'timestamp',
+        default: {
+          $db_function: 'toTimestamp(now())',
+        },
+      };
+      modelSchema.fields[modelSchema.options.timestamps.updatedAt] = {
+        type: 'timestamp',
+        default: {
+          $db_function: 'toTimestamp(now())',
+        },
+      };
+    }
+
+    if (modelSchema.options && modelSchema.options.versions) {
+      const versionOptions = {
+        key: modelSchema.options.versions.key || '__v',
+      };
+      modelSchema.options.versions = versionOptions;
+
+      modelSchema.fields[modelSchema.options.versions.key] = {
+        type: 'timeuuid',
+        default: {
+          $db_function: 'now()',
+        },
+      };
+    }
+
     const baseProperties = {
       name: modelName,
       schema: modelSchema,

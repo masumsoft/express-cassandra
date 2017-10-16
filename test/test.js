@@ -415,6 +415,12 @@ describe('Unit Tests', () => {
         person.isModified().should.equal(true);
         person.getName().should.equal('john');
         person.get_table_name().should.equal('person');
+        // test auto timestamp fields
+        should.exist(person.created_at);
+        should.exist(person.updatedAt);
+        person.created_at.should.eql(person.updatedAt);
+        // test auto version fields
+        person.__v.toString().length.should.equal(36);
         done();
       });
     });
@@ -723,6 +729,13 @@ describe('Unit Tests', () => {
         person.active.should.equal(false);
         person.timeId.toString().length.should.equal(36);
         should.exist(person.intSetDefault);
+        should.exist(person.timestamp);
+        // test auto timestamp fields
+        should.exist(person.created_at);
+        should.exist(person.updatedAt);
+        person.created_at.should.not.eql(person.updatedAt);
+        // test auto version fields
+        person.__v.toString().length.should.equal(36);
         done();
       });
     });
@@ -892,6 +905,9 @@ describe('Unit Tests', () => {
     it('should find and update single data object without errors', (done) => {
       models.instance.Person.findOne({ userID: 1234, age: 32 }, (err, user) => {
         if (err) done(err);
+        const previousVersion = user.__v;
+        const previousCreatedAt = user.created_at;
+        const previousUpdatedAt = user.updatedAt;
         user.Name = 'Updated Stupid';
         user.timeId = models.timeuuid();
         user.timeMap.three = currentTime;
@@ -902,6 +918,13 @@ describe('Unit Tests', () => {
             userNew.Name.should.equal('Updated Stupid');
             userNew.timeMap.three.should.deep.equal(new Date(currentTime));
             userNew.timeId.toString().length.should.equal(36);
+            // test auto timestamp fields
+            userNew.created_at.should.eql(previousCreatedAt);
+            userNew.updatedAt.should.not.eql(userNew.created_at);
+            userNew.updatedAt.should.not.eql(previousUpdatedAt);
+            // test auto version fields
+            userNew.__v.toString().length.should.equal(36);
+            userNew.__v.should.not.eql(previousVersion);
             done();
           });
         });

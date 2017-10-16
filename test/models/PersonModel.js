@@ -152,4 +152,10 @@ module.exports = {
       return this.Name;
     },
   },
+  options: {
+    timestamps: {
+      createdAt: 'created_at',
+    },
+    versions: true,
+  },
 };

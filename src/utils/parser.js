@@ -95,6 +95,19 @@ parser.build_db_value_expression = function f(schema, fieldName, fieldValue) {
 parser.build_update_value_expression = function f(instance, schema, updateValues, callback) {
   const updateClauses = [];
   const queryParams = [];
+
+  if (schema.options && schema.options.timestamps) {
+    if (!updateValues[schema.options.timestamps.updatedAt]) {
+      updateValues[schema.options.timestamps.updatedAt] = { $db_function: 'toTimestamp(now())' };
+    }
+  }
+
+  if (schema.options && schema.options.versions) {
+    if (!updateValues[schema.options.versions.key]) {
+      updateValues[schema.options.versions.key] = { $db_function: 'now()' };
+    }
+  }
+
   const errorHappened = Object.keys(updateValues).some((fieldName) => {
     if (schema.fields[fieldName] === undefined || schema.fields[fieldName].virtual) return false;
 
@@ -247,6 +260,19 @@ parser.build_save_value_expression = function fn(instance, schema, callback) {
   const identifiers = [];
   const values = [];
   const queryParams = [];
+
+  if (schema.options && schema.options.timestamps) {
+    if (instance[schema.options.timestamps.updatedAt]) {
+      instance[schema.options.timestamps.updatedAt] = { $db_function: 'toTimestamp(now())' };
+    }
+  }
+
+  if (schema.options && schema.options.versions) {
+    if (instance[schema.options.versions.key]) {
+      instance[schema.options.versions.key] = { $db_function: 'now()' };
+    }
+  }
+
   const errorHappened = Object.keys(schema.fields).some((fieldName) => {
     if (schema.fields[fieldName].virtual) return false;
 
