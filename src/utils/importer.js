@@ -28,7 +28,13 @@ const importer = {
         if (param.type === 'Buffer') {
           return Buffer.from(param);
         }
-        return _.omitBy(param, (item) => (item === null));
+        const omittedParams = _.omitBy(param, (item) => (item === null));
+        Object.keys(omittedParams).forEach((key) => {
+          if (_.isObject(omittedParams[key]) && omittedParams[key].type === 'Buffer') {
+            omittedParams[key] = Buffer.from(omittedParams[key]);
+          }
+        });
+        return omittedParams;
       }
       return param;
     });
