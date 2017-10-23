@@ -431,7 +431,7 @@ BaseModel.init = function f(options, callback) {
   callback();
 };
 
-BaseModel.syncDefinition = function f(callback) {
+BaseModel.syncDB = function f(callback) {
   this._sync_model_definition((err, result) => {
     if (err) {
       callback(err);

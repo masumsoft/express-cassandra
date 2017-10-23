@@ -2,6 +2,26 @@
 
 ## Auto-Load Models from a Directory
 
+### Define a Model named `PersonModel.js` in `models` Directory
+
+```js
+
+module.exports = {
+    fields:{
+        name    : "text",
+        surname : "text",
+        age     : "int",
+        created : "timestamp"
+    },
+    key:["name"]
+}
+
+```
+
+Note that a model class name should contain the word `Model` in it, otherwise it won't be treated as a model.
+
+### Now bind the `models` directory with express-cassandra
+
 ```js
 var models = require('express-cassandra');
 
@@ -25,12 +45,61 @@ models.setDirectory( __dirname + '/models').bind(
         }
     },
     function(err) {
-        if(err) console.log(err.message);
-        else console.log(models.timeuuid());
+        if(err) throw err;
+
+        // You'll now have a `person` table in cassandra created against the model
+        // schema you've defined earlier and you can now access the model instance
+        // in `models.instance.Person` object containing supported orm operations.
     }
 );
 
 ```
+
+## Alternatively Load & Organize Models Yourself
+
+Alternatively if you don't want to load your models automatically from a specific directory and want to load and sync models yourself, then you can load your schemas like the following:
+
+```js
+var ExpressCassandra = require('express-cassandra');
+var models = ExpressCassandra.createClient({
+    clientOptions: {
+        contactPoints: ['127.0.0.1'],
+        protocolOptions: { port: 9042 },
+        keyspace: 'mykeyspace',
+        queryOptions: {consistency: ExpressCassandra.consistencies.one}
+    },
+    ormOptions: {
+        defaultReplicationStrategy : {
+            class: 'SimpleStrategy',
+            replication_factor: 1
+        },
+        migration: 'safe',
+        createKeyspace: true
+    }
+});
+
+var MyModel = models.loadSchema('Person', {
+    fields:{
+        name    : "text",
+        surname : "text",
+        age     : "int",
+        created : "timestamp"
+    },
+    key:["name"]
+});
+
+// MyModel or models.instance.Person can now be used as the model instance
+console.log(models.instance.Person === MyModel);
+
+// sync the schema definition with the cassandra database table
+// if the schema has not changed, the callback will fire successfully
+// otherwise express-cassandra will try to migrate the schema and fire the callback afterwards
+MyModel.syncDB((err) => {
+    if (err) throw err;
+});
+```
+
+## Explanations for the Options Used to Initialize
 
 > clientOptions
 
@@ -72,71 +141,10 @@ Note that some environments might not support tty console, so asking the user fo
 The `createKeyspace` is a boolean representing whether the keyspace should be created automatically if it does not exist. If `createKeyspace: false`, then it won't be checked whether the specified keyspace exists and, if not, it won't get created automatically.
 
 
-### Now Define a Model named `PersonModel.js` inside Models Directory
-
-```js
-
-module.exports = {
-    fields:{
-        name    : "text",
-        surname : "text",
-        age     : "int",
-        created : "timestamp"
-    },
-    key:["name"]
-}
-
-```
-
-Note that a model class name should contain the word `Model` in it, otherwise it won't be treated as a model class.
-
-## Alternatively Load & Organize Models Yourself
-
-Alternatively if you don't want to load your models automatically from a specific directory and want to define and load models yourself, then you can asynchronously load your schemas like the following:
-
-```js
-var Cassandra = require('express-cassandra');
-var models = Cassandra.createClient({
-    clientOptions: {
-        contactPoints: ['127.0.0.1'],
-        protocolOptions: { port: 9042 },
-        keyspace: 'mykeyspace',
-        queryOptions: {consistency: Cassandra.consistencies.one}
-    },
-    ormOptions: {
-        defaultReplicationStrategy : {
-            class: 'SimpleStrategy',
-            replication_factor: 1
-        },
-        migration: 'safe',
-        createKeyspace: true
-    }
-});
-
-models.init(function (err) {
-    if (err) throw err;
-
-    var MyModel = models.loadSchema('Person', {
-        fields:{
-            name    : "text",
-            surname : "text",
-            age     : "int",
-            created : "timestamp"
-        },
-        key:["name"]
-    }, function(err, UserModel){
-        //the table in cassandra is now created
-        //the models.instance.Person, UserModel or MyModel can now be used
-        console.log(models.instance.Person);
-        console.log(models.instance.Person === UserModel);
-        console.log(models.instance.Person === MyModel);
-    });
-});
-```
-
 ## Important Note on Migrations Support
 
 Current support for migration is an experimental feature and should be set to `safe` for production environments. When set to `alter` or `drop` the ORM will try to take a conservative approach and will ask the user for confirmation when doing any data destructive operation. But as this feature is new and not yet stable, you might encounter some bugs or glitches here and there. Please report an issue in [github](https://github.com/masumsoft/express-cassandra/issues/) if you face any. The team will try their best to fix the problem within short time.
+
 
 ## Export/Import Fixture Data
 

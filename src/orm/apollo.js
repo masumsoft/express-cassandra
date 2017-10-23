@@ -43,7 +43,7 @@ const Apollo = function f(connection, options) {
 
 Apollo.prototype = {
 
-  _generate_model(properties, callback) {
+  _generate_model(properties) {
     const Model = function f(...args) {
       BaseModel.apply(this, Array.prototype.slice.call(args));
     };
@@ -55,12 +55,6 @@ Apollo.prototype = {
     });
 
     Model._set_properties(properties);
-    Model.syncDefinition((err, result) => {
-      if (typeof callback === 'function') {
-        if (err) callback(err);
-        else callback(null, result);
-      }
-    });
 
     return Model;
   },
@@ -373,7 +367,7 @@ Apollo.prototype = {
     }
   },
 
-  addModel(modelName, modelSchema, callback) {
+  addModel(modelName, modelSchema) {
     if (!modelName || typeof (modelName) !== 'string') {
       throw (buildError('model.validator.invalidschema', 'Model name must be a valid string'));
     }
@@ -425,18 +419,18 @@ Apollo.prototype = {
       keyspace: this._keyspace,
       define_connection: this._define_connection,
       cql: this._client,
-      get_constructor: this.get_model.bind(this, modelName),
+      get_constructor: this.getModel.bind(this, modelName),
       init: this.init.bind(this),
       dropTableOnSchemaChange: this._options.dropTableOnSchemaChange,
       migration: this._options.migration,
       disableTTYConfirmation: this._options.disableTTYConfirmation,
     };
 
-    this._models[modelName] = this._generate_model(baseProperties, callback);
+    this._models[modelName] = this._generate_model(baseProperties);
     return this._models[modelName];
   },
 
-  get_model(modelName) {
+  getModel(modelName) {
     return this._models[modelName] || null;
   },
 

@@ -152,7 +152,7 @@ describe('Unit Tests', () => {
   });
 
   describe('#multiple connections', () => {
-    it('should create a new cassandra client', function f(done) {
+    it('should create a new express-cassandra client', function f(done) {
       this.timeout(20000);
       this.slow(10000);
       client = models.createClient({
@@ -181,40 +181,23 @@ describe('Unit Tests', () => {
     });
   });
 
-  describe('#arbitrarily load schemas', () => {
+  describe('#custom load and sync schema api', () => {
     after(() => {
       client.close();
     });
 
-    it('should load a schema from an object', (done) => {
+    it('should load a schema from an object and syncDB', (done) => {
       const myTempModel = client.loadSchema('tempSchema', {
         fields: {
           email: 'text',
           name: 'text',
         },
         key: ['email'],
-      }, (err, tempModel) => {
-        if (err) done(err);
-        tempModel.should.equal(client.instance.tempSchema);
-        myTempModel.should.equal(client.instance.tempSchema);
-        done();
       });
-    });
-
-    it('should load a schema from an object using Async promise', (done) => {
-      client.loadSchemaAsync('tempSchema', {
-        fields: {
-          email: 'text',
-          name: 'text',
-        },
-        key: ['email'],
-      })
-      .then((tempModel) => {
-        tempModel.should.equal(client.instance.tempSchema);
-        done();
-      })
-      .catch((err) => {
-        done(err);
+      myTempModel.should.equal(client.instance.tempSchema);
+      myTempModel.syncDB((err) => {
+        if (err) done(err);
+        else done();
       });
     });
   });

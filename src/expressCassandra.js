@@ -38,17 +38,8 @@ CassandraClient.syncModelFileToDB = (file, callback) => {
     const fileLocation = path.join(CassandraClient.directory, file.path);
     // eslint-disable-next-line import/no-dynamic-require
     const modelSchema = require(fileLocation);
-    CassandraClient.modelInstance[modelName] = CassandraClient.orm.addModel(
-      modelName.toLowerCase(),
-      modelSchema,
-      (err) => {
-        if (err) {
-          callback(err);
-          return;
-        }
-        callback();
-      },
-    );
+    CassandraClient.modelInstance[modelName] = CassandraClient.orm.addModel(modelName.toLowerCase(), modelSchema);
+    CassandraClient.modelInstance[modelName].syncDB(callback);
     CassandraClient.modelInstance[modelName] = Promise.promisifyAll(CassandraClient.modelInstance[modelName]);
     return;
   }
@@ -168,31 +159,10 @@ CassandraClient.import = function f(fixtureDirectory, callback) {
 
 CassandraClient.importAsync = Promise.promisify(CassandraClient.import);
 
-CassandraClient.prototype.loadSchema = function f(modelName, modelSchema, callback) {
-  this.modelInstance[modelName] = this.orm.addModel(
-    modelName,
-    modelSchema,
-    (err) => {
-      if (typeof callback === 'function') {
-        if (err) {
-          callback(err);
-          return;
-        }
-        callback(null, this.modelInstance[modelName]);
-      }
-    },
-  );
+CassandraClient.prototype.loadSchema = function f(modelName, modelSchema) {
+  this.modelInstance[modelName] = this.orm.addModel(modelName, modelSchema);
   this.modelInstance[modelName] = Promise.promisifyAll(this.modelInstance[modelName]);
   return this.modelInstance[modelName];
-};
-
-CassandraClient.prototype.loadSchemaAsync = function f(modelName, modelSchema) {
-  return new Promise((resolve, reject) => {
-    this.loadSchema(modelName, modelSchema, (err, Model) => {
-      if (err) reject(err);
-      else resolve(Model);
-    });
-  });
 };
 
 CassandraClient.uuid = () => (cql.types.Uuid.random());
