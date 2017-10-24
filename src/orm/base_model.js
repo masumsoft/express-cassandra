@@ -297,7 +297,11 @@ BaseModel._parse_query_object = function f(queryObject) {
         const relationKey = relationKeys[rk];
         const relationValue = fieldRelation[relationKey];
         const extractedRelations = parser.extract_query_relations(
-          fieldName, relationKey, relationValue, this._properties.schema, cqlOperators,
+          fieldName,
+          relationKey,
+          relationValue,
+          this._properties.schema,
+          cqlOperators,
         );
         queryRelations = queryRelations.concat(extractedRelations.queryRelations);
         queryParams = queryParams.concat(extractedRelations.queryParams);
@@ -633,11 +637,8 @@ BaseModel.find = function f(queryObject, options, callback) {
     query = findQuery.query;
     queryParams = queryParams.concat(findQuery.params);
   } catch (e) {
-    if (typeof callback === 'function') {
-      callback(e);
-      return {};
-    }
-    throw (e);
+    parser.callback_or_throw(e, callback);
+    return {};
   }
 
   if (options.return_query) {
@@ -718,15 +719,15 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
   options = _.defaultsDeep(options, defaults);
 
   if (typeof schema.before_update === 'function' && schema.before_update(queryObject, updateValues, options) === false) {
-    if (typeof callback === 'function') {
-      callback(buildError('model.update.before.error'));
-      return {};
-    }
-    throw (buildError('model.update.before.error'));
+    parser.callback_or_throw(buildError('model.update.before.error'), callback);
+    return {};
   }
 
   const { updateClauses, queryParams, errorHappened } = parser.build_update_value_expression(
-    this, schema, updateValues, callback,
+    this,
+    schema,
+    updateValues,
+    callback,
   );
 
   if (errorHappened) return {};
@@ -741,11 +742,8 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
     where = whereClause.query;
     finalParams = finalParams.concat(whereClause.params);
   } catch (e) {
-    if (typeof callback === 'function') {
-      callback(e);
-      return {};
-    }
-    throw (e);
+    parser.callback_or_throw(e, callback);
+    return {};
   }
 
   query = util.format(query, this._properties.table_name, updateClauses.join(', '), where);
@@ -821,11 +819,8 @@ BaseModel.delete = function f(queryObject, options, callback) {
   options = _.defaultsDeep(options, defaults);
 
   if (typeof schema.before_delete === 'function' && schema.before_delete(queryObject, options) === false) {
-    if (typeof callback === 'function') {
-      callback(buildError('model.delete.before.error'));
-      return {};
-    }
-    throw (buildError('model.delete.before.error'));
+    parser.callback_or_throw(buildError('model.delete.before.error'), callback);
+    return {};
   }
 
   let queryParams = [];
@@ -837,11 +832,8 @@ BaseModel.delete = function f(queryObject, options, callback) {
     where = whereClause.query;
     queryParams = queryParams.concat(whereClause.params);
   } catch (e) {
-    if (typeof callback === 'function') {
-      callback(e);
-      return {};
-    }
-    throw (e);
+    parser.callback_or_throw(e, callback);
+    return {};
   }
 
   query = util.format(query, this._properties.table_name, where);
@@ -941,16 +933,16 @@ BaseModel.prototype.save = function fn(options, callback) {
   options = _.defaultsDeep(options, defaults);
 
   if (typeof schema.before_save === 'function' && schema.before_save(this, options) === false) {
-    if (typeof callback === 'function') {
-      callback(buildError('model.save.before.error'));
-      return {};
-    }
-    throw (buildError('model.save.before.error'));
+    parser.callback_or_throw(buildError('model.save.before.error'), callback);
+    return {};
   }
 
-  const { identifiers, values, queryParams, errorHappened } = parser.build_save_value_expression(
-    this, schema, callback,
-  );
+  const {
+    identifiers,
+    values,
+    queryParams,
+    errorHappened,
+  } = parser.build_save_value_expression(this, schema, callback);
 
   if (errorHappened) return {};
 

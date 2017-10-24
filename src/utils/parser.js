@@ -12,6 +12,14 @@ const schemer = require('../validators/schema');
 
 const parser = {};
 
+parser.callback_or_throw = function f(err, callback) {
+  if (typeof callback === 'function') {
+    callback(err);
+    return;
+  }
+  throw (err);
+};
+
 parser.extract_type = function f(val) {
   // decompose composite types
   const decomposed = val ? val.replace(/[\s]/g, '').split(/[<,>]/g) : [''];
@@ -92,6 +100,90 @@ parser.build_db_value_expression = function f(schema, fieldName, fieldValue) {
   return { query_segment: '?', parameter: fieldValue };
 };
 
+parser.unset_not_allowed = function f(operation, schema, fieldName, callback) {
+  if (schemer.is_primary_key_field(schema, fieldName)) {
+    parser.callback_or_throw(buildError(`model.${operation}.unsetkey`, fieldName), callback);
+    return true;
+  }
+  if (schemer.is_required_field(schema, fieldName)) {
+    parser.callback_or_throw(buildError(`model.${operation}.unsetrequired`, fieldName), callback);
+    return true;
+  }
+  return false;
+};
+
+parser.build_inplace_update_expression = function f(schema, fieldName, fieldValue, updateClauses, queryParams) {
+  const $add = (_.isPlainObject(fieldValue) && fieldValue.$add) || false;
+  const $append = (_.isPlainObject(fieldValue) && fieldValue.$append) || false;
+  const $prepend = (_.isPlainObject(fieldValue) && fieldValue.$prepend) || false;
+  const $replace = (_.isPlainObject(fieldValue) && fieldValue.$replace) || false;
+  const $remove = (_.isPlainObject(fieldValue) && fieldValue.$remove) || false;
+
+  fieldValue = $add || $append || $prepend || $replace || $remove || fieldValue;
+
+  const dbVal = parser.build_db_value_expression(schema, fieldName, fieldValue);
+
+  if (!_.isPlainObject(dbVal) || !dbVal.query_segment) {
+    updateClauses.push(util.format('"%s"=%s', fieldName, dbVal));
+    return;
+  }
+
+  const fieldType = schemer.get_field_type(schema, fieldName);
+
+  if (['map', 'list', 'set'].includes(fieldType)) {
+    if ($add || $append) {
+      dbVal.query_segment = util.format('"%s" + %s', fieldName, dbVal.query_segment);
+    } else if ($prepend) {
+      if (fieldType === 'list') {
+        dbVal.query_segment = util.format('%s + "%s"', dbVal.query_segment, fieldName);
+      } else {
+        throw (buildError(
+          'model.update.invalidprependop',
+          util.format('%s datatypes does not support $prepend, use $add instead', fieldType),
+        ));
+      }
+    } else if ($remove) {
+      dbVal.query_segment = util.format('"%s" - %s', fieldName, dbVal.query_segment);
+      if (fieldType === 'map') dbVal.parameter = Object.keys(dbVal.parameter);
+    }
+  }
+
+  if ($replace) {
+    if (fieldType === 'map') {
+      updateClauses.push(util.format('"%s"[?]=%s', fieldName, dbVal.query_segment));
+      const replaceKeys = Object.keys(dbVal.parameter);
+      const replaceValues = _.values(dbVal.parameter);
+      if (replaceKeys.length === 1) {
+        queryParams.push(replaceKeys[0]);
+        queryParams.push(replaceValues[0]);
+      } else {
+        throw (
+          buildError('model.update.invalidreplaceop', '$replace in map does not support more than one item')
+        );
+      }
+    } else if (fieldType === 'list') {
+      updateClauses.push(util.format('"%s"[?]=%s', fieldName, dbVal.query_segment));
+      if (dbVal.parameter.length === 2) {
+        queryParams.push(dbVal.parameter[0]);
+        queryParams.push(dbVal.parameter[1]);
+      } else {
+        throw (buildError(
+          'model.update.invalidreplaceop',
+          '$replace in list should have exactly 2 items, first one as the index and the second one as the value',
+        ));
+      }
+    } else {
+      throw (buildError(
+        'model.update.invalidreplaceop',
+        util.format('%s datatypes does not support $replace', fieldType),
+      ));
+    }
+  } else {
+    updateClauses.push(util.format('"%s"=%s', fieldName, dbVal.query_segment));
+    queryParams.push(dbVal.parameter);
+  }
+};
+
 parser.build_update_value_expression = function f(instance, schema, updateValues, callback) {
   const updateClauses = [];
   const queryParams = [];
@@ -111,144 +203,33 @@ parser.build_update_value_expression = function f(instance, schema, updateValues
   const errorHappened = Object.keys(updateValues).some((fieldName) => {
     if (schema.fields[fieldName] === undefined || schema.fields[fieldName].virtual) return false;
 
-    // check field value
     const fieldType = schemer.get_field_type(schema, fieldName);
     let fieldValue = updateValues[fieldName];
 
     if (fieldValue === undefined) {
       fieldValue = instance._get_default_value(fieldName);
       if (fieldValue === undefined) {
-        if (schema.key.includes(fieldName) || schema.key[0].includes(fieldName)) {
-          if (typeof callback === 'function') {
-            callback(buildError('model.update.unsetkey', fieldName));
-            return true;
-          }
-          throw (buildError('model.update.unsetkey', fieldName));
-        } else if (schema.fields[fieldName].rule && schema.fields[fieldName].rule.required) {
-          if (typeof callback === 'function') {
-            callback(buildError('model.update.unsetrequired', fieldName));
-            return true;
-          }
-          throw (buildError('model.update.unsetrequired', fieldName));
-        } else return false;
+        return parser.unset_not_allowed('update', schema, fieldName, callback);
       } else if (!schema.fields[fieldName].rule || !schema.fields[fieldName].rule.ignore_default) {
         // did set a default value, ignore default is not set
         if (instance.validate(fieldName, fieldValue) !== true) {
-          if (typeof callback === 'function') {
-            callback(buildError('model.update.invaliddefaultvalue', fieldValue, fieldName, fieldType));
-            return true;
-          }
-          throw (buildError('model.update.invaliddefaultvalue', fieldValue, fieldName, fieldType));
+          parser.callback_or_throw(buildError('model.update.invaliddefaultvalue', fieldValue, fieldName, fieldType), callback);
+          return true;
         }
       }
     }
 
     if (fieldValue === null || fieldValue === cql.types.unset) {
-      if (schema.key.includes(fieldName) || schema.key[0].includes(fieldName)) {
-        if (typeof callback === 'function') {
-          callback(buildError('model.update.unsetkey', fieldName));
-          return true;
-        }
-        throw (buildError('model.update.unsetkey', fieldName));
-      } else if (schema.fields[fieldName].rule && schema.fields[fieldName].rule.required) {
-        if (typeof callback === 'function') {
-          callback(buildError('model.update.unsetrequired', fieldName));
-          return true;
-        }
-        throw (buildError('model.update.unsetrequired', fieldName));
+      if (parser.unset_not_allowed('update', schema, fieldName, callback)) {
+        return true;
       }
     }
 
-
     try {
-      let $add = false;
-      let $append = false;
-      let $prepend = false;
-      let $replace = false;
-      let $remove = false;
-      if (_.isPlainObject(fieldValue)) {
-        if (fieldValue.$add) {
-          fieldValue = fieldValue.$add;
-          $add = true;
-        } else if (fieldValue.$append) {
-          fieldValue = fieldValue.$append;
-          $append = true;
-        } else if (fieldValue.$prepend) {
-          fieldValue = fieldValue.$prepend;
-          $prepend = true;
-        } else if (fieldValue.$replace) {
-          fieldValue = fieldValue.$replace;
-          $replace = true;
-        } else if (fieldValue.$remove) {
-          fieldValue = fieldValue.$remove;
-          $remove = true;
-        }
-      }
-
-      const dbVal = parser.build_db_value_expression(schema, fieldName, fieldValue);
-
-      if (_.isPlainObject(dbVal) && dbVal.query_segment) {
-        if (['map', 'list', 'set'].includes(fieldType)) {
-          if ($add || $append) {
-            dbVal.query_segment = util.format('"%s" + %s', fieldName, dbVal.query_segment);
-          } else if ($prepend) {
-            if (fieldType === 'list') {
-              dbVal.query_segment = util.format('%s + "%s"', dbVal.query_segment, fieldName);
-            } else {
-              throw (buildError(
-                'model.update.invalidprependop',
-                util.format('%s datatypes does not support $prepend, use $add instead', fieldType),
-              ));
-            }
-          } else if ($remove) {
-            dbVal.query_segment = util.format('"%s" - %s', fieldName, dbVal.query_segment);
-            if (fieldType === 'map') dbVal.parameter = Object.keys(dbVal.parameter);
-          }
-        }
-
-        if ($replace) {
-          if (fieldType === 'map') {
-            updateClauses.push(util.format('"%s"[?]=%s', fieldName, dbVal.query_segment));
-            const replaceKeys = Object.keys(dbVal.parameter);
-            const replaceValues = _.values(dbVal.parameter);
-            if (replaceKeys.length === 1) {
-              queryParams.push(replaceKeys[0]);
-              queryParams.push(replaceValues[0]);
-            } else {
-              throw (
-                buildError('model.update.invalidreplaceop', '$replace in map does not support more than one item')
-              );
-            }
-          } else if (fieldType === 'list') {
-            updateClauses.push(util.format('"%s"[?]=%s', fieldName, dbVal.query_segment));
-            if (dbVal.parameter.length === 2) {
-              queryParams.push(dbVal.parameter[0]);
-              queryParams.push(dbVal.parameter[1]);
-            } else {
-              throw (buildError(
-                'model.update.invalidreplaceop',
-                '$replace in list should have exactly 2 items, first one as the index and the second one as the value',
-              ));
-            }
-          } else {
-            throw (buildError(
-              'model.update.invalidreplaceop',
-              util.format('%s datatypes does not support $replace', fieldType),
-            ));
-          }
-        } else {
-          updateClauses.push(util.format('"%s"=%s', fieldName, dbVal.query_segment));
-          queryParams.push(dbVal.parameter);
-        }
-      } else {
-        updateClauses.push(util.format('"%s"=%s', fieldName, dbVal));
-      }
+      parser.build_inplace_update_expression(schema, fieldName, fieldValue, updateClauses, queryParams);
     } catch (e) {
-      if (typeof callback === 'function') {
-        callback(e);
-        return true;
-      }
-      throw (e);
+      parser.callback_or_throw(e, callback);
+      return true;
     }
     return false;
   });
@@ -283,44 +264,19 @@ parser.build_save_value_expression = function fn(instance, schema, callback) {
     if (fieldValue === undefined) {
       fieldValue = instance._get_default_value(fieldName);
       if (fieldValue === undefined) {
-        if (schema.key.includes(fieldName) || schema.key[0].includes(fieldName)) {
-          if (typeof callback === 'function') {
-            callback(buildError('model.save.unsetkey', fieldName));
-            return true;
-          }
-          throw (buildError('model.save.unsetkey', fieldName));
-        } else if (schema.fields[fieldName].rule && schema.fields[fieldName].rule.required) {
-          if (typeof callback === 'function') {
-            callback(buildError('model.save.unsetrequired', fieldName));
-            return true;
-          }
-          throw (buildError('model.save.unsetrequired', fieldName));
-        } else return false;
+        return parser.unset_not_allowed('save', schema, fieldName, callback);
       } else if (!schema.fields[fieldName].rule || !schema.fields[fieldName].rule.ignore_default) {
         // did set a default value, ignore default is not set
         if (instance.validate(fieldName, fieldValue) !== true) {
-          if (typeof callback === 'function') {
-            callback(buildError('model.save.invaliddefaultvalue', fieldValue, fieldName, fieldType));
-            return true;
-          }
-          throw (buildError('model.save.invaliddefaultvalue', fieldValue, fieldName, fieldType));
+          parser.callback_or_throw(buildError('model.save.invaliddefaultvalue', fieldValue, fieldName, fieldType), callback);
+          return true;
         }
       }
     }
 
     if (fieldValue === null || fieldValue === cql.types.unset) {
-      if (schema.key.includes(fieldName) || schema.key[0].includes(fieldName)) {
-        if (typeof callback === 'function') {
-          callback(buildError('model.save.unsetkey', fieldName));
-          return true;
-        }
-        throw (buildError('model.save.unsetkey', fieldName));
-      } else if (schema.fields[fieldName].rule && schema.fields[fieldName].rule.required) {
-        if (typeof callback === 'function') {
-          callback(buildError('model.save.unsetrequired', fieldName));
-          return true;
-        }
-        throw (buildError('model.save.unsetrequired', fieldName));
+      if (parser.unset_not_allowed('save', schema, fieldName, callback)) {
+        return true;
       }
     }
 
@@ -335,16 +291,18 @@ parser.build_save_value_expression = function fn(instance, schema, callback) {
         values.push(dbVal);
       }
     } catch (e) {
-      if (typeof callback === 'function') {
-        callback(e);
-        return true;
-      }
-      throw (e);
+      parser.callback_or_throw(e, callback);
+      return true;
     }
     return false;
   });
 
-  return { identifiers, values, queryParams, errorHappened };
+  return {
+    identifiers,
+    values,
+    queryParams,
+    errorHappened,
+  };
 };
 
 parser.extract_query_relations = function f(fieldName, relationKey, relationValue, schema, validOperators) {
