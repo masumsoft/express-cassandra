@@ -1,6 +1,6 @@
-# Welcome to Express Cassandra
+# Overview
 
-Express-Cassandra is an advanced Cassandra ORM for NodeJS. No more hassling with raw cql queries from your nodejs web frameworks. Express-Cassandra automatically loads your models and provides you with object oriented mapping to your cassandra tables like a standard ORM. It's framework independent nature allows you to use it with many popular nodejs frameworks with ease.
+Express-Cassandra is a Cassandra ORM/ODM for NodeJS. No more hassling with raw cql queries from your nodejs web frameworks. Express-Cassandra automatically loads your models and provides you with object oriented mapping to your cassandra tables like a standard ORM/ODM. It's decoupled nature allows you to use it with many popular node frameworks without much hassle.
 
 * supports the latest cassandra 3.x releases
 * most of the bleeding edge cassandra features are supported
