@@ -66,13 +66,13 @@ const importer = {
               debug(`Streaming ${processed} rows to table: ${table}`);
               jsonfile.pause();
               Promise.all(queryPromises)
-                  .then(() => {
-                    queryPromises = [];
-                    jsonfile.resume();
-                  })
-                  .catch((err) => {
-                    reject(err);
-                  });
+                .then(() => {
+                  queryPromises = [];
+                  jsonfile.resume();
+                })
+                .catch((err) => {
+                  reject(err);
+                });
             }
           });
           jsonfile.on('error', (err) => {

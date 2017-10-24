@@ -119,9 +119,9 @@ CassandraClient.export = function f(fixtureDirectory, callback) {
 
   systemClient.connect()
     .then(() => this.getTableListAsync())
-    .then((tables) => Promise.each(tables, (table) => exporter.processTableExport(
-      systemClient, fixtureDirectory, keyspace, table,
-    )))
+    .then((tables) =>
+      Promise.each(tables, (table) =>
+        exporter.processTableExport(systemClient, fixtureDirectory, keyspace, table)))
     .then(() => systemClient.shutdown())
     .then(() => {
       debug('==================================================');
@@ -142,9 +142,9 @@ CassandraClient.import = function f(fixtureDirectory, callback) {
 
   systemClient.connect()
     .then(() => this.getTableListAsync())
-    .then((tables) => Promise.each(tables, (table) => importer.processTableImport(
-      systemClient, fixtureDirectory, keyspace, table,
-    )))
+    .then((tables) =>
+      Promise.each(tables, (table) =>
+        importer.processTableImport(systemClient, fixtureDirectory, keyspace, table)))
     .then(() => systemClient.shutdown())
     .then(() => {
       debug('==================================================');

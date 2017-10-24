@@ -10,29 +10,19 @@ const UdfBuilder = function f(client) {
 UdfBuilder.prototype = {
   validate_definition(functionName, functionDefinition) {
     if (!functionDefinition.returnType) {
-      throw (new Error(
-        util.format('No returnType defined for user defined function: %s', functionName),
-      ));
+      throw (new Error(util.format('No returnType defined for user defined function: %s', functionName)));
     }
     if (!functionDefinition.language) {
-      throw (new Error(
-        util.format('No language defined for user defined function: %s', functionName),
-      ));
+      throw (new Error(util.format('No language defined for user defined function: %s', functionName)));
     }
     if (!functionDefinition.code) {
-      throw (new Error(
-        util.format('No code defined for user defined function: %s', functionName),
-      ));
+      throw (new Error(util.format('No code defined for user defined function: %s', functionName)));
     }
     if (functionDefinition.inputs && !_.isPlainObject(functionDefinition.inputs)) {
-      throw (new Error(
-        util.format('inputs must be an object for user defined function: %s', functionName),
-      ));
+      throw (new Error(util.format('inputs must be an object for user defined function: %s', functionName)));
     }
     if (_.isArray(functionDefinition.inputs)) {
-      throw (new Error(
-        util.format('inputs must be an object, not an array for user defined function: %s', functionName),
-      ));
+      throw (new Error(util.format('inputs must be an object, not an array for user defined function: %s', functionName)));
     }
   },
 

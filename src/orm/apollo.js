@@ -143,21 +143,19 @@ Apollo.prototype = {
           return;
         }
 
-        throw (new Error(
-          util.format(
-            'User defined type "%s" already exists but does not match the udt definition. ' +
-            'Consider altering or droping the type.',
-            udtKey,
-          ),
-        ));
+        throw (new Error(util.format(
+          'User defined type "%s" already exists but does not match the udt definition. ' +
+          'Consider altering or droping the type.',
+          udtKey,
+        )));
       });
     }))
-    .then(() => {
-      callback();
-    })
-    .catch((err) => {
-      callback(err);
-    });
+      .then(() => {
+        callback();
+      })
+      .catch((err) => {
+        callback(err);
+      });
   },
 
   _assert_user_defined_functions(callback) {
@@ -221,12 +219,12 @@ Apollo.prototype = {
         udfBuilder.create_udf(udfKey, options.udfs[udfKey], udfCallback);
       });
     }))
-    .then(() => {
-      callback();
-    })
-    .catch((err) => {
-      callback(err);
-    });
+      .then(() => {
+        callback();
+      })
+      .catch((err) => {
+        callback(err);
+      });
   },
 
   _assert_user_defined_aggregates(callback) {
@@ -293,12 +291,12 @@ Apollo.prototype = {
         udaBuilder.create_uda(udaKey, options.udas[udaKey], udaCallback);
       });
     }))
-    .then(() => {
-      callback();
-    })
-    .catch((err) => {
-      callback(err);
-    });
+      .then(() => {
+        callback();
+      })
+      .catch((err) => {
+        callback(err);
+      });
   },
 
   _set_client(client) {

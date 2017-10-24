@@ -10,29 +10,19 @@ const UdaBuilder = function f(client) {
 UdaBuilder.prototype = {
   validate_definition(aggregateName, aggregateDefinition) {
     if (!aggregateDefinition.input_types) {
-      throw (new Error(
-        util.format('No input_types defined for user defined function: %s', aggregateName),
-      ));
+      throw (new Error(util.format('No input_types defined for user defined function: %s', aggregateName)));
     }
     if (!_.isArray(aggregateDefinition.input_types)) {
-      throw (new Error(
-        util.format('input_types must be an array for user defined function: %s', aggregateName),
-      ));
+      throw (new Error(util.format('input_types must be an array for user defined function: %s', aggregateName)));
     }
     if (aggregateDefinition.input_types.length < 1) {
-      throw (new Error(
-        util.format('input_types array cannot be blank for user defined function: %s', aggregateName),
-      ));
+      throw (new Error(util.format('input_types array cannot be blank for user defined function: %s', aggregateName)));
     }
     if (!aggregateDefinition.sfunc) {
-      throw (new Error(
-        util.format('No sfunc defined for user defined aggregate: %s', aggregateName),
-      ));
+      throw (new Error(util.format('No sfunc defined for user defined aggregate: %s', aggregateName)));
     }
     if (!aggregateDefinition.stype) {
-      throw (new Error(
-        util.format('No stype defined for user defined aggregate: %s', aggregateName),
-      ));
+      throw (new Error(util.format('No stype defined for user defined aggregate: %s', aggregateName)));
     }
   },
 
