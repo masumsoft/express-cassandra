@@ -195,7 +195,7 @@ module.exports = () => {
         // test auto timestamp fields
         should.exist(person.created_at);
         should.exist(person.updatedAt);
-        person.created_at.should.eql(person.updatedAt);
+        (person.updatedAt - person.created_at).should.be.lessThan(2);
         // test auto version fields
         person.__v.toString().length.should.equal(36);
         done();
@@ -513,7 +513,7 @@ module.exports = () => {
         // test auto timestamp fields
         should.exist(person.created_at);
         should.exist(person.updatedAt);
-        person.created_at.should.not.eql(person.updatedAt);
+        (person.updatedAt - person.created_at).should.be.greaterThan(1);
         // test auto version fields
         person.__v.toString().length.should.equal(36);
         done();
@@ -709,8 +709,8 @@ module.exports = () => {
           userNew.timeId.toString().length.should.equal(36);
           // test auto timestamp fields
           userNew.created_at.should.eql(previousCreatedAt);
-          userNew.updatedAt.should.not.eql(userNew.created_at);
-          userNew.updatedAt.should.not.eql(previousUpdatedAt);
+          (userNew.updatedAt - userNew.created_at).should.be.greaterThan(1);
+          (userNew.updatedAt - previousUpdatedAt).should.be.greaterThan(1);
           // test auto version fields
           userNew.__v.toString().length.should.equal(36);
           userNew.__v.should.not.eql(previousVersion);

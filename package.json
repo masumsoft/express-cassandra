@@ -6,7 +6,7 @@
     "async": "^1.5.2",
     "bluebird": "^3.4.6",
     "cassandra-driver": "^3.3.0",
-    "chai": "^3.5.0",
+    "chai": "^4.1.2",
     "check-types": "^1.4.0",
     "debug": "^2.2.0",
     "deep-diff": "^0.3.4",
