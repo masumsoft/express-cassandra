@@ -11,8 +11,8 @@ const config = {
   },
   ormOptions: {
     defaultReplicationStrategy: {
-      class: 'SimpleStrategy',
-      replication_factor: 1,
+      class: 'NetworkTopologyStrategy',
+      dc1: 1,
     },
     migration: 'alter',
     createKeyspace: true,
@@ -159,8 +159,8 @@ module.exports = () => {
         },
         ormOptions: {
           defaultReplicationStrategy: {
-            class: 'SimpleStrategy',
-            replication_factor: 1,
+            class: 'NetworkTopologyStrategy',
+            dc1: 1,
           },
           dropTableOnSchemaChange: true,
           createKeyspace: true,
