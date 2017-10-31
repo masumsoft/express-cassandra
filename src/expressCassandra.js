@@ -279,6 +279,16 @@ Object.defineProperties(CassandraClient, {
       return CassandraClient.modelInstance;
     },
   },
+  syncESIndex: {
+    get() {
+      return CassandraClient.orm.syncESIndex;
+    },
+  },
+  syncESIndexAsync: {
+    get() {
+      return Promise.promisify(CassandraClient.orm.syncESIndex);
+    },
+  },
   close: {
     get() {
       return CassandraClient.orm.close;
@@ -311,6 +321,16 @@ Object.defineProperties(CassandraClient.prototype, {
   instance: {
     get() {
       return this.modelInstance;
+    },
+  },
+  syncESIndex: {
+    get() {
+      return this.orm.syncESIndex;
+    },
+  },
+  syncESIndexAsync: {
+    get() {
+      return Promise.promisify(this.orm.syncESIndex);
     },
   },
   close: {

@@ -12,6 +12,7 @@ pages:
 - Advanced Datatypes and Operations: advanced.md
 - Datatypes and Utility Functions: datatypes.md
 - Error Message Reference: errors.md
+- Elassandra Support: elassandra.md
 - Other Notes: notes.md
 
 theme: readthedocs

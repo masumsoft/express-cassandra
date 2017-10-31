@@ -24,6 +24,7 @@
     "codeclimate-test-reporter": "^0.5.0",
     "cross-env": "^5.0.5",
     "echo-cli": "^1.0.8",
+    "elasticsearch": "^13.3.1",
     "eslint": "^4.9.0",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.8.0",

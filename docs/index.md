@@ -5,6 +5,7 @@ Express-Cassandra is a Cassandra ORM/ODM for NodeJS. No more hassling with raw c
 * supports the latest cassandra 3.x releases
 * most of the bleeding edge cassandra features are supported
 * compatible with datastax enterprise search and dse graph
+* compatible with elassandra and built in support for index management
 * full featured CRUD operations and data type validations
 * full support for collections and other advanced data types
 * support for materialized views, secondary/custom/sasi indexes

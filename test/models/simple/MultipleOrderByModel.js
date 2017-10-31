@@ -10,4 +10,7 @@ module.exports = {
     status: 'asc',
     timestamp: 'desc',
   },
+  es_index_mapping: {
+    discover: '.*',
+  },
 };

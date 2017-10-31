@@ -3,6 +3,7 @@ const util = require('util');
 const _ = require('lodash');
 const tryRequire = require('try-require');
 
+const elasticsearch = tryRequire('elasticsearch');
 const dseDriver = tryRequire('dse-driver');
 const cql = Promise.promisifyAll(dseDriver || require('cassandra-driver'));
 
@@ -15,6 +16,7 @@ const KeyspaceBuilder = require('../builders/keyspace');
 const UdtBuilder = require('../builders/udt');
 const UdfBuilder = require('../builders/udf');
 const UdaBuilder = require('../builders/uda');
+const ElassandraBuilder = require('../builders/elassandra');
 
 const DEFAULT_REPLICATION_FACTOR = 1;
 
@@ -39,6 +41,7 @@ const Apollo = function f(connection, options) {
   this._keyspace = connection.keyspace;
   this._connection = connection;
   this._client = null;
+  this._esclient = null;
 };
 
 Apollo.prototype = {
@@ -57,6 +60,46 @@ Apollo.prototype = {
     Model._set_properties(properties);
 
     return Model;
+  },
+
+  create_es_client() {
+    if (!elasticsearch) {
+      throw (new Error('Configured to use elassandra, but elasticsearch module was not found, try npm install elasticsearch'));
+    }
+
+    const contactPoints = this._connection.contactPoints;
+    const defaultHosts = [];
+    contactPoints.forEach((host) => {
+      defaultHosts.push({ host });
+    });
+
+    const esClientConfig = _.defaults(this._connection.elasticsearch, {
+      hosts: defaultHosts,
+      sniffOnStart: true,
+    });
+    this._esclient = new elasticsearch.Client(esClientConfig);
+    return this._esclient;
+  },
+
+  _assert_es_index(callback) {
+    const client = this.create_es_client();
+    const keyspaceName = this._keyspace;
+
+    this._es_builder = new ElassandraBuilder(client);
+
+    this._es_builder.check_index_exist(keyspaceName, (err, exist) => {
+      if (err) {
+        callback(err);
+        return;
+      }
+
+      if (!exist) {
+        this._es_builder.create_index(keyspaceName, callback);
+        return;
+      }
+
+      callback();
+    });
   },
 
   get_system_client() {
@@ -318,7 +361,15 @@ Apollo.prototype = {
         callback(err);
         return;
       }
-      callback(err, this);
+
+      if (this._keyspace && this._options.manageESIndex) {
+        this._assert_es_index((err1) => {
+          callback(err1, this);
+        });
+        return;
+      }
+
+      callback(null, this);
     };
 
     const onUserDefinedFunctions = function f(err) {
@@ -417,6 +468,7 @@ Apollo.prototype = {
       keyspace: this._keyspace,
       define_connection: this._define_connection,
       cql: this._client,
+      esclient: this._esclient,
       get_constructor: this.getModel.bind(this, modelName),
       init: this.init.bind(this),
       dropTableOnSchemaChange: this._options.dropTableOnSchemaChange,
@@ -432,8 +484,42 @@ Apollo.prototype = {
     return this._models[modelName] || null;
   },
 
+  syncESIndex(callback) {
+    this.orm._assert_es_index((err) => {
+      if (err) {
+        callback(err);
+        return;
+      }
+      const indexingTasks = [];
+      this.orm._es_builder.putMappingAsync = Promise.promisify(this.orm._es_builder.put_mapping);
+      Object.keys(this.orm._models).forEach((modelName) => {
+        const model = this.orm._models[modelName];
+        const modelSchema = model._properties.schema;
+        const tableName = model._properties.table_name;
+        if (modelSchema.es_index_mapping) {
+          indexingTasks.push(this.orm._es_builder.putMappingAsync(
+            this.orm._keyspace,
+            tableName,
+            modelSchema.es_index_mapping,
+          ));
+        }
+      });
+      Promise.all(indexingTasks)
+        .then(() => {
+          callback();
+        })
+        .catch((err1) => {
+          callback(err1);
+        });
+    });
+  },
+
   close(callback) {
     callback = callback || noop;
+
+    if (this.orm._esclient) {
+      this.orm._esclient.close();
+    }
 
     const clientsToShutdown = [];
     if (this.orm._client) {

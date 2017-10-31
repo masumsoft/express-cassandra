@@ -120,39 +120,41 @@ BaseModel._sync_model_definition = function f(callback) {
       return;
     }
 
-    const afterCustomIndex = (err1) => {
-      if (err1) {
-        callback(err1);
-        return;
-      }
-      // materialized view creation
-      if (modelSchema.materialized_views) {
-        tableBuilder.create_mviews(modelSchema.materialized_views, callback);
-      } else callback();
-    };
-
-    const afterDBIndex = (err1) => {
-      if (err1) {
-        callback(err1);
-        return;
-      }
-      // custom index creation
-      if (modelSchema.custom_indexes) {
-        tableBuilder.create_custom_indexes(modelSchema.custom_indexes, afterCustomIndex);
-      } else if (modelSchema.custom_index) {
-        tableBuilder.create_custom_indexes([modelSchema.custom_index], afterCustomIndex);
-      } else afterCustomIndex();
-    };
-
     const afterDBCreate = (err1) => {
       if (err1) {
         callback(err1);
         return;
       }
-      // index creation
+
+      const indexingTasks = [];
+
+      // cassandra index create if defined
       if (_.isArray(modelSchema.indexes)) {
-        tableBuilder.create_indexes(modelSchema.indexes, afterDBIndex);
-      } else afterDBIndex();
+        tableBuilder.createIndexesAsync = Promise.promisify(tableBuilder.create_indexes);
+        indexingTasks.push(tableBuilder.createIndexesAsync(modelSchema.indexes));
+      }
+      // cassandra custom index create if defined
+      if (_.isArray(modelSchema.custom_indexes)) {
+        tableBuilder.createCustomIndexesAsync = Promise.promisify(tableBuilder.create_custom_indexes);
+        indexingTasks.push(tableBuilder.createCustomIndexesAsync(modelSchema.custom_indexes));
+      }
+      if (modelSchema.custom_index) {
+        tableBuilder.createCustomIndexAsync = Promise.promisify(tableBuilder.create_custom_indexes);
+        indexingTasks.push(tableBuilder.createCustomIndexAsync([modelSchema.custom_index]));
+      }
+      // materialized view create if defined
+      if (modelSchema.materialized_views) {
+        tableBuilder.createViewsAsync = Promise.promisify(tableBuilder.create_mviews);
+        indexingTasks.push(tableBuilder.createViewsAsync(modelSchema.materialized_views));
+      }
+
+      Promise.all(indexingTasks)
+        .then(() => {
+          callback();
+        })
+        .catch((err2) => {
+          callback(err2);
+        });
     };
 
     if (!dbSchema) {
@@ -421,6 +423,10 @@ BaseModel.get_table_name = function f() {
   return this._properties.table_name;
 };
 
+BaseModel.get_keyspace_name = function f() {
+  return this._properties.keyspace;
+};
+
 BaseModel.is_table_ready = function f() {
   return this._ready === true;
 };
@@ -455,6 +461,10 @@ BaseModel.get_cql_client = function f(callback) {
     }
     callback(null, this._properties.cql);
   });
+};
+
+BaseModel.get_es_client = function f() {
+  return this._properties.esclient;
 };
 
 BaseModel.execute_query = function f(...args) {
@@ -896,6 +906,10 @@ BaseModel.prototype.get_data_types = function f() {
 
 BaseModel.prototype.get_table_name = function f() {
   return this.constructor.get_table_name();
+};
+
+BaseModel.prototype.get_keyspace_name = function f() {
+  return this.constructor.get_keyspace_name();
 };
 
 BaseModel.prototype._get_default_value = function f(fieldname) {

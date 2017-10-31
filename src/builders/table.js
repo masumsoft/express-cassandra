@@ -10,9 +10,14 @@ const schemer = require('../validators/schema');
 const parser = require('../utils/parser');
 const normalizer = require('../utils/normalizer');
 
+const ElassandraBuilder = require('./elassandra');
+
 const TableBuilder = function f(driver, properties) {
   this._driver = driver;
   this._properties = properties;
+  if (this._properties.esclient) {
+    this._es_builder = new ElassandraBuilder(this._properties.esclient);
+  }
 };
 
 TableBuilder.prototype = {
@@ -224,6 +229,18 @@ TableBuilder.prototype = {
   },
 
   drop_recreate_table(modelSchema, materializedViews, callback) {
+    if (this._es_builder) {
+      this._es_builder.delete_index(this._properties.keyspace, () => {
+        this.drop_table(materializedViews, (err1) => {
+          if (err1) {
+            callback(err1);
+            return;
+          }
+          this.create_table(modelSchema, callback);
+        });
+      });
+      return;
+    }
     this.drop_table(materializedViews, (err1) => {
       if (err1) {
         callback(err1);
@@ -645,6 +662,7 @@ TableBuilder.prototype = {
     const tableName = properties.table_name;
     const alterOperations = [];
     const differences = deepDiff(normalizedDBSchema.fields, normalizedModelSchema.fields);
+    let droppedFields = false;
     async.eachSeries(differences, (diff, next) => {
       const fieldName = diff.path[0];
       if (diff.kind === 'N') {
@@ -673,6 +691,8 @@ TableBuilder.prototype = {
           message,
           operation: 'DROP',
         });
+        droppedFields = true;
+        normalizer.remove_dependent_views_from_normalized_schema(normalizedDBSchema, dbSchema, fieldName);
         next();
         return;
       }
@@ -734,21 +754,18 @@ TableBuilder.prototype = {
               tableName,
               fieldName,
             );
-
             alterOperations.push({
               fieldName,
               message,
               operation: 'DROP',
             });
-
             alterOperations.push({
               fieldName,
               operation: 'ADD',
               type: parser.extract_altered_type(normalizedModelSchema, diff),
             });
-
+            droppedFields = true;
             normalizer.remove_dependent_views_from_normalized_schema(normalizedDBSchema, dbSchema, fieldName);
-
             next();
           }
         } else {
@@ -758,30 +775,33 @@ TableBuilder.prototype = {
             tableName,
             fieldName,
           );
-
           alterOperations.push({
             fieldName,
             message,
             operation: 'DROP',
           });
-
           alterOperations.push({
             fieldName,
             operation: 'ADD',
             type: parser.extract_altered_type(normalizedModelSchema, diff),
           });
-
+          droppedFields = true;
           normalizer.remove_dependent_views_from_normalized_schema(normalizedDBSchema, dbSchema, fieldName);
-
           next();
         }
         return;
       }
 
       next();
-    }, (err1) => {
-      if (err1) {
-        callback(err1);
+    }, (err) => {
+      if (err) {
+        callback(err);
+        return;
+      }
+      if (droppedFields && this._es_builder) {
+        this._es_builder.delete_index(properties.keyspace, () => {
+          this._apply_alter_operations(alterOperations, dbSchema, normalizedModelSchema, normalizedDBSchema, callback);
+        });
         return;
       }
       this._apply_alter_operations(alterOperations, dbSchema, normalizedModelSchema, normalizedDBSchema, callback);

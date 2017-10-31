@@ -8,6 +8,10 @@ For datastax enterprise version 5.x
 
     npm install express-cassandra dse-driver@1.2.0
 
+For elassandra version 5.5 or above
+
+    npm install express-cassandra elasticsearch
+
 For older cassandra 2.x
 
     npm install express-cassandra@0.5.4
