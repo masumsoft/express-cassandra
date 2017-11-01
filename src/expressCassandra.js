@@ -1,9 +1,15 @@
 const Promise = require('bluebird');
 const _ = require('lodash');
 const path = require('path');
-const tryRequire = require('try-require');
 
-const dseDriver = tryRequire('dse-driver');
+let dseDriver;
+try {
+  // eslint-disable-next-line import/no-extraneous-dependencies, import/no-unresolved
+  dseDriver = require('dse-driver');
+} catch (e) {
+  dseDriver = null;
+}
+
 const cql = Promise.promisifyAll(dseDriver || require('cassandra-driver'));
 
 const ORM = Promise.promisifyAll(require('./orm/apollo'));

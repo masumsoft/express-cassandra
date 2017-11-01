@@ -13,8 +13,7 @@
     "lodash": "^4.14.2",
     "object-hash": "1.1.4",
     "readdirp": "^2.1.0",
-    "readline-sync": "^1.4.4",
-    "try-require": "^1.2.1"
+    "readline-sync": "^1.4.4"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

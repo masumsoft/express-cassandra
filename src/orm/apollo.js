@@ -1,10 +1,23 @@
 const Promise = require('bluebird');
 const util = require('util');
 const _ = require('lodash');
-const tryRequire = require('try-require');
 
-const elasticsearch = tryRequire('elasticsearch');
-const dseDriver = tryRequire('dse-driver');
+let elasticsearch;
+try {
+  // eslint-disable-next-line import/no-extraneous-dependencies, import/no-unresolved
+  elasticsearch = require('elasticsearch');
+} catch (e) {
+  elasticsearch = null;
+}
+
+let dseDriver;
+try {
+  // eslint-disable-next-line import/no-extraneous-dependencies, import/no-unresolved
+  dseDriver = require('dse-driver');
+} catch (e) {
+  dseDriver = null;
+}
+
 const cql = Promise.promisifyAll(dseDriver || require('cassandra-driver'));
 
 const BaseModel = require('./base_model');
