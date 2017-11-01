@@ -381,13 +381,15 @@ parser.extract_query_relations = function f(fieldName, relationKey, relationValu
   } else if (relationKey === '$contains') {
     const fieldType1 = schemer.get_field_type(schema, fieldName);
     if (['map', 'list', 'set', 'frozen'].includes(fieldType1)) {
-      if (fieldType1 === 'map' && _.isPlainObject(relationValue) && Object.keys(relationValue).length === 1) {
-        queryRelations.push(util.format(
-          '"%s"[%s] %s %s',
-          fieldName, '?', '=', '?',
-        ));
-        queryParams.push(Object.keys(relationValue)[0]);
-        queryParams.push(relationValue[Object.keys(relationValue)[0]]);
+      if (fieldType1 === 'map' && _.isPlainObject(relationValue)) {
+        Object.keys(relationValue).forEach((key) => {
+          queryRelations.push(util.format(
+            '"%s"[%s] %s %s',
+            fieldName, '?', '=', '?',
+          ));
+          queryParams.push(key);
+          queryParams.push(relationValue[key]);
+        });
       } else {
         queryRelations.push(util.format(
           whereTemplate,
