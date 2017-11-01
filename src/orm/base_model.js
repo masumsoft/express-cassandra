@@ -771,17 +771,17 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
   query += ';';
 
   if (options.return_query) {
-    return {
+    const returnObj = {
       query,
       params: finalParams,
-      after_hook: (hookCallback) => {
+      after_hook: () => {
         if (typeof schema.after_update === 'function' && schema.after_update(queryObject, updateValues, options) === false) {
-          hookCallback(buildError('model.update.after.error'));
-          return;
+          return buildError('model.update.after.error');
         }
-        hookCallback();
+        return true;
       },
     };
+    return returnObj;
   }
 
   const queryOptions = { prepare: options.prepare };
@@ -849,17 +849,17 @@ BaseModel.delete = function f(queryObject, options, callback) {
   query = util.format(query, this._properties.table_name, where);
 
   if (options.return_query) {
-    return {
+    const returnObj = {
       query,
       params: queryParams,
-      after_hook: (hookCallback) => {
+      after_hook: () => {
         if (typeof schema.after_delete === 'function' && schema.after_delete(queryObject, options) === false) {
-          hookCallback(buildError('model.delete.after.error'));
-          return;
+          return buildError('model.delete.after.error');
         }
-        hookCallback();
+        return true;
       },
     };
+    return returnObj;
   }
 
   const queryOptions = { prepare: options.prepare };
@@ -973,17 +973,17 @@ BaseModel.prototype.save = function fn(options, callback) {
   query += ';';
 
   if (options.return_query) {
-    return {
+    const returnObj = {
       query,
       params: queryParams,
-      after_hook: (hookCallback) => {
+      after_hook: () => {
         if (typeof schema.after_save === 'function' && schema.after_save(this, options) === false) {
-          hookCallback(buildError('model.save.after.error'));
-          return;
+          return buildError('model.save.after.error');
         }
-        hookCallback();
+        return true;
       },
     };
+    return returnObj;
   }
 
   const queryOptions = { prepare: options.prepare };

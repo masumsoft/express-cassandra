@@ -1,4 +1,7 @@
+const mlog = require('mocha-logger');
 const chai = require('chai');
+const _ = require('lodash');
+const async = require('async');
 
 const models = require('../../lib/expressCassandra');
 
@@ -220,6 +223,79 @@ module.exports = (eventID) => {
         if (err) done(err);
         events.length.should.equal(0);
         done();
+      });
+    });
+  });
+
+  describe('#benchmark orm batch operations', () => {
+    it('should truncate table', function f(done) {
+      this.timeout(5000);
+      this.slow(1000);
+      models.instance.Insert.truncateAsync()
+        .then(() => {
+          done();
+        })
+        .catch((err) => {
+          done(err);
+        });
+    });
+
+    it('should insert using raw batch', function f(done) {
+      this.timeout(20000);
+      this.slow(5000);
+      let queries = [];
+      const startTime = Date.now();
+      for (let i = 0; i < 20000; i++) {
+        queries.push({
+          query: 'INSERT INTO "insert" ("UserId", "OrderTime") VALUES (?, ?)',
+          params: [(i + 1).toString(), new Date().toISOString()],
+        });
+      }
+      queries = _.chunk(queries, 30);
+      async.eachLimit(queries, 30, (chunk, chunkCallback) => {
+        models.instance.Insert.execute_batch(chunk, chunkCallback);
+      }, (err) => {
+        const rawBatchTime = Date.now() - startTime;
+        const rawBatchThroughput = (20000 * 1000) / rawBatchTime;
+        done(err);
+        mlog.log(`raw batch throughput: ${rawBatchThroughput.toFixed(1)}/s`);
+      });
+    });
+
+    it('should truncate table', function f(done) {
+      this.timeout(5000);
+      this.slow(1000);
+      models.instance.Insert.truncateAsync()
+        .then(() => {
+          done();
+        })
+        .catch((err) => {
+          done(err);
+        });
+    });
+
+    it('should insert using orm batch', function f(done) {
+      this.timeout(20000);
+      this.slow(5000);
+      let queries = [];
+      const startTime = Date.now();
+      const insert = new models.instance.Insert({
+        UserId: '0',
+        OrderTime: new Date().toISOString(),
+      });
+      for (let i = 0; i < 20000; i++) {
+        insert.UserId = (i + 1).toString();
+        insert.OrderTime = new Date().toISOString();
+        queries.push(insert.save({ return_query: true }));
+      }
+      queries = _.chunk(queries, 30);
+      async.eachLimit(queries, 30, (chunk, chunkCallback) => {
+        models.doBatch(chunk, chunkCallback);
+      }, (err) => {
+        const ormBatchTime = Date.now() - startTime;
+        const ormBatchThroughput = (20000 * 1000) / ormBatchTime;
+        done(err);
+        mlog.log(`orm batch throughput: ${ormBatchThroughput.toFixed(1)}/s`);
       });
     });
   });

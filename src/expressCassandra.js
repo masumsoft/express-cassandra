@@ -136,7 +136,18 @@ CassandraClient.export = function f(fixtureDirectory, callback) {
 
 CassandraClient.exportAsync = Promise.promisify(CassandraClient.export);
 
-CassandraClient.import = function f(fixtureDirectory, callback) {
+CassandraClient.import = function f(fixtureDirectory, options, callback) {
+  if (arguments.length === 2) {
+    callback = options;
+    options = {};
+  }
+
+  const defaults = {
+    batchSize: 1,
+  };
+
+  options = _.defaultsDeep(options, defaults);
+
   const systemClient = this.orm.get_system_client();
   const keyspace = this.orm.get_keyspace_name();
 
@@ -144,7 +155,7 @@ CassandraClient.import = function f(fixtureDirectory, callback) {
     .then(() => this.getTableListAsync())
     .then((tables) =>
       Promise.each(tables, (table) =>
-        importer.processTableImport(systemClient, fixtureDirectory, keyspace, table)))
+        importer.processTableImport(systemClient, fixtureDirectory, keyspace, table, options.batchSize)))
     .then(() => systemClient.shutdown())
     .then(() => {
       debug('==================================================');
@@ -196,38 +207,30 @@ CassandraClient.prototype.doBatch = function f(queries, options, callback) {
   options = _.defaultsDeep(options, defaults);
 
   const randomModel = this.modelInstance[Object.keys(this.modelInstance)[0]];
-  const builtQueries = [];
   const beforeHooks = [];
-  for (let i = 0; i < queries.length; i++) {
-    builtQueries.push({
-      query: queries[i].query,
-      params: queries[i].params,
-    });
-  }
 
   let batchResult;
   Promise.all(beforeHooks)
     .then(() => {
-      if (builtQueries.length > 1) {
-        return randomModel.execute_batchAsync(builtQueries, options);
+      if (queries.length > 1) {
+        return randomModel.execute_batchAsync(queries, options);
       }
-      if (builtQueries.length > 0) {
+      if (queries.length > 0) {
         debug('single query provided for batch request, applying as non batch query');
-        return randomModel.execute_queryAsync(builtQueries[0].query, builtQueries[0].params, options);
+        return randomModel.execute_queryAsync(queries[0].query, queries[0].params, options);
       }
       debug('no queries provided for batch request, empty array found, doing nothing');
       return {};
     })
     .then((response) => {
       batchResult = response;
-      const afterHooks = [];
       for (let i = 0; i < queries.length; i++) {
-        const afterHookAsync = Promise.promisify(queries[i].after_hook);
-        afterHooks.push(afterHookAsync());
+        const afterHookResponse = queries[i].after_hook();
+        if (afterHookResponse !== true) {
+          callback(afterHookResponse);
+          return;
+        }
       }
-      return Promise.all(afterHooks);
-    })
-    .then(() => {
       callback(null, batchResult);
     })
     .catch((err) => {

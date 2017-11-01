@@ -162,6 +162,12 @@ models.export(__dirname + '/fixtures', function(err){
 models.import(__dirname + '/fixtures', function(err){
 
 });
+
+// To improve import performance, you may use an optional
+// parameter: batchSize to batch the imports in chunks of queries
+models.import(__dirname + '/fixtures', { batchSize: 10 }, function(err){
+
+});
 ```
 
 ## Connecting to Cassandra Using Authentication
