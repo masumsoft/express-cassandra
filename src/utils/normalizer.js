@@ -7,7 +7,7 @@ const arraySort = (a, b) => {
   return 0;
 };
 
-const normalizeTypeDef = (typeDef) => typeDef.replace(/[\s]/g, '').replace(/varchar/g, 'text');
+const normalizeTypeDef = (typeDef) => typeDef.replace(/[\s]/g, '').replace(/varchar/g, 'text').replace(/frozen/ig, 'frozen');
 
 const normalizer = {
   normalize_replication_option(replicationOptions) {
