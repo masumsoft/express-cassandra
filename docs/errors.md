@@ -18,6 +18,7 @@ The errors generated from express-cassandra uses the base error class defined by
 | apollo.model.validator.invalidvalue        | invalid data value for model field                     |
 | apollo.model.tablecreation.invalidname     | invalid cassandra table name                           |
 | apollo.model.tablecreation.dbschemaquery   | error while retrieving table schema for cassandra      |
+| apollo.model.tablecreation.schemanotfound  | cassandra table for model schema does not exist        |
 | apollo.model.tablecreation.schemamismatch  | model schema does not match the cassandra table        |
 | apollo.model.tablecreation.dbcreate        | error while creating cassandra table                   |
 | apollo.model.tablecreation.dbalter         | error while altering cassandra table                   |

@@ -40,8 +40,7 @@ models.setDirectory( __dirname + '/models').bind(
                 class: 'SimpleStrategy',
                 replication_factor: 1
             },
-            migration: 'safe',
-            createKeyspace: true
+            migration: 'safe'
         }
     },
     function(err) {
@@ -74,7 +73,6 @@ var models = ExpressCassandra.createClient({
             replication_factor: 1
         },
         migration: 'safe',
-        createKeyspace: true
     }
 });
 
@@ -138,7 +136,9 @@ inadvertent deletion of your data.
 
 Note that some environments might not support tty console, so asking the user for confirmation in the terminal may throw errors. If you face such problems or want to automate the migration process in a dev/staging environment then you can set the property `disableTTYConfirmation: true` in the ormOptions. This will do the migrations without asking for a confirmation from the user.
 
-The `createKeyspace` is a boolean representing whether the keyspace should be created automatically if it does not exist. If `createKeyspace: false`, then it won't be checked whether the specified keyspace exists and, if not, it won't get created automatically.
+The keyspace is created automatically if it does not exist. If you don't want express-cassandra to create the keyspace for you then set `createKeyspace: false` in ormOptions. It will fire an error if no keyspace with the given name was found.
+
+When express-cassandra syncs your model schema with cassandra, it creates a new table if the table does not exist already. If you don't want express-cassandra to create the new table for you, then set `createTable: false` in ormOptions. It will fire an error if no table with the given schema table name was found.
 
 
 ## Important Note on Migrations Support

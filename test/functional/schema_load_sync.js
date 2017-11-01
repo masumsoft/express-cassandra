@@ -15,7 +15,6 @@ const config = {
       dc1: 1,
     },
     migration: 'alter',
-    createKeyspace: true,
     manageESIndex: true,
     disableTTYConfirmation: true,
     udts: {
@@ -165,7 +164,7 @@ module.exports = () => {
             dc1: 1,
           },
           dropTableOnSchemaChange: true,
-          createKeyspace: true,
+          createKeyspace: false,
         },
       });
 

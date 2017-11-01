@@ -31,6 +31,9 @@ const AERROR_TYPES = {
   'model.tablecreation.schemamismatch': {
     msg: 'Given Schema does not match existing DB Table "%s"\n%s',
   },
+  'model.tablecreation.schemanotfound': {
+    msg: 'No DB Table was found for Given Schema -> %s',
+  },
   'model.tablecreation.dbcreate': {
     msg: 'Error while creating DB Table -> %s',
   },

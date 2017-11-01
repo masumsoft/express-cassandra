@@ -106,14 +106,13 @@ BaseModel._sync_model_definition = function f(callback) {
   const properties = this._properties;
   const tableName = properties.table_name;
   const modelSchema = properties.schema;
-  const dropTableOnSchemaChange = properties.dropTableOnSchemaChange;
   let migration = properties.migration;
 
   const tableBuilder = new TableBuilder(this._driver, this._properties);
 
   // backwards compatible change, dropTableOnSchemaChange will work like migration: 'drop'
   if (!migration) {
-    if (dropTableOnSchemaChange) migration = 'drop';
+    if (properties.dropTableOnSchemaChange) migration = 'drop';
     else migration = 'safe';
   }
   // always safe migrate if NODE_ENV==='production'
@@ -164,6 +163,10 @@ BaseModel._sync_model_definition = function f(callback) {
     };
 
     if (!dbSchema) {
+      if (properties.createTable === false) {
+        callback(buildError('model.tablecreation.schemanotfound', tableName));
+        return;
+      }
       // if not existing, it's created
       tableBuilder.create_table(modelSchema, afterDBCreate);
       return;

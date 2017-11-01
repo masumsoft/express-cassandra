@@ -12,7 +12,6 @@ If you are a user of [elassandra](https://github.com/strapdata/elassandra), then
     ormOptions: {
         // omitted other options for clarity
         migration: 'alter',
-        createKeyspace: true,
         manageESIndex: true,
     }
 }
@@ -74,7 +73,6 @@ models.setDirectory( __dirname + '/models').bind(
         ormOptions: {
             // omitted other options for clarity
             migration: 'alter',
-            createKeyspace: true,
             manageESIndex: true,
         }
     },

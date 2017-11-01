@@ -422,7 +422,7 @@ Apollo.prototype = {
       }
     };
 
-    if (this._keyspace && this._options.createKeyspace) {
+    if (this._keyspace && this._options.createKeyspace !== false) {
       this._assert_keyspace(onKeyspace.bind(this));
     } else {
       onKeyspace.call(this);
@@ -485,6 +485,7 @@ Apollo.prototype = {
       get_constructor: this.getModel.bind(this, modelName),
       init: this.init.bind(this),
       dropTableOnSchemaChange: this._options.dropTableOnSchemaChange,
+      createTable: this._options.createTable,
       migration: this._options.migration,
       disableTTYConfirmation: this._options.disableTTYConfirmation,
     };
