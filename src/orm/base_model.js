@@ -628,6 +628,21 @@ BaseModel.stream = function f(queryObject, options, onReadable, callback) {
   });
 };
 
+BaseModel.search = function f(queryObject, callback) {
+  const esClient = this._properties.esclient;
+  const query = _.defaults(queryObject, {
+    index: this._properties.keyspace,
+    type: this._properties.table_name,
+  });
+  esClient.search(query, (err, response) => {
+    if (err) {
+      callback(err);
+      return;
+    }
+    callback(null, response);
+  });
+};
+
 BaseModel.find = function f(queryObject, options, callback) {
   if (arguments.length === 2 && typeof options === 'function') {
     callback = options;

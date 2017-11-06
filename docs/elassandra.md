@@ -17,6 +17,28 @@ If you are a user of [elassandra](https://github.com/strapdata/elassandra), then
 }
 ```
 
+Note that you can optionally provide connection options for elasticsearch in the clientOptions like the following. If omitted, then the cassandra `contactPoints` are used as default host addresses with `sniffOnStart: true` as default configuration for elasticsearch client.
+
+```
+{
+    clientOptions: {
+        // omitted other options for clarity
+        elasticsearch: {
+            host: 'http://localhost:9200',
+            apiVersion: '5.5',
+            sniffOnStart: true,
+        }
+    },
+    ormOptions: {
+        // omitted other options for clarity
+        migration: 'alter',
+        manageESIndex: true,
+    }
+}
+```
+
+Note that any config option [elasticsearch js client](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/configuration.html) supports can be used in the above elasticsearch configuration block.
+
 ## Define Elasticsearch Mapping for a Table Schema:
 
 To keep all your cassandra table fields synced into the elasticsearch index, use the `discover` option from elassandra like the following schema for an example `User` model:
@@ -27,6 +49,7 @@ module.exports = {
   fields: {
     id: 'varchar',
     name: 'text',
+    score: 'int'
   },
   key: ['id'],
   es_index_mapping: {
@@ -43,6 +66,7 @@ module.exports = {
   fields: {
     id: 'varchar',
     name: 'text',
+    score: 'int'
   },
   key: ['id'],
   es_index_mapping: {
@@ -93,17 +117,52 @@ Make sure to call `syncESIndex` after all your models are loaded and synced to d
 
 ## Search Elasticsearch Index Mapping for the Table:
 
-You can now use the `get_es_client` function to get the elasticsearch client instance and do any operations that the [elasticsearch js client](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/api-reference.html) supports. For example you can search for a user by his name using elasticsearch client:
+You can now use the `search` method to do an elasticsearch query like the following:
 
 ```
-const esClient = models.instance.User.get_es_client();
-esClient.search({
-    index: models.instance.User.get_keyspace_name(),
-    type: models.instance.User.get_table_name(),
-    q: 'first_name:John',
+models.instance.User.search({
+    q: 'name:John',
 }, (err, response) => {
     if (err) throw err;
 
     console.log(response);
+});
+```
+
+You could also use the optional `from` and `size` parameters to paginate, `sort` parameter to sort and provide the `body` parameter to use elasticsearch query dsl:
+
+```
+var pageNum = 2;
+var perPage = 30;
+
+models.instance.User.search({
+    from: (pageNum - 1) * perPage,
+    size: perPage,
+    sort: ['score:desc'],
+    body: {
+        query: {
+            match: {
+                name: 'john'
+            }
+        }
+    }
+}, (err, response) => {
+    if (err) throw err;
+
+    console.log(response);
+});
+```
+
+You could also use the `get_es_client` method to get the elasticsearch client instance and do any operations that the [elasticsearch js client](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/api-reference.html) supports. For example you could count the total number of users like the following:
+
+```
+const esClient = models.instance.User.get_es_client();
+esClient.count({
+    index: models.instance.User.get_keyspace_name(),
+    type: models.instance.User.get_table_name(),
+}, (err, response) => {
+    if (err) throw err;
+
+    console.log(response.count);
 });
 ```
