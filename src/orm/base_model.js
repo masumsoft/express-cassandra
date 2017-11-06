@@ -500,6 +500,9 @@ BaseModel.get_cql_client = function f(callback) {
 };
 
 BaseModel.get_es_client = function f() {
+  if (!this._properties.esclient) {
+    throw (new Error('To use elassandra features, set `manageESIndex` to true in ormOptions'));
+  }
   return this._properties.esclient;
 };
 
@@ -656,7 +659,7 @@ BaseModel.stream = function f(queryObject, options, onReadable, callback) {
 };
 
 BaseModel.search = function f(queryObject, callback) {
-  const esClient = this._properties.esclient;
+  const esClient = this.get_es_client();
   const query = _.defaults(queryObject, {
     index: this._properties.keyspace,
     type: this._properties.table_name,
