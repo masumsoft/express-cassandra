@@ -84,37 +84,6 @@ module.exports = {
 Elassandra [mapping docs](http://elassandra.readthedocs.io/en/latest/mapping.html) contain details about possible mapping parameters and customizations that can be defined here.
 
 
-## Sync the Model Mappings to Elassandra Index:
-
-After all your model schema are synced to db, use the `models.syncESIndex()` function to sync all the elassandra indexes from your cassandra model schema definitions.
-
-```
-models.setDirectory( __dirname + '/models').bind(
-    {
-        clientOptions: {
-            // omitted other options for clarity
-        },
-        ormOptions: {
-            // omitted other options for clarity
-            migration: 'alter',
-            manageESIndex: true,
-        }
-    },
-    function(err) {
-        if(err) throw err;
-
-        models.syncESIndex(function (err){
-            if(err) throw err;
-
-            // now all the elassandra index mappings are created / synced
-        });
-    }
-);
-```
-
-Make sure to call `syncESIndex` after all your models are loaded and synced to db, otherwise, you'll recieve errors.
-
-
 ## Search Elasticsearch Index Mapping for the Table:
 
 You can now use the `search` method to do an elasticsearch query like the following:

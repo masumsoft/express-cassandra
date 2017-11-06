@@ -36,6 +36,22 @@ ElassandraBuilder.prototype = {
     });
   },
 
+  assert_index(indexName, callback) {
+    this.check_index_exist(indexName, (err, exist) => {
+      if (err) {
+        callback(err);
+        return;
+      }
+
+      if (!exist) {
+        this.create_index(indexName, callback);
+        return;
+      }
+
+      callback();
+    });
+  },
+
   delete_index(indexName, callback) {
     debug('removing elassandra index: %s', indexName);
     this._client.indices.delete({

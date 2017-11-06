@@ -138,7 +138,6 @@ module.exports = () => {
       this.timeout(20000);
       this.slow(10000);
       models.setDirectory(path.join(__dirname, '../models')).bindAsync(config)
-        .then(() => models.syncESIndexAsync())
         .then(() => {
           done();
         })

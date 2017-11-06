@@ -18,6 +18,7 @@ const normalizer = require('../utils/normalizer');
 const parser = require('../utils/parser');
 
 const TableBuilder = require('../builders/table');
+const ElassandraBuilder = require('../builders/elassandra');
 const Driver = require('../helpers/driver');
 
 const BaseModel = function f(instanceValues) {
@@ -207,6 +208,25 @@ BaseModel._sync_model_definition = function f(callback) {
       callback(buildError('model.tablecreation.schemamismatch', tableName, 'migration suspended, please apply the change manually'));
     }
   });
+};
+
+BaseModel._sync_es_index = function f(callback) {
+  const properties = this._properties;
+
+  if (properties.esclient && properties.schema.es_index_mapping) {
+    const indexName = properties.keyspace;
+    const mappingName = properties.table_name;
+    const elassandraBuilder = new ElassandraBuilder(properties.esclient);
+    elassandraBuilder.assert_index(indexName, (err) => {
+      if (err) {
+        callback(err);
+        return;
+      }
+      elassandraBuilder.put_mapping(indexName, mappingName, properties.schema.es_index_mapping, callback);
+    });
+    return;
+  }
+  callback();
 };
 
 BaseModel._execute_table_query = function f(query, params, options, callback) {
@@ -457,8 +477,15 @@ BaseModel.syncDB = function f(callback) {
       return;
     }
 
-    this._ready = true;
-    callback(null, result);
+    this._sync_es_index((err1) => {
+      if (err1) {
+        callback(err1);
+        return;
+      }
+
+      this._ready = true;
+      callback(null, result);
+    });
   });
 };
 

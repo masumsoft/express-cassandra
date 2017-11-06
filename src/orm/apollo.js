@@ -95,24 +95,11 @@ Apollo.prototype = {
   },
 
   _assert_es_index(callback) {
-    const client = this.create_es_client();
-    const keyspaceName = this._keyspace;
+    const esClient = this.create_es_client();
+    const indexName = this._keyspace;
 
-    this._es_builder = new ElassandraBuilder(client);
-
-    this._es_builder.check_index_exist(keyspaceName, (err, exist) => {
-      if (err) {
-        callback(err);
-        return;
-      }
-
-      if (!exist) {
-        this._es_builder.create_index(keyspaceName, callback);
-        return;
-      }
-
-      callback();
-    });
+    const elassandraBuilder = new ElassandraBuilder(esClient);
+    elassandraBuilder.assert_index(indexName, callback);
   },
 
   get_system_client() {
@@ -375,14 +362,18 @@ Apollo.prototype = {
         return;
       }
 
+      const managementTasks = [];
       if (this._keyspace && this._options.manageESIndex) {
-        this._assert_es_index((err1) => {
-          callback(err1, this);
-        });
-        return;
+        this.assertESIndexAsync = Promise.promisify(this._assert_es_index);
+        managementTasks.push(this.assertESIndexAsync());
       }
-
-      callback(null, this);
+      Promise.all(managementTasks)
+        .then(() => {
+          callback(null, this);
+        })
+        .catch((err1) => {
+          callback(err1);
+        });
     };
 
     const onUserDefinedFunctions = function f(err) {
@@ -496,36 +487,6 @@ Apollo.prototype = {
 
   getModel(modelName) {
     return this._models[modelName] || null;
-  },
-
-  syncESIndex(callback) {
-    this.orm._assert_es_index((err) => {
-      if (err) {
-        callback(err);
-        return;
-      }
-      const indexingTasks = [];
-      this.orm._es_builder.putMappingAsync = Promise.promisify(this.orm._es_builder.put_mapping);
-      Object.keys(this.orm._models).forEach((modelName) => {
-        const model = this.orm._models[modelName];
-        const modelSchema = model._properties.schema;
-        const tableName = model._properties.table_name;
-        if (modelSchema.es_index_mapping) {
-          indexingTasks.push(this.orm._es_builder.putMappingAsync(
-            this.orm._keyspace,
-            tableName,
-            modelSchema.es_index_mapping,
-          ));
-        }
-      });
-      Promise.all(indexingTasks)
-        .then(() => {
-          callback();
-        })
-        .catch((err1) => {
-          callback(err1);
-        });
-    });
   },
 
   close(callback) {
