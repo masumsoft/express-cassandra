@@ -20,6 +20,7 @@ module.exports = () => {
     });
   });
 
+  /*
   describe('#find using $expr query on custom index', () => {
     it('should wait for 3 seconds while lucene index builds', function f(done) {
       this.timeout(5000);
@@ -65,4 +66,5 @@ module.exports = () => {
       });
     });
   });
+  */
 };

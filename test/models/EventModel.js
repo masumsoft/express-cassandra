@@ -34,6 +34,7 @@ module.exports = {
       using: 'org.apache.cassandra.index.sasi.SASIIndex',
       options: {},
     },
+    /*
     {
       on: 'lucene',
       using: 'com.stratio.cassandra.lucene.Index',
@@ -49,6 +50,7 @@ module.exports = {
         '}',
       },
     },
+    */
   ],
 };
 
