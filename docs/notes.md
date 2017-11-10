@@ -18,7 +18,7 @@ To get the cassandra table name for your model instance, you can use the `get_ta
 
 models.instance.Person.get_table_name(); // returns 'person'
 
-models.instance.Person.findOne({ name: 'alex' }, (err, alex) => {
+models.instance.Person.findOne({ name: 'alex' }, function(err, alex) {
     alex.get_table_name(); // returns 'person'
 });
 

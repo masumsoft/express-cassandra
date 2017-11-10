@@ -92,7 +92,7 @@ console.log(models.instance.Person === MyModel);
 // sync the schema definition with the cassandra database table
 // if the schema has not changed, the callback will fire immediately
 // otherwise express-cassandra will try to migrate the schema and fire the callback afterwards
-MyModel.syncDB((err) => {
+MyModel.syncDB(function(err) {
     if (err) throw err;
 });
 ```

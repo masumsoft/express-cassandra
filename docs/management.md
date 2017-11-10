@@ -195,13 +195,14 @@ john.save(function(err){
     john.isModified(); // Returns false
 });
 
-var jane = models.instance.Person.findOne({name: 'Jane'}, (err, jane) => {
-  if(err) throw err;
-  if(jane){
+var jane = models.instance.Person.findOne({name: 'Jane'}, function(err, jane) {
+  if (err) throw err;
+
+  if (jane) {
     jane.isModified('surname'); // Returns false
     jane.surname = 'Smith';
     jane.isModified('surname'); // Returns true
-    jane.save((err) => {
+    jane.save(function(err) {
         if(err) console.log(err);
         jane.isModified('surname'); // Returns false
     });

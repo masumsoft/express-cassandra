@@ -48,7 +48,7 @@ module.exports = {
     table_name: "my_custom_table_name",
     methods: {
         setPassword: function (password, callback) {
-          crypto.pbkdf2Sync('secret', 'salt', 100000, 512, 'sha512', (err, hashed) => {
+          crypto.pbkdf2Sync('secret', 'salt', 100000, 512, 'sha512', function(err, hashed) {
             if (err) { return callback(err); }
             this.password_hash = hashed;
             return callback();

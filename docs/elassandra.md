@@ -91,7 +91,7 @@ You can now use the `search` method to do an elasticsearch query like the follow
 ```
 models.instance.User.search({
     q: 'name:John',
-}, (err, response) => {
+}, function(err, response) {
     if (err) throw err;
 
     console.log(response);
@@ -115,7 +115,7 @@ models.instance.User.search({
             }
         }
     }
-}, (err, response) => {
+}, function(err, response) {
     if (err) throw err;
 
     console.log(response);
@@ -129,7 +129,7 @@ const esClient = models.instance.User.get_es_client();
 esClient.count({
     index: models.instance.User.get_keyspace_name(),
     type: models.instance.User.get_table_name(),
-}, (err, response) => {
+}, function(err, response) {
     if (err) throw err;
 
     console.log(response.count);
