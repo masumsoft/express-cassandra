@@ -16,6 +16,7 @@ const config = {
     },
     migration: 'alter',
     manageESIndex: true,
+    manageGraphs: true,
     disableTTYConfirmation: true,
     udts: {
       phone: {
@@ -135,8 +136,8 @@ const config = {
 module.exports = () => {
   describe('#modelsync', () => {
     it('should connect and sync with db without errors', function f(done) {
-      this.timeout(20000);
-      this.slow(10000);
+      this.timeout(90000);
+      this.slow(30000);
       models.setDirectory(path.join(__dirname, '../models')).bindAsync(config)
         .then(() => {
           done();

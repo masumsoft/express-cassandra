@@ -13,6 +13,7 @@ pages:
 - Datatypes and Utility Functions: datatypes.md
 - Error Message Reference: errors.md
 - Elassandra Support: elassandra.md
+- JanusGraph Support: janusgraph.md
 - Other Notes: notes.md
 
 theme: readthedocs

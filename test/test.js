@@ -9,6 +9,7 @@ const testMaterializedViews = require('./functional/materialized_views');
 const testOrmBatches = require('./functional/orm_batch_operations');
 const testFixtures = require('./functional/fixture_import_export');
 const testElassandra = require('./functional/elassandra_operations');
+const testJanusGraph = require('./functional/janusgraph_operations');
 const testCloseConnections = require('./functional/close_connections');
 
 const eventID = models.timeuuid();
@@ -24,5 +25,6 @@ describe('Functional Tests', () => {
   testOrmBatches(eventID);
   testFixtures();
   testElassandra();
+  testJanusGraph();
   testCloseConnections();
 });

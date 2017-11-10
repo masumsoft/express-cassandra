@@ -67,7 +67,7 @@ parser.extract_altered_type = function f(normalizedModelSchema, diff) {
   return type;
 };
 
-parser.build_db_value_expression = function f(schema, fieldName, fieldValue) {
+parser.get_db_value_expression = function f(schema, fieldName, fieldValue) {
   if (fieldValue == null || fieldValue === cql.types.unset) {
     return { query_segment: '?', parameter: fieldValue };
   }
@@ -81,7 +81,7 @@ parser.build_db_value_expression = function f(schema, fieldName, fieldValue) {
 
   if (_.isArray(fieldValue) && fieldType !== 'list' && fieldType !== 'set' && fieldType !== 'frozen') {
     const val = fieldValue.map((v) => {
-      const dbVal = parser.build_db_value_expression(schema, fieldName, v);
+      const dbVal = parser.get_db_value_expression(schema, fieldName, v);
 
       if (_.isPlainObject(dbVal) && dbVal.query_segment) return dbVal.parameter;
       return dbVal;
@@ -118,7 +118,7 @@ parser.unset_not_allowed = function f(operation, schema, fieldName, callback) {
   return false;
 };
 
-parser.build_inplace_update_expression = function f(schema, fieldName, fieldValue, updateClauses, queryParams) {
+parser.get_inplace_update_expression = function f(schema, fieldName, fieldValue, updateClauses, queryParams) {
   const $add = (_.isPlainObject(fieldValue) && fieldValue.$add) || false;
   const $append = (_.isPlainObject(fieldValue) && fieldValue.$append) || false;
   const $prepend = (_.isPlainObject(fieldValue) && fieldValue.$prepend) || false;
@@ -127,7 +127,7 @@ parser.build_inplace_update_expression = function f(schema, fieldName, fieldValu
 
   fieldValue = $add || $append || $prepend || $replace || $remove || fieldValue;
 
-  const dbVal = parser.build_db_value_expression(schema, fieldName, fieldValue);
+  const dbVal = parser.get_db_value_expression(schema, fieldName, fieldValue);
 
   if (!_.isPlainObject(dbVal) || !dbVal.query_segment) {
     updateClauses.push(util.format('"%s"=%s', fieldName, dbVal));
@@ -190,7 +190,7 @@ parser.build_inplace_update_expression = function f(schema, fieldName, fieldValu
   }
 };
 
-parser.build_update_value_expression = function f(instance, schema, updateValues, callback) {
+parser.get_update_value_expression = function f(instance, schema, updateValues, callback) {
   const updateClauses = [];
   const queryParams = [];
 
@@ -232,7 +232,7 @@ parser.build_update_value_expression = function f(instance, schema, updateValues
     }
 
     try {
-      parser.build_inplace_update_expression(schema, fieldName, fieldValue, updateClauses, queryParams);
+      parser.get_inplace_update_expression(schema, fieldName, fieldValue, updateClauses, queryParams);
     } catch (e) {
       parser.callback_or_throw(e, callback);
       return true;
@@ -243,7 +243,7 @@ parser.build_update_value_expression = function f(instance, schema, updateValues
   return { updateClauses, queryParams, errorHappened };
 };
 
-parser.build_save_value_expression = function fn(instance, schema, callback) {
+parser.get_save_value_expression = function fn(instance, schema, callback) {
   const identifiers = [];
   const values = [];
   const queryParams = [];
@@ -289,7 +289,7 @@ parser.build_save_value_expression = function fn(instance, schema, callback) {
     identifiers.push(util.format('"%s"', fieldName));
 
     try {
-      const dbVal = parser.build_db_value_expression(schema, fieldName, fieldValue);
+      const dbVal = parser.get_db_value_expression(schema, fieldName, fieldValue);
       if (_.isPlainObject(dbVal) && dbVal.query_segment) {
         values.push(dbVal.query_segment);
         queryParams.push(dbVal.parameter);
@@ -331,7 +331,7 @@ parser.extract_query_relations = function f(fieldName, relationKey, relationValu
   let whereTemplate = '"%s" %s %s';
 
   const buildQueryRelations = (fieldNameLocal, relationValueLocal) => {
-    const dbVal = parser.build_db_value_expression(schema, fieldNameLocal, relationValueLocal);
+    const dbVal = parser.get_db_value_expression(schema, fieldNameLocal, relationValueLocal);
     if (_.isPlainObject(dbVal) && dbVal.query_segment) {
       queryRelations.push(util.format(
         whereTemplate,
@@ -358,7 +358,7 @@ parser.extract_query_relations = function f(fieldName, relationKey, relationValu
       const tokenKeys = fieldName.split(',');
       for (let tokenIndex = 0; tokenIndex < tokenRelationValue.length; tokenIndex++) {
         tokenKeys[tokenIndex] = tokenKeys[tokenIndex].trim();
-        const dbVal = parser.build_db_value_expression(schema, tokenKeys[tokenIndex], tokenRelationValue[tokenIndex]);
+        const dbVal = parser.get_db_value_expression(schema, tokenKeys[tokenIndex], tokenRelationValue[tokenIndex]);
         if (_.isPlainObject(dbVal) && dbVal.query_segment) {
           tokenRelationValue[tokenIndex] = dbVal.query_segment;
           queryParams.push(dbVal.parameter);
@@ -420,6 +420,187 @@ parser.extract_query_relations = function f(fieldName, relationKey, relationValu
     buildQueryRelations(fieldName, relationValue);
   }
   return { queryRelations, queryParams };
+};
+
+parser._parse_query_object = function f(schema, queryObject) {
+  let queryRelations = [];
+  let queryParams = [];
+
+  Object.keys(queryObject).forEach((fieldName) => {
+    if (fieldName.startsWith('$')) {
+      // search queries based on lucene index or solr
+      // escape all single quotes for queries in cassandra
+      if (fieldName === '$expr') {
+        if (typeof queryObject[fieldName].index === 'string' && typeof queryObject[fieldName].query === 'string') {
+          queryRelations.push(util.format(
+            "expr(%s,'%s')",
+            queryObject[fieldName].index, queryObject[fieldName].query.replace(/'/g, "''"),
+          ));
+        } else {
+          throw (buildError('model.find.invalidexpr'));
+        }
+      } else if (fieldName === '$solr_query') {
+        if (typeof queryObject[fieldName] === 'string') {
+          queryRelations.push(util.format(
+            "solr_query='%s'",
+            queryObject[fieldName].replace(/'/g, "''"),
+          ));
+        } else {
+          throw (buildError('model.find.invalidsolrquery'));
+        }
+      }
+      return;
+    }
+
+    let whereObject = queryObject[fieldName];
+    // Array of operators
+    if (!_.isArray(whereObject)) whereObject = [whereObject];
+
+    for (let fk = 0; fk < whereObject.length; fk++) {
+      let fieldRelation = whereObject[fk];
+
+      const cqlOperators = {
+        $eq: '=',
+        $ne: '!=',
+        $gt: '>',
+        $lt: '<',
+        $gte: '>=',
+        $lte: '<=',
+        $in: 'IN',
+        $like: 'LIKE',
+        $token: 'token',
+        $contains: 'CONTAINS',
+        $contains_key: 'CONTAINS KEY',
+      };
+
+      if (_.isPlainObject(fieldRelation)) {
+        const validKeys = Object.keys(cqlOperators);
+        const fieldRelationKeys = Object.keys(fieldRelation);
+        for (let i = 0; i < fieldRelationKeys.length; i++) {
+          if (!validKeys.includes(fieldRelationKeys[i])) {
+            // field relation key invalid, apply default $eq operator
+            fieldRelation = { $eq: fieldRelation };
+            break;
+          }
+        }
+      } else {
+        fieldRelation = { $eq: fieldRelation };
+      }
+
+      const relationKeys = Object.keys(fieldRelation);
+      for (let rk = 0; rk < relationKeys.length; rk++) {
+        const relationKey = relationKeys[rk];
+        const relationValue = fieldRelation[relationKey];
+        const extractedRelations = parser.extract_query_relations(
+          fieldName,
+          relationKey,
+          relationValue,
+          schema,
+          cqlOperators,
+        );
+        queryRelations = queryRelations.concat(extractedRelations.queryRelations);
+        queryParams = queryParams.concat(extractedRelations.queryParams);
+      }
+    }
+  });
+
+  return { queryRelations, queryParams };
+};
+
+parser.get_where_clause = function f(schema, queryObject) {
+  const parsedObject = parser._parse_query_object(schema, queryObject);
+  const whereClause = {};
+  if (parsedObject.queryRelations.length > 0) {
+    whereClause.query = util.format('WHERE %s', parsedObject.queryRelations.join(' AND '));
+  } else {
+    whereClause.query = '';
+  }
+  whereClause.params = parsedObject.queryParams;
+  return whereClause;
+};
+
+parser.get_if_clause = function f(schema, queryObject) {
+  const parsedObject = parser._parse_query_object(schema, queryObject);
+  const ifClause = {};
+  if (parsedObject.queryRelations.length > 0) {
+    ifClause.query = util.format('IF %s', parsedObject.queryRelations.join(' AND '));
+  } else {
+    ifClause.query = '';
+  }
+  ifClause.params = parsedObject.queryParams;
+  return ifClause;
+};
+
+parser.get_orderby_clause = function f(queryObject) {
+  const orderKeys = [];
+  Object.keys(queryObject).forEach((k) => {
+    const queryItem = queryObject[k];
+    if (k.toLowerCase() === '$orderby') {
+      if (!(queryItem instanceof Object)) {
+        throw (buildError('model.find.invalidorder'));
+      }
+      const orderItemKeys = Object.keys(queryItem);
+
+      for (let i = 0; i < orderItemKeys.length; i++) {
+        const cqlOrderDirection = { $asc: 'ASC', $desc: 'DESC' };
+        if (orderItemKeys[i].toLowerCase() in cqlOrderDirection) {
+          let orderFields = queryItem[orderItemKeys[i]];
+
+          if (!_.isArray(orderFields)) {
+            orderFields = [orderFields];
+          }
+
+          for (let j = 0; j < orderFields.length; j++) {
+            orderKeys.push(util.format(
+              '"%s" %s',
+              orderFields[j], cqlOrderDirection[orderItemKeys[i]],
+            ));
+          }
+        } else {
+          throw (buildError('model.find.invalidordertype', orderItemKeys[i]));
+        }
+      }
+    }
+  });
+  return orderKeys.length ? util.format('ORDER BY %s', orderKeys.join(', ')) : ' ';
+};
+
+parser.get_limit_clause = function f(queryObject) {
+  let limit = null;
+  Object.keys(queryObject).forEach((k) => {
+    const queryItem = queryObject[k];
+    if (k.toLowerCase() === '$limit') {
+      if (typeof queryItem !== 'number') throw (buildError('model.find.limittype'));
+      limit = queryItem;
+    }
+  });
+  return limit ? util.format('LIMIT %s', limit) : ' ';
+};
+
+parser.get_select_clause = function f(options) {
+  let selectClause = '*';
+  if (options.select && _.isArray(options.select) && options.select.length > 0) {
+    const selectArray = [];
+    for (let i = 0; i < options.select.length; i++) {
+      // separate the aggregate function and the column name if select is an aggregate function
+      const selection = options.select[i].split(/[( )]/g).filter((e) => (e));
+      if (selection.length === 1) {
+        selectArray.push(util.format('"%s"', selection[0]));
+      } else if (selection.length === 2 || selection.length === 4) {
+        let functionClause = util.format('%s("%s")', selection[0], selection[1]);
+        if (selection[2]) functionClause += util.format(' %s', selection[2]);
+        if (selection[3]) functionClause += util.format(' %s', selection[3]);
+
+        selectArray.push(functionClause);
+      } else if (selection.length === 3) {
+        selectArray.push(util.format('"%s" %s %s', selection[0], selection[1], selection[2]));
+      } else {
+        selectArray.push('*');
+      }
+    }
+    selectClause = selectArray.join(',');
+  }
+  return selectClause;
 };
 
 module.exports = parser;

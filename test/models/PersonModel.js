@@ -129,6 +129,60 @@ module.exports = {
       key: [['userID', 'age'], 'active'],
     },
   },
+  graph_mapping: {
+    relations: {
+      follow: 'MULTI',
+      mother: 'MANY2ONE',
+    },
+    properties: {
+      userId: {
+        type: 'Integer',
+        cardinality: 'SINGLE',
+      },
+      name: {
+        type: 'String',
+        cardinality: 'SINGLE',
+      },
+      age: {
+        type: 'Integer',
+        cardinality: 'SINGLE',
+      },
+      followedAt: {
+        type: 'Long',
+        cardinality: 'SINGLE',
+      },
+    },
+    indexes: {
+      byUserIdComposite: {
+        type: 'Composite',
+        keys: ['userId'],
+        unique: true,
+      },
+      byNameComposite: {
+        type: 'Composite',
+        keys: ['name'],
+      },
+      byAgeComposite: {
+        type: 'Composite',
+        keys: ['age'],
+      },
+      byNameAgeComposite: {
+        type: 'Composite',
+        keys: ['name', 'age'],
+      },
+      byUserIdNameAgeMixed: {
+        type: 'Mixed',
+        keys: ['userId', 'name', 'age'],
+      },
+      byFollowedAtVertexCentric: {
+        type: 'VertexCentric',
+        keys: ['followedAt'],
+        label: 'follow',
+        direction: 'BOTH',
+        order: 'decr',
+      },
+    },
+  },
   before_save: (instance) => {
     instance.active = true;
     return true;

@@ -10,6 +10,14 @@ try {
   elasticsearch = null;
 }
 
+let gremlin;
+try {
+  // eslint-disable-next-line import/no-extraneous-dependencies, import/no-unresolved
+  gremlin = require('gremlin');
+} catch (e) {
+  gremlin = null;
+}
+
 let dseDriver;
 try {
   // eslint-disable-next-line import/no-extraneous-dependencies, import/no-unresolved
@@ -30,6 +38,7 @@ const UdtBuilder = require('../builders/udt');
 const UdfBuilder = require('../builders/udf');
 const UdaBuilder = require('../builders/uda');
 const ElassandraBuilder = require('../builders/elassandra');
+const JanusGraphBuilder = require('../builders/janusgraph');
 
 const DEFAULT_REPLICATION_FACTOR = 1;
 
@@ -55,6 +64,7 @@ const Apollo = function f(connection, options) {
   this._connection = connection;
   this._client = null;
   this._esclient = null;
+  this._gremlin_client = null;
 };
 
 Apollo.prototype = {
@@ -100,6 +110,35 @@ Apollo.prototype = {
 
     const elassandraBuilder = new ElassandraBuilder(esClient);
     elassandraBuilder.assert_index(indexName, callback);
+  },
+
+  create_gremlin_client() {
+    if (!gremlin) {
+      throw (new Error('Configured to use janus graph server, but gremlin module was not found, try npm install gremlin'));
+    }
+
+    const contactPoints = this._connection.contactPoints;
+    const defaultHosts = [];
+    contactPoints.forEach((host) => {
+      defaultHosts.push({ host });
+    });
+
+    const gremlinConfig = _.defaults(this._connection.gremlin, {
+      host: defaultHosts[0],
+      port: 8182,
+      options: {},
+    });
+    this._gremlin_client = gremlin.createClient(gremlinConfig.port, gremlinConfig.host, gremlinConfig.options);
+    return this._gremlin_client;
+  },
+
+  _assert_gremlin_graph(callback) {
+    const gremlinClient = this.create_gremlin_client();
+    const keyspaceName = this._keyspace;
+    const graphName = `${keyspaceName}_graph`;
+
+    const graphBuilder = new JanusGraphBuilder(gremlinClient);
+    graphBuilder.assert_graph(graphName, callback);
   },
 
   get_system_client() {
@@ -367,6 +406,10 @@ Apollo.prototype = {
         this.assertESIndexAsync = Promise.promisify(this._assert_es_index);
         managementTasks.push(this.assertESIndexAsync());
       }
+      if (this._keyspace && this._options.manageGraphs) {
+        this.assertGremlinGraphAsync = Promise.promisify(this._assert_gremlin_graph);
+        managementTasks.push(this.assertGremlinGraphAsync());
+      }
       Promise.all(managementTasks)
         .then(() => {
           callback(null, this);
@@ -473,6 +516,7 @@ Apollo.prototype = {
       define_connection: this._define_connection,
       cql: this._client,
       esclient: this._esclient,
+      gremlin_client: this._gremlin_client,
       get_constructor: this.getModel.bind(this, modelName),
       init: this.init.bind(this),
       dropTableOnSchemaChange: this._options.dropTableOnSchemaChange,
@@ -494,6 +538,10 @@ Apollo.prototype = {
 
     if (this.orm._esclient) {
       this.orm._esclient.close();
+    }
+
+    if (this.orm._gremlin_client && this.orm._gremlin_client.connection && this.orm._gremlin_client.connection.ws) {
+      this.orm._gremlin_client.connection.ws.close();
     }
 
     const clientsToShutdown = [];

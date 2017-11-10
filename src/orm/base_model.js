@@ -19,6 +19,7 @@ const parser = require('../utils/parser');
 
 const TableBuilder = require('../builders/table');
 const ElassandraBuilder = require('../builders/elassandra');
+const JanusGraphBuilder = require('../builders/janusgraph');
 const Driver = require('../helpers/driver');
 
 const BaseModel = function f(instanceValues) {
@@ -229,6 +230,26 @@ BaseModel._sync_es_index = function f(callback) {
   callback();
 };
 
+BaseModel._sync_graph = function f(callback) {
+  const properties = this._properties;
+
+  if (properties.gremlin_client && properties.schema.graph_mapping) {
+    const graphName = `${properties.keyspace}_graph`;
+    const mappingName = properties.table_name;
+
+    const graphBuilder = new JanusGraphBuilder(properties.gremlin_client);
+    graphBuilder.assert_graph(graphName, (err) => {
+      if (err) {
+        callback(err);
+        return;
+      }
+      graphBuilder.put_mapping(graphName, mappingName, properties.schema.graph_mapping, callback);
+    });
+    return;
+  }
+  callback();
+};
+
 BaseModel._execute_table_query = function f(query, params, options, callback) {
   if (arguments.length === 3) {
     callback = options;
@@ -258,188 +279,20 @@ BaseModel._execute_table_query = function f(query, params, options, callback) {
   }
 };
 
-BaseModel._parse_query_object = function f(queryObject) {
-  let queryRelations = [];
-  let queryParams = [];
-
-  Object.keys(queryObject).forEach((fieldName) => {
-    if (fieldName.startsWith('$')) {
-      // search queries based on lucene index or solr
-      // escape all single quotes for queries in cassandra
-      if (fieldName === '$expr') {
-        if (typeof queryObject[fieldName].index === 'string' && typeof queryObject[fieldName].query === 'string') {
-          queryRelations.push(util.format(
-            "expr(%s,'%s')",
-            queryObject[fieldName].index, queryObject[fieldName].query.replace(/'/g, "''"),
-          ));
-        } else {
-          throw (buildError('model.find.invalidexpr'));
-        }
-      } else if (fieldName === '$solr_query') {
-        if (typeof queryObject[fieldName] === 'string') {
-          queryRelations.push(util.format(
-            "solr_query='%s'",
-            queryObject[fieldName].replace(/'/g, "''"),
-          ));
-        } else {
-          throw (buildError('model.find.invalidsolrquery'));
-        }
-      }
-      return;
-    }
-
-    let whereObject = queryObject[fieldName];
-    // Array of operators
-    if (!_.isArray(whereObject)) whereObject = [whereObject];
-
-    for (let fk = 0; fk < whereObject.length; fk++) {
-      let fieldRelation = whereObject[fk];
-
-      const cqlOperators = {
-        $eq: '=',
-        $ne: '!=',
-        $gt: '>',
-        $lt: '<',
-        $gte: '>=',
-        $lte: '<=',
-        $in: 'IN',
-        $like: 'LIKE',
-        $token: 'token',
-        $contains: 'CONTAINS',
-        $contains_key: 'CONTAINS KEY',
-      };
-
-      if (_.isPlainObject(fieldRelation)) {
-        const validKeys = Object.keys(cqlOperators);
-        const fieldRelationKeys = Object.keys(fieldRelation);
-        for (let i = 0; i < fieldRelationKeys.length; i++) {
-          if (!validKeys.includes(fieldRelationKeys[i])) {
-            // field relation key invalid, apply default $eq operator
-            fieldRelation = { $eq: fieldRelation };
-            break;
-          }
-        }
-      } else {
-        fieldRelation = { $eq: fieldRelation };
-      }
-
-      const relationKeys = Object.keys(fieldRelation);
-      for (let rk = 0; rk < relationKeys.length; rk++) {
-        const relationKey = relationKeys[rk];
-        const relationValue = fieldRelation[relationKey];
-        const extractedRelations = parser.extract_query_relations(
-          fieldName,
-          relationKey,
-          relationValue,
-          this._properties.schema,
-          cqlOperators,
-        );
-        queryRelations = queryRelations.concat(extractedRelations.queryRelations);
-        queryParams = queryParams.concat(extractedRelations.queryParams);
-      }
-    }
-  });
-
-  return {
-    queryRelations,
-    queryParams,
-  };
-};
-
-BaseModel._create_where_clause = function f(queryObject) {
-  const parsedObject = this._parse_query_object(queryObject);
-  const whereClause = {};
-  if (parsedObject.queryRelations.length > 0) {
-    whereClause.query = util.format('WHERE %s', parsedObject.queryRelations.join(' AND '));
-  } else {
-    whereClause.query = '';
-  }
-  whereClause.params = parsedObject.queryParams;
-  return whereClause;
-};
-
-BaseModel._create_if_clause = function f(queryObject) {
-  const parsedObject = this._parse_query_object(queryObject);
-  const ifClause = {};
-  if (parsedObject.queryRelations.length > 0) {
-    ifClause.query = util.format('IF %s', parsedObject.queryRelations.join(' AND '));
-  } else {
-    ifClause.query = '';
-  }
-  ifClause.params = parsedObject.queryParams;
-  return ifClause;
-};
-
-BaseModel._create_find_query = function f(queryObject, options) {
-  const orderKeys = [];
-  let limit = null;
-
-  Object.keys(queryObject).forEach((k) => {
-    const queryItem = queryObject[k];
-    if (k.toLowerCase() === '$orderby') {
-      if (!(queryItem instanceof Object)) {
-        throw (buildError('model.find.invalidorder'));
-      }
-      const orderItemKeys = Object.keys(queryItem);
-
-      for (let i = 0; i < orderItemKeys.length; i++) {
-        const cqlOrderDirection = { $asc: 'ASC', $desc: 'DESC' };
-        if (orderItemKeys[i].toLowerCase() in cqlOrderDirection) {
-          let orderFields = queryItem[orderItemKeys[i]];
-
-          if (!_.isArray(orderFields)) {
-            orderFields = [orderFields];
-          }
-
-          for (let j = 0; j < orderFields.length; j++) {
-            orderKeys.push(util.format(
-              '"%s" %s',
-              orderFields[j], cqlOrderDirection[orderItemKeys[i]],
-            ));
-          }
-        } else {
-          throw (buildError('model.find.invalidordertype', orderItemKeys[i]));
-        }
-      }
-    } else if (k.toLowerCase() === '$limit') {
-      if (typeof queryItem !== 'number') throw (buildError('model.find.limittype'));
-      limit = queryItem;
-    }
-  });
-
-  const whereClause = this._create_where_clause(queryObject);
-
-  let select = '*';
-  if (options.select && _.isArray(options.select) && options.select.length > 0) {
-    const selectArray = [];
-    for (let i = 0; i < options.select.length; i++) {
-      // separate the aggregate function and the column name if select is an aggregate function
-      const selection = options.select[i].split(/[( )]/g).filter((e) => (e));
-      if (selection.length === 1) {
-        selectArray.push(util.format('"%s"', selection[0]));
-      } else if (selection.length === 2 || selection.length === 4) {
-        let functionClause = util.format('%s("%s")', selection[0], selection[1]);
-        if (selection[2]) functionClause += util.format(' %s', selection[2]);
-        if (selection[3]) functionClause += util.format(' %s', selection[3]);
-
-        selectArray.push(functionClause);
-      } else if (selection.length === 3) {
-        selectArray.push(util.format('"%s" %s %s', selection[0], selection[1], selection[2]));
-      } else {
-        selectArray.push('*');
-      }
-    }
-    select = selectArray.join(',');
-  }
+BaseModel.get_find_query = function f(queryObject, options) {
+  const orderbyClause = parser.get_orderby_clause(queryObject);
+  const limitClause = parser.get_limit_clause(queryObject);
+  const whereClause = parser.get_where_clause(this._properties.schema, queryObject);
+  const selectClause = parser.get_select_clause(options);
 
   let query = util.format(
     'SELECT %s %s FROM "%s" %s %s %s',
     (options.distinct ? 'DISTINCT' : ''),
-    select,
+    selectClause,
     options.materialized_view ? options.materialized_view : this._properties.table_name,
     whereClause.query,
-    orderKeys.length ? util.format('ORDER BY %s', orderKeys.join(', ')) : ' ',
-    limit ? util.format('LIMIT %s', limit) : ' ',
+    orderbyClause,
+    limitClause,
   );
 
   if (options.allow_filtering) query += ' ALLOW FILTERING;';
@@ -483,8 +336,15 @@ BaseModel.syncDB = function f(callback) {
         return;
       }
 
-      this._ready = true;
-      callback(null, result);
+      this._sync_graph((err2) => {
+        if (err2) {
+          callback(err2);
+          return;
+        }
+
+        this._ready = true;
+        callback(null, result);
+      });
     });
   });
 };
@@ -504,6 +364,13 @@ BaseModel.get_es_client = function f() {
     throw (new Error('To use elassandra features, set `manageESIndex` to true in ormOptions'));
   }
   return this._properties.esclient;
+};
+
+BaseModel.get_gremlin_client = function f() {
+  if (!this._properties.gremlin_client) {
+    throw (new Error('To use janus graph features, set `manageGraphs` to true in ormOptions'));
+  }
+  return this._properties.gremlin_client;
 };
 
 BaseModel.execute_query = function f(...args) {
@@ -658,6 +525,190 @@ BaseModel.stream = function f(queryObject, options, onReadable, callback) {
   });
 };
 
+BaseModel._execute_gremlin_query = function f(script, bindings, callback) {
+  const gremlinClient = this.get_gremlin_client();
+  gremlinClient.execute(script, bindings, (err, results) => {
+    if (err) {
+      callback(err);
+      return;
+    }
+    callback(null, results);
+  });
+};
+
+BaseModel._execute_gremlin_script = function f(script, bindings, callback) {
+  this._execute_gremlin_query(script, bindings, (err, results) => {
+    if (err) {
+      callback(err);
+      return;
+    }
+    callback(null, results[0]);
+  });
+};
+
+BaseModel.createVertex = function f(vertexProperties, callback) {
+  const properties = this._properties;
+  const __graphName = `${properties.keyspace}_graph`;
+  const __vertexLabel = properties.table_name;
+  let script = `
+    graph = ConfiguredGraphFactory.open(__graphName);
+    vertex = graph.addVertex(__vertexLabel);
+  `;
+  Object.keys(vertexProperties).forEach((property) => {
+    script += `vertex.property('${property}', ${property});`;
+  });
+  script += 'vertex';
+  const bindings = _.defaults(vertexProperties, {
+    __graphName,
+    __vertexLabel,
+  });
+  this._execute_gremlin_script(script, bindings, callback);
+};
+
+BaseModel.getVertex = function f(__vertexId, callback) {
+  const properties = this._properties;
+  const __graphName = `${properties.keyspace}_graph`;
+  const script = `
+    graph = ConfiguredGraphFactory.open(__graphName);
+    g = graph.traversal();
+    vertex = g.V(__vertexId);
+  `;
+  const bindings = {
+    __graphName,
+    __vertexId,
+  };
+  this._execute_gremlin_script(script, bindings, callback);
+};
+
+BaseModel.updateVertex = function f(__vertexId, vertexProperties, callback) {
+  const properties = this._properties;
+  const __graphName = `${properties.keyspace}_graph`;
+  let script = `
+    graph = ConfiguredGraphFactory.open(__graphName);
+    g = graph.traversal();
+    vertex = g.V(__vertexId);
+  `;
+  Object.keys(vertexProperties).forEach((property) => {
+    script += `vertex.property('${property}', ${property});`;
+  });
+  script += 'vertex';
+  const bindings = _.defaults(vertexProperties, {
+    __graphName,
+    __vertexId,
+  });
+  this._execute_gremlin_script(script, bindings, callback);
+};
+
+BaseModel.deleteVertex = function f(__vertexId, callback) {
+  const properties = this._properties;
+  const __graphName = `${properties.keyspace}_graph`;
+  const script = `
+    graph = ConfiguredGraphFactory.open(__graphName);
+    g = graph.traversal();
+    vertex = g.V(__vertexId);
+    vertex.drop();
+  `;
+  const bindings = {
+    __graphName,
+    __vertexId,
+  };
+  this._execute_gremlin_script(script, bindings, callback);
+};
+
+BaseModel.createEdge = function f(__edgeLabel, __fromVertexId, __toVertexId, edgeProperties, callback) {
+  if (arguments.length === 4 && typeof edgeProperties === 'function') {
+    callback = edgeProperties;
+    edgeProperties = {};
+  }
+  const properties = this._properties;
+  const __graphName = `${properties.keyspace}_graph`;
+  let script = `
+    graph = ConfiguredGraphFactory.open(__graphName);
+    g = graph.traversal();
+    fromVertex = g.V(__fromVertexId).next();
+    toVertex = g.V(__toVertexId).next();
+    edge = fromVertex.addEdge(__edgeLabel, toVertex);
+  `;
+  Object.keys(edgeProperties).forEach((property) => {
+    script += `edge.property('${property}', ${property});`;
+  });
+  script += 'edge';
+  const bindings = _.defaults(edgeProperties, {
+    __graphName,
+    __fromVertexId,
+    __toVertexId,
+    __edgeLabel,
+  });
+  this._execute_gremlin_script(script, bindings, callback);
+};
+
+BaseModel.getEdge = function f(__edgeId, callback) {
+  const properties = this._properties;
+  const __graphName = `${properties.keyspace}_graph`;
+  const script = `
+    graph = ConfiguredGraphFactory.open(__graphName);
+    g = graph.traversal();
+    edge = g.E(__edgeId);
+  `;
+  const bindings = {
+    __graphName,
+    __edgeId,
+  };
+  this._execute_gremlin_script(script, bindings, callback);
+};
+
+BaseModel.updateEdge = function f(__edgeId, edgeProperties, callback) {
+  const properties = this._properties;
+  const __graphName = `${properties.keyspace}_graph`;
+  let script = `
+    graph = ConfiguredGraphFactory.open(__graphName);
+    g = graph.traversal();
+    edge = g.E(__edgeId);
+  `;
+  Object.keys(edgeProperties).forEach((property) => {
+    script += `edge.property('${property}', ${property});`;
+  });
+  script += 'edge';
+  const bindings = _.defaults(edgeProperties, {
+    __graphName,
+    __edgeId,
+  });
+  this._execute_gremlin_script(script, bindings, callback);
+};
+
+BaseModel.deleteEdge = function f(__edgeId, callback) {
+  const properties = this._properties;
+  const __graphName = `${properties.keyspace}_graph`;
+  const script = `
+    graph = ConfiguredGraphFactory.open(__graphName);
+    g = graph.traversal();
+    edge = g.E(__edgeId);
+    edge.drop();
+  `;
+  const bindings = {
+    __graphName,
+    __edgeId,
+  };
+  this._execute_gremlin_script(script, bindings, callback);
+};
+
+BaseModel.graphQuery = function f(query, params, callback) {
+  const properties = this._properties;
+  const __graphName = `${properties.keyspace}_graph`;
+  const __vertexLabel = properties.table_name;
+  let script = `
+    graph = ConfiguredGraphFactory.open(__graphName);
+    g = graph.traversal();
+    vertices = g.V().hasLabel(__vertexLabel);
+  `;
+  script += query;
+  const bindings = _.defaults(params, {
+    __graphName,
+    __vertexLabel,
+  });
+  this._execute_gremlin_query(script, bindings, callback);
+};
+
 BaseModel.search = function f(queryObject, callback) {
   const esClient = this.get_es_client();
   const query = _.defaults(queryObject, {
@@ -697,7 +748,7 @@ BaseModel.find = function f(queryObject, options, callback) {
 
   let query;
   try {
-    const findQuery = this._create_find_query(queryObject, options);
+    const findQuery = this.get_find_query(queryObject, options);
     query = findQuery.query;
     queryParams = queryParams.concat(findQuery.params);
   } catch (e) {
@@ -787,7 +838,7 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
     return {};
   }
 
-  const { updateClauses, queryParams, errorHappened } = parser.build_update_value_expression(
+  const { updateClauses, queryParams, errorHappened } = parser.get_update_value_expression(
     this,
     schema,
     updateValues,
@@ -802,7 +853,7 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
   if (options.ttl) query += util.format(' USING TTL %s', options.ttl);
   query += ' SET %s %s';
   try {
-    const whereClause = this._create_where_clause(queryObject);
+    const whereClause = parser.get_where_clause(schema, queryObject);
     where = whereClause.query;
     finalParams = finalParams.concat(whereClause.params);
   } catch (e) {
@@ -813,7 +864,7 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
   query = util.format(query, this._properties.table_name, updateClauses.join(', '), where);
 
   if (options.conditions) {
-    const ifClause = this._create_if_clause(options.conditions);
+    const ifClause = parser.get_if_clause(schema, options.conditions);
     if (ifClause.query) {
       query += util.format(' %s', ifClause.query);
       finalParams = finalParams.concat(ifClause.params);
@@ -892,7 +943,7 @@ BaseModel.delete = function f(queryObject, options, callback) {
   let query = 'DELETE FROM "%s" %s;';
   let where = '';
   try {
-    const whereClause = this._create_where_clause(queryObject);
+    const whereClause = parser.get_where_clause(schema, queryObject);
     where = whereClause.query;
     queryParams = queryParams.concat(whereClause.params);
   } catch (e) {
@@ -1010,7 +1061,7 @@ BaseModel.prototype.save = function fn(options, callback) {
     values,
     queryParams,
     errorHappened,
-  } = parser.build_save_value_expression(this, schema, callback);
+  } = parser.get_save_value_expression(this, schema, callback);
 
   if (errorHappened) return {};
 

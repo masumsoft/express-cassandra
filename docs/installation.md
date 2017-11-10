@@ -12,7 +12,11 @@ For elassandra version 5.5 or above
 
     npm install express-cassandra elasticsearch
 
-For older cassandra 2.x
+For janusgraph version 0.2.0 or above
+
+    npm install express-cassandra gremlin
+
+For older cassandra 2.x (no longer supported)
 
     npm install express-cassandra@0.5.4
 
