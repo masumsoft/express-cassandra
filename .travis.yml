@@ -17,6 +17,6 @@ before_install:
   - java -version
   - wget https://www.dropbox.com/s/vebuzbdql0w6eap/elassandra_janusgraph_distribution.zip?dl=1 -O elassandra_janusgraph_distribution.zip && unzip elassandra_janusgraph_distribution.zip
   - sudo sh ./elassandra_janusgraph_distribution/elassandra-5.5.0.5/bin/cassandra -e
-  - sleep 30
-  - sudo sh ./elassandra_janusgraph_distribution/janusgraph-0.2.0/bin/gremlin-server.sh ./conf/gremlin-server/gremlin-server-configuration.yaml
+  - sleep 50
+  - sudo bash ./elassandra_janusgraph_distribution/janusgraph-0.2.0/bin/gremlin-server.sh ./conf/gremlin-server/gremlin-server-configuration.yaml
   - sleep 30
