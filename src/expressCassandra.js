@@ -1,3 +1,9 @@
+const semver = require('semver');
+
+if (!semver.satisfies(process.version, '>=6.0.0')) {
+  require('babel-polyfill');
+}
+
 const Promise = require('bluebird');
 const _ = require('lodash');
 const path = require('path');

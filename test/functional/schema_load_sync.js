@@ -1,4 +1,6 @@
 const path = require('path');
+const semver = require('semver');
+
 const models = require('../../lib/expressCassandra');
 
 let client;
@@ -132,6 +134,11 @@ const config = {
     },
   },
 };
+
+if (!semver.satisfies(process.version, '>=6.0.0')) {
+  // gremlin client does not support node versions less than 6
+  config.ormOptions.manageGraphs = false;
+}
 
 module.exports = () => {
   describe('#modelsync', () => {

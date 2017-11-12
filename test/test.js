@@ -1,3 +1,4 @@
+const semver = require('semver');
 const models = require('../lib/expressCassandra');
 const testSchemaLoadAndSync = require('./functional/schema_load_sync');
 const testDataTypeValidations = require('./functional/datatype_validations');
@@ -25,6 +26,9 @@ describe('Functional Tests', () => {
   testOrmBatches(eventID);
   testFixtures();
   testElassandra();
-  testJanusGraph();
+  if (semver.satisfies(process.version, '>=6.0.0')) {
+    // gremlin client only support node versions >=6
+    testJanusGraph();
+  }
   testCloseConnections();
 });
