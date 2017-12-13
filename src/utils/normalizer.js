@@ -1,6 +1,8 @@
 const _ = require('lodash');
 const util = require('util');
 
+const parser = require('./parser');
+
 const arraySort = (a, b) => {
   if (a > b) return 1;
   if (a < b) return -1;
@@ -133,6 +135,13 @@ const normalizer = {
       }
 
       outputMView.select.sort(arraySort);
+
+      if (!outputMView.where_clause) {
+        outputMView.where_clause = parser.get_mview_where_clause(outputSchema, outputMView);
+      }
+      if (_.isPlainObject(outputMView.filters)) {
+        delete outputMView.filters;
+      }
     });
   },
 

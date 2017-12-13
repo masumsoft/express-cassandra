@@ -128,6 +128,15 @@ module.exports = {
       select: ['*'],
       key: [['userID', 'age'], 'active'],
     },
+    mat_view_composite_filters: {
+      select: ['*'],
+      key: [['userID', 'age'], 'active'],
+      filters: {
+        userID: { $gte: 10, $isnt: null },
+        age: { $isnt: null },
+        timeId: { $isnt: null },
+      },
+    },
   },
   graph_mapping: {
     relations: {

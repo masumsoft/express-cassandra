@@ -129,48 +129,18 @@ TableBuilder.prototype = {
       rows.push(segment);
     });
 
-    let partitionKey = schema.key[0];
-    let clusteringKey = schema.key.slice(1, schema.key.length);
-    const clusteringOrder = [];
-
-    for (let field = 0; field < clusteringKey.length; field++) {
-      if (schema.clustering_order
-          && schema.clustering_order[clusteringKey[field]]
-          && schema.clustering_order[clusteringKey[field]].toLowerCase() === 'desc') {
-        clusteringOrder.push(util.format('"%s" DESC', clusteringKey[field]));
-      } else {
-        clusteringOrder.push(util.format('"%s" ASC', clusteringKey[field]));
-      }
-    }
-
-    let clusteringOrderQuery = '';
-    if (clusteringOrder.length > 0) {
-      clusteringOrderQuery = util.format(' WITH CLUSTERING ORDER BY (%s)', clusteringOrder.toString());
-    }
-
-    if (_.isArray(partitionKey)) {
-      partitionKey = partitionKey.map((v) => (util.format('"%s"', v))).join(',');
-    } else {
-      partitionKey = util.format('"%s"', partitionKey);
-    }
-
-    if (clusteringKey.length) {
-      clusteringKey = clusteringKey.map((v) => (util.format('"%s"', v))).join(',');
-      clusteringKey = util.format(',%s', clusteringKey);
-    } else {
-      clusteringKey = '';
-    }
+    const clauses = parser.get_primary_key_clauses(schema);
 
     const query = util.format(
       'CREATE TABLE IF NOT EXISTS "%s" (%s , PRIMARY KEY((%s)%s))%s;',
       tableName,
       rows.join(' , '),
-      partitionKey,
-      clusteringKey,
-      clusteringOrderQuery,
+      clauses.partitionKeyClause,
+      clauses.clusteringKeyClause,
+      clauses.clusteringOrderClause,
     );
 
-    this._driver.execute_definition_query(query, [], (err, result) => {
+    this._driver.execute_definition_query(query, (err, result) => {
       if (err) {
         callback(buildError('model.tablecreation.dbcreate', err));
         return;
@@ -186,12 +156,12 @@ TableBuilder.prototype = {
     else if (operation === 'DROP') type = '';
 
     const query = util.format('ALTER TABLE "%s" %s "%s" %s;', tableName, operation, fieldname, type);
-    this._driver.execute_definition_query(query, [], callback);
+    this._driver.execute_definition_query(query, callback);
   },
 
   _drop_table(tableName, callback) {
     const query = util.format('DROP TABLE IF EXISTS "%s";', tableName);
-    this._driver.execute_definition_query(query, [], (err) => {
+    this._driver.execute_definition_query(query, (err) => {
       if (err) {
         callback(buildError('model.tablecreation.dbdrop', err));
         return;
@@ -324,7 +294,8 @@ TableBuilder.prototype = {
     const properties = this._properties;
     const tableName = properties.table_name;
     async.eachSeries(indexes, (idx, next) => {
-      this._driver.execute_definition_query(this._create_index_query(tableName, idx), [], (err, result) => {
+      const query = this._create_index_query(tableName, idx);
+      this._driver.execute_definition_query(query, (err, result) => {
         if (err) next(buildError('model.tablecreation.dbindexcreate', err));
         else next(null, result);
       });
@@ -357,7 +328,8 @@ TableBuilder.prototype = {
     const properties = this._properties;
     const tableName = properties.table_name;
     async.eachSeries(customIndexes, (idx, next) => {
-      this._driver.execute_definition_query(this._create_custom_index_query(tableName, idx), [], (err, result) => {
+      const query = this._create_custom_index_query(tableName, idx);
+      this._driver.execute_definition_query(query, (err, result) => {
         if (err) next(buildError('model.tablecreation.dbindexcreate', err));
         else next(null, result);
       });
@@ -367,7 +339,7 @@ TableBuilder.prototype = {
   drop_indexes(indexes, callback) {
     async.each(indexes, (idx, next) => {
       const query = util.format('DROP INDEX IF EXISTS "%s";', idx);
-      this._driver.execute_definition_query(query, [], next);
+      this._driver.execute_definition_query(query, next);
     }, (err) => {
       if (err) callback(buildError('model.tablecreation.dbindexdrop', err));
       else callback();
@@ -379,7 +351,7 @@ TableBuilder.prototype = {
     const keyspaceName = properties.keyspace;
     const tableName = properties.table_name;
     const dbSchema = {};
-    let query = 'SELECT view_name,base_table_name FROM system_schema.views WHERE keyspace_name=? AND base_table_name=? ALLOW FILTERING;';
+    let query = 'SELECT view_name,base_table_name,where_clause FROM system_schema.views WHERE keyspace_name=? AND base_table_name=? ALLOW FILTERING;';
 
     this._driver.execute_query(query, [keyspaceName, tableName], (err, resultViews) => {
       if (err) {
@@ -392,7 +364,9 @@ TableBuilder.prototype = {
 
         if (row.view_name) {
           if (!dbSchema.materialized_views) dbSchema.materialized_views = {};
-          dbSchema.materialized_views[row.view_name] = {};
+          dbSchema.materialized_views[row.view_name] = {
+            where_clause: row.where_clause,
+          };
         }
       }
 
@@ -455,41 +429,8 @@ TableBuilder.prototype = {
       else rows.push(util.format('"%s"', viewSchema.select[k]));
     }
 
-    let partitionKey = viewSchema.key[0];
-    let clusteringKey = viewSchema.key.slice(1, viewSchema.key.length);
-    const clusteringOrder = [];
-
-    for (let field = 0; field < clusteringKey.length; field++) {
-      if (viewSchema.clustering_order
-          && viewSchema.clustering_order[clusteringKey[field]]
-          && viewSchema.clustering_order[clusteringKey[field]].toLowerCase() === 'desc') {
-        clusteringOrder.push(util.format('"%s" DESC', clusteringKey[field]));
-      } else {
-        clusteringOrder.push(util.format('"%s" ASC', clusteringKey[field]));
-      }
-    }
-
-    let clusteringOrderQuery = '';
-    if (clusteringOrder.length > 0) {
-      clusteringOrderQuery = util.format(' WITH CLUSTERING ORDER BY (%s)', clusteringOrder.toString());
-    }
-
-    if (_.isArray(partitionKey)) {
-      partitionKey = partitionKey.map((v) => util.format('"%s"', v)).join(',');
-    } else {
-      partitionKey = util.format('"%s"', partitionKey);
-    }
-
-    if (clusteringKey.length) {
-      clusteringKey = clusteringKey.map((v) => (util.format('"%s"', v))).join(',');
-      clusteringKey = util.format(',%s', clusteringKey);
-    } else {
-      clusteringKey = '';
-    }
-
-    let whereClause = partitionKey.split(',').join(' IS NOT NULL AND ');
-    if (clusteringKey) whereClause += clusteringKey.split(',').join(' IS NOT NULL AND ');
-    whereClause += ' IS NOT NULL';
+    const whereClause = viewSchema.where_clause || parser.get_mview_where_clause(this._properties.schema, viewSchema);
+    const clauses = parser.get_primary_key_clauses(viewSchema);
 
     const query = util.format(
       'CREATE MATERIALIZED VIEW IF NOT EXISTS "%s" AS SELECT %s FROM "%s" WHERE %s PRIMARY KEY((%s)%s)%s;',
@@ -497,9 +438,9 @@ TableBuilder.prototype = {
       rows.join(' , '),
       tableName,
       whereClause,
-      partitionKey,
-      clusteringKey,
-      clusteringOrderQuery,
+      clauses.partitionKeyClause,
+      clauses.clusteringKeyClause,
+      clauses.clusteringOrderClause,
     );
 
     return query;
@@ -509,12 +450,12 @@ TableBuilder.prototype = {
     const properties = this._properties;
     const tableName = properties.table_name;
     async.eachSeries(Object.keys(materializedViews), (viewName, next) => {
-      const matViewQuery = this._create_materialized_view_query(
+      const query = this._create_materialized_view_query(
         tableName,
         viewName,
         materializedViews[viewName],
       );
-      this._driver.execute_definition_query(matViewQuery, [], (err, result) => {
+      this._driver.execute_definition_query(query, (err, result) => {
         if (err) next(buildError('model.tablecreation.matviewcreate', err));
         else next(null, result);
       });
@@ -524,7 +465,7 @@ TableBuilder.prototype = {
   drop_mviews(mviews, callback) {
     async.each(mviews, (view, next) => {
       const query = util.format('DROP MATERIALIZED VIEW IF EXISTS "%s";', view);
-      this._driver.execute_definition_query(query, [], next);
+      this._driver.execute_definition_query(query, next);
     }, (err) => {
       if (err) callback(buildError('model.tablecreation.matviewdrop', err));
       else callback();

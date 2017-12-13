@@ -15,16 +15,16 @@ Driver.prototype = {
     }
   },
 
-  execute_definition_query(query, params, callback) {
+  execute_definition_query(query, callback) {
     this.ensure_init((err) => {
       if (err) {
         callback(err);
         return;
       }
-      debug('executing definition query: %s with params: %j', query, params);
+      debug('executing definition query: %s', query);
       const properties = this._properties;
       const conn = properties.define_connection;
-      conn.execute(query, params, { prepare: false, fetchSize: 0 }, callback);
+      conn.execute(query, [], { prepare: false, fetchSize: 0 }, callback);
     });
   },
 
@@ -48,7 +48,7 @@ Driver.prototype = {
       debug('executing query: %s with params: %j', query, params);
       this._properties.cql.execute(query, params, options, (err1, result) => {
         if (err1 && err1.code === 8704) {
-          this.execute_definition_query(query, params, callback);
+          this.execute_definition_query(query, callback);
         } else {
           callback(err1, result);
         }

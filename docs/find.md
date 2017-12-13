@@ -72,6 +72,7 @@ Following are the query operators and their cassandra counterparts:
 {
     $eq: '=',
     $ne: '!=', // applicable for IF conditions only
+    $isnt: 'IS NOT', // applicable for materialized view filters only
     $gt: '>',
     $lt: '<',
     $gte: '>=',

@@ -462,6 +462,7 @@ parser._parse_query_object = function f(schema, queryObject) {
       const cqlOperators = {
         $eq: '=',
         $ne: '!=',
+        $isnt: 'IS NOT',
         $gt: '>',
         $lt: '<',
         $gte: '>=',
@@ -507,28 +508,122 @@ parser._parse_query_object = function f(schema, queryObject) {
   return { queryRelations, queryParams };
 };
 
-parser.get_where_clause = function f(schema, queryObject) {
+parser.get_filter_clause = function f(schema, queryObject, clause) {
   const parsedObject = parser._parse_query_object(schema, queryObject);
-  const whereClause = {};
+  const filterClause = {};
   if (parsedObject.queryRelations.length > 0) {
-    whereClause.query = util.format('WHERE %s', parsedObject.queryRelations.join(' AND '));
+    filterClause.query = util.format('%s %s', clause, parsedObject.queryRelations.join(' AND '));
   } else {
-    whereClause.query = '';
+    filterClause.query = '';
   }
-  whereClause.params = parsedObject.queryParams;
-  return whereClause;
+  filterClause.params = parsedObject.queryParams;
+  return filterClause;
+};
+
+parser.get_filter_clause_ddl = function f(schema, queryObject, clause) {
+  const filterClause = parser.get_filter_clause(schema, queryObject, clause);
+  let filterQuery = filterClause.query;
+  filterClause.params.forEach((param) => {
+    let queryParam;
+    if (typeof param === 'string') {
+      queryParam = util.format("'%s'", param);
+    } else if (param instanceof Date) {
+      queryParam = util.format("'%s'", param.toISOString());
+    } else if (param instanceof cql.types.Long
+      || param instanceof cql.types.Integer
+      || param instanceof cql.types.BigDecimal
+      || param instanceof cql.types.TimeUuid
+      || param instanceof cql.types.Uuid) {
+      queryParam = param.toString();
+    } else if (param instanceof cql.types.LocalDate
+      || param instanceof cql.types.LocalTime
+      || param instanceof cql.types.InetAddress) {
+      queryParam = util.format("'%s'", param.toString());
+    } else {
+      queryParam = param;
+    }
+    // TODO: unhandled if queryParam is a string containing ? character
+    // though this is unlikely to have in materialized view filters, but...
+    filterQuery = filterQuery.replace('?', queryParam);
+  });
+  return filterQuery;
+};
+
+parser.get_where_clause = function f(schema, queryObject) {
+  return parser.get_filter_clause(schema, queryObject, 'WHERE');
 };
 
 parser.get_if_clause = function f(schema, queryObject) {
-  const parsedObject = parser._parse_query_object(schema, queryObject);
-  const ifClause = {};
-  if (parsedObject.queryRelations.length > 0) {
-    ifClause.query = util.format('IF %s', parsedObject.queryRelations.join(' AND '));
-  } else {
-    ifClause.query = '';
+  return parser.get_filter_clause(schema, queryObject, 'IF');
+};
+
+parser.get_primary_key_clauses = function f(schema) {
+  const partitionKey = schema.key[0];
+  let clusteringKey = schema.key.slice(1, schema.key.length);
+  const clusteringOrder = [];
+
+  for (let field = 0; field < clusteringKey.length; field++) {
+    if (schema.clustering_order
+        && schema.clustering_order[clusteringKey[field]]
+        && schema.clustering_order[clusteringKey[field]].toLowerCase() === 'desc') {
+      clusteringOrder.push(util.format('"%s" DESC', clusteringKey[field]));
+    } else {
+      clusteringOrder.push(util.format('"%s" ASC', clusteringKey[field]));
+    }
   }
-  ifClause.params = parsedObject.queryParams;
-  return ifClause;
+
+  let clusteringOrderClause = '';
+  if (clusteringOrder.length > 0) {
+    clusteringOrderClause = util.format(' WITH CLUSTERING ORDER BY (%s)', clusteringOrder.toString());
+  }
+
+  let partitionKeyClause = '';
+  if (_.isArray(partitionKey)) {
+    partitionKeyClause = partitionKey.map((v) => util.format('"%s"', v)).join(',');
+  } else {
+    partitionKeyClause = util.format('"%s"', partitionKey);
+  }
+
+  let clusteringKeyClause = '';
+  if (clusteringKey.length) {
+    clusteringKey = clusteringKey.map((v) => util.format('"%s"', v)).join(',');
+    clusteringKeyClause = util.format(',%s', clusteringKey);
+  }
+
+  return { partitionKeyClause, clusteringKeyClause, clusteringOrderClause };
+};
+
+parser.get_mview_where_clause = function f(schema, viewSchema) {
+  const clauses = parser.get_primary_key_clauses(viewSchema);
+  let whereClause = clauses.partitionKeyClause.split(',').join(' IS NOT NULL AND ');
+  if (clauses.clusteringKeyClause) whereClause += clauses.clusteringKeyClause.split(',').join(' IS NOT NULL AND ');
+  whereClause += ' IS NOT NULL';
+
+  const filters = _.cloneDeep(viewSchema.filters);
+
+  if (_.isPlainObject(filters)) {
+    // delete primary key fields defined as isn't null in filters
+    Object.keys(filters).forEach((filterKey) => {
+      if (filters[filterKey].$isnt === null
+          && (viewSchema.key.includes(filterKey) || viewSchema.key[0].includes(filterKey))) {
+        delete filters[filterKey].$isnt;
+      }
+    });
+
+    const filterClause = parser.get_filter_clause_ddl(schema, filters, 'AND');
+    whereClause += util.format(' %s', filterClause).replace(/IS NOT null/g, 'IS NOT NULL');
+  }
+
+  // remove unnecessarily quoted field names in generated where clause
+  // so that it matches the where_clause from database schema
+  const quotedFieldNames = whereClause.match(/"(.*?)"/g);
+  quotedFieldNames.forEach((fieldName) => {
+    const unquotedFieldName = fieldName.replace(/"/g, '');
+    if (unquotedFieldName === unquotedFieldName.toLowerCase()) {
+      whereClause = whereClause.replace(fieldName, unquotedFieldName);
+    }
+  });
+  return whereClause;
 };
 
 parser.get_orderby_clause = function f(queryObject) {
