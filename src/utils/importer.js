@@ -78,11 +78,11 @@ const importer = {
 
             const processPauseSize = (batchSize >= 10) ? batchSize * 10 : 100;
             if (processed % processPauseSize === 0) {
-              jsonfile.pause();
+              readStream.pause();
               Promise.all(queryPromises)
                 .then(() => {
                   queryPromises = [];
-                  jsonfile.resume();
+                  readStream.resume();
                 })
                 .catch((err) => {
                   reject(err);
@@ -93,12 +93,12 @@ const importer = {
               debug(`Streaming ${processed} rows to table: ${table}`);
             }
           });
-          jsonfile.on('error', (err) => {
+          readStream.on('error', (err) => {
             reject(err);
           });
 
           const startTime = Date.now();
-          jsonfile.on('end', () => {
+          readStream.on('end', () => {
             debug(`Streaming ${processed} rows to table: ${table}`);
             if (queries.length > 1) {
               queryPromises.push(systemClient.batch(queries, { prepare: true }));
