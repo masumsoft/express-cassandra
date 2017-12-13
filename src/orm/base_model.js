@@ -157,7 +157,8 @@ BaseModel._sync_model_definition = function f(callback) {
 
       Promise.all(indexingTasks)
         .then(() => {
-          callback();
+          // db schema was updated, so callback with true
+          callback(null, true);
         })
         .catch((err2) => {
           callback(err2);
@@ -185,7 +186,8 @@ BaseModel._sync_model_definition = function f(callback) {
     }
 
     if (_.isEqual(normalizedModelSchema, normalizedDBSchema)) {
-      callback();
+      // no change in db was made, so callback with false
+      callback(null, false);
       return;
     }
 
