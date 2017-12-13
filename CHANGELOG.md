@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.1.0] - 2017-12-13
+### Added
+- Support for materialized view filters added in cassandra 3.10.
+
+### Changed
+- SyncDB callback now informs whether any db schema was updated. It returns true if any db schema was updated and false if no schema change was detected.
+
+### Fixed
+- Unexpected pause behaviour in fixture import json streamer
+
 ## [2.0.0] - 2017-11-10
 ### Breaking
 - Hooks api has some major changes about how it works. Hooks are no longer asynchronous functions. Instead of callback based error or success to control the corresponding operation, it now requires to return true or false instead. This API change helped us to eliminate some major issues related to hooks and hope to prevent future inconsistencies with it.
@@ -457,7 +467,8 @@ save function callback instead of raising exceptions
 - Support for schema validators
 - Support for auto loading of model schema from directory
 
-[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.0.0...master
+[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.1.0...master
+[2.1.0]: https://github.com/masumsoft/express-cassandra/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/masumsoft/express-cassandra/compare/v1.10.0...v2.0.0
 [1.10.0]: https://github.com/masumsoft/express-cassandra/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/masumsoft/express-cassandra/compare/v1.9.0...v1.9.1
