@@ -2,7 +2,7 @@
   "extends": "airbnb-base",
   "rules": {
     "arrow-parens": ["error", "always"],
-    "complexity": ["error", 25],
+    "complexity": ["error", 30],
     "global-require": "off",
     "no-underscore-dangle": "off",
     "no-param-reassign": "off",
