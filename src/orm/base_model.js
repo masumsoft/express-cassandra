@@ -425,14 +425,7 @@ BaseModel.eachRow = function f(queryObject, options, onReadable, callback) {
   options.return_query = true;
   const selectQuery = this.find(queryObject, options);
 
-  const queryOptions = { prepare: options.prepare };
-  if (options.consistency) queryOptions.consistency = options.consistency;
-  if (options.fetchSize) queryOptions.fetchSize = options.fetchSize;
-  if (options.autoPage) queryOptions.autoPage = options.autoPage;
-  if (options.hints) queryOptions.hints = options.hints;
-  if (options.pageState) queryOptions.pageState = options.pageState;
-  if (options.retry) queryOptions.retry = options.retry;
-  if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
+  const queryOptions = normalizer.normalize_query_option(options);
 
   this._execute_table_eachRow(selectQuery.query, selectQuery.params, queryOptions, (n, row) => {
     if (!options.raw) {
@@ -493,14 +486,7 @@ BaseModel.stream = function f(queryObject, options, onReadable, callback) {
   options.return_query = true;
   const selectQuery = this.find(queryObject, options);
 
-  const queryOptions = { prepare: options.prepare };
-  if (options.consistency) queryOptions.consistency = options.consistency;
-  if (options.fetchSize) queryOptions.fetchSize = options.fetchSize;
-  if (options.autoPage) queryOptions.autoPage = options.autoPage;
-  if (options.hints) queryOptions.hints = options.hints;
-  if (options.pageState) queryOptions.pageState = options.pageState;
-  if (options.retry) queryOptions.retry = options.retry;
-  if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
+  const queryOptions = normalizer.normalize_query_option(options);
 
   const self = this;
 
@@ -762,14 +748,7 @@ BaseModel.find = function f(queryObject, options, callback) {
     return { query, params: queryParams };
   }
 
-  const queryOptions = { prepare: options.prepare };
-  if (options.consistency) queryOptions.consistency = options.consistency;
-  if (options.fetchSize) queryOptions.fetchSize = options.fetchSize;
-  if (options.autoPage) queryOptions.autoPage = options.autoPage;
-  if (options.hints) queryOptions.hints = options.hints;
-  if (options.pageState) queryOptions.pageState = options.pageState;
-  if (options.retry) queryOptions.retry = options.retry;
-  if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
+  const queryOptions = normalizer.normalize_query_option(options);
 
   this._execute_table_query(query, queryParams, queryOptions, (err, results) => {
     if (err) {
@@ -891,14 +870,7 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
     return returnObj;
   }
 
-  const queryOptions = { prepare: options.prepare };
-  if (options.consistency) queryOptions.consistency = options.consistency;
-  if (options.fetchSize) queryOptions.fetchSize = options.fetchSize;
-  if (options.autoPage) queryOptions.autoPage = options.autoPage;
-  if (options.hints) queryOptions.hints = options.hints;
-  if (options.pageState) queryOptions.pageState = options.pageState;
-  if (options.retry) queryOptions.retry = options.retry;
-  if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
+  const queryOptions = normalizer.normalize_query_option(options);
 
   this._execute_table_query(query, finalParams, queryOptions, (err, results) => {
     if (typeof callback === 'function') {
@@ -969,14 +941,7 @@ BaseModel.delete = function f(queryObject, options, callback) {
     return returnObj;
   }
 
-  const queryOptions = { prepare: options.prepare };
-  if (options.consistency) queryOptions.consistency = options.consistency;
-  if (options.fetchSize) queryOptions.fetchSize = options.fetchSize;
-  if (options.autoPage) queryOptions.autoPage = options.autoPage;
-  if (options.hints) queryOptions.hints = options.hints;
-  if (options.pageState) queryOptions.pageState = options.pageState;
-  if (options.retry) queryOptions.retry = options.retry;
-  if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
+  const queryOptions = normalizer.normalize_query_option(options);
 
   this._execute_table_query(query, queryParams, queryOptions, (err, results) => {
     if (typeof callback === 'function') {
@@ -1093,14 +1058,7 @@ BaseModel.prototype.save = function fn(options, callback) {
     return returnObj;
   }
 
-  const queryOptions = { prepare: options.prepare };
-  if (options.consistency) queryOptions.consistency = options.consistency;
-  if (options.fetchSize) queryOptions.fetchSize = options.fetchSize;
-  if (options.autoPage) queryOptions.autoPage = options.autoPage;
-  if (options.hints) queryOptions.hints = options.hints;
-  if (options.pageState) queryOptions.pageState = options.pageState;
-  if (options.retry) queryOptions.retry = options.retry;
-  if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
+  const queryOptions = normalizer.normalize_query_option(options);
 
   this.constructor._execute_table_query(query, queryParams, queryOptions, (err, result) => {
     if (typeof callback === 'function') {

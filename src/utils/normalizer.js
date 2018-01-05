@@ -24,6 +24,27 @@ const normalizer = {
     return normalizedReplicationOptions;
   },
 
+  normalize_query_option(options) {
+    const queryOptions = { prepare: options.prepare };
+    if (options.consistency) queryOptions.consistency = options.consistency;
+    if (options.fetchSize) queryOptions.fetchSize = options.fetchSize;
+    if (options.autoPage) queryOptions.autoPage = options.autoPage;
+    if (options.hints) queryOptions.hints = options.hints;
+    if (options.pageState) queryOptions.pageState = options.pageState;
+    if (options.retry) queryOptions.retry = options.retry;
+    if (options.serialConsistency) queryOptions.serialConsistency = options.serialConsistency;
+    if (options.customPayload) queryOptions.customPayload = options.customPayload;
+    if (options.isIdempotent) queryOptions.isIdempotent = options.isIdempotent;
+    if (options.readTimeout) queryOptions.readTimeout = options.readTimeout;
+    if (options.retry) queryOptions.retry = options.retry;
+    if (options.retryOnTimeout) queryOptions.retryOnTimeout = options.retryOnTimeout;
+    if (options.routingIndexes) queryOptions.routingIndexes = options.routingIndexes;
+    if (options.routingKey) queryOptions.routingKey = options.routingKey;
+    if (options.routingNames) queryOptions.routingNames = options.routingNames;
+    if (options.timestamp) queryOptions.timestamp = options.timestamp;
+    return queryOptions;
+  },
+
   normalize_user_defined_type(fieldType) {
     let normalizedFieldType = normalizeTypeDef(fieldType);
     if (normalizedFieldType.includes('<') && !normalizedFieldType.startsWith('frozen<')) {
