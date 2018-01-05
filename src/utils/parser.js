@@ -619,7 +619,19 @@ parser.get_mview_where_clause = function f(schema, viewSchema) {
   const quotedFieldNames = whereClause.match(/"(.*?)"/g);
   quotedFieldNames.forEach((fieldName) => {
     const unquotedFieldName = fieldName.replace(/"/g, '');
-    if (unquotedFieldName === unquotedFieldName.toLowerCase()) {
+    const reservedKeywords = [
+      'ADD', 'AGGREGATE', 'ALLOW', 'ALTER', 'AND', 'ANY', 'APPLY',
+      'ASC', 'AUTHORIZE', 'BATCH', 'BEGIN', 'BY', 'COLUMNFAMILY',
+      'CREATE', 'DELETE', 'DESC', 'DROP', 'EACH_QUORUM', 'ENTRIES',
+      'FROM', 'FULL', 'GRANT', 'IF', 'IN', 'INDEX', 'INET', 'INFINITY',
+      'INSERT', 'INTO', 'KEYSPACE', 'KEYSPACES', 'LIMIT', 'LOCAL_ONE',
+      'LOCAL_QUORUM', 'MATERIALIZED', 'MODIFY', 'NAN', 'NORECURSIVE',
+      'NOT', 'OF', 'ON', 'ONE', 'ORDER', 'PARTITION', 'PASSWORD', 'PER',
+      'PRIMARY', 'QUORUM', 'RENAME', 'REVOKE', 'SCHEMA', 'SELECT', 'SET',
+      'TABLE', 'TIME', 'THREE', 'TO', 'TOKEN', 'TRUNCATE', 'TWO', 'UNLOGGED',
+      'UPDATE', 'USE', 'USING', 'VIEW', 'WHERE', 'WITH'];
+    if (unquotedFieldName === unquotedFieldName.toLowerCase()
+      && !reservedKeywords.includes(unquotedFieldName.toUpperCase())) {
       whereClause = whereClause.replace(fieldName, unquotedFieldName);
     }
   });
