@@ -42,7 +42,8 @@ const JanusGraphBuilder = require('../builders/janusgraph');
 
 const DEFAULT_REPLICATION_FACTOR = 1;
 
-const noop = () => {};
+const noop = () => {
+};
 
 const Apollo = function f(connection, options) {
   if (!connection) {
@@ -56,6 +57,11 @@ const Apollo = function f(connection, options) {
       class: 'SimpleStrategy',
       replication_factor: DEFAULT_REPLICATION_FACTOR,
     };
+  }
+
+  // MOD : index per Model defaults to true
+  if (typeof options.ESindexPerModel === 'undefined') {
+    options.ESindexPerModel = true;
   }
 
   this._options = options;
@@ -93,7 +99,7 @@ Apollo.prototype = {
     const contactPoints = this._connection.contactPoints;
     const defaultHosts = [];
     contactPoints.forEach((host) => {
-      defaultHosts.push({ host });
+      defaultHosts.push({host});
     });
 
     const esClientConfig = _.defaults(this._connection.elasticsearch, {
@@ -108,8 +114,15 @@ Apollo.prototype = {
     const esClient = this.create_es_client();
     const indexName = this._keyspace;
 
-    const elassandraBuilder = new ElassandraBuilder(esClient);
-    elassandraBuilder.assert_index(indexName, callback);
+    // MOD : create index only when not ESindexPerModel.
+    // Otherwise multiple indexes are created in baseModel.syncDB.
+    if (!this._options.ESindexPerModel) {
+      const elassandraBuilder = new ElassandraBuilder(esClient);
+      // MOD keyspaceName equals indexName
+      elassandraBuilder.assert_index(indexName, callback);
+    } else {
+      callback();
+    }
   },
 
   create_gremlin_client() {
@@ -120,7 +133,7 @@ Apollo.prototype = {
     const contactPoints = this._connection.contactPoints;
     const defaultHosts = [];
     contactPoints.forEach((host) => {
-      defaultHosts.push({ host });
+      defaultHosts.push({host});
     });
 
     const gremlinConfig = _.defaults(this._connection.gremlin, {
@@ -197,47 +210,47 @@ Apollo.prototype = {
     const udtBuilder = new UdtBuilder(client);
 
     Promise.mapSeries(Object.keys(options.udts), (udtKey) => new Promise((resolve, reject) => {
-      const udtCallback = (err) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve();
-      };
-      udtBuilder.get_udt(udtKey, keyspace, (err, udtObject) => {
-        if (err) {
-          udtCallback(err);
-          return;
-        }
+        const udtCallback = (err) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve();
+        };
+        udtBuilder.get_udt(udtKey, keyspace, (err, udtObject) => {
+          if (err) {
+            udtCallback(err);
+            return;
+          }
 
-        if (!udtObject) {
-          udtBuilder.create_udt(udtKey, options.udts[udtKey], udtCallback);
-          return;
-        }
+          if (!udtObject) {
+            udtBuilder.create_udt(udtKey, options.udts[udtKey], udtCallback);
+            return;
+          }
 
-        const udtKeys = Object.keys(options.udts[udtKey]);
-        const udtValues = _.map(_.values(options.udts[udtKey]), normalizer.normalize_user_defined_type);
-        const fieldNames = udtObject.field_names;
-        const fieldTypes = _.map(udtObject.field_types, normalizer.normalize_user_defined_type);
+          const udtKeys = Object.keys(options.udts[udtKey]);
+          const udtValues = _.map(_.values(options.udts[udtKey]), normalizer.normalize_user_defined_type);
+          const fieldNames = udtObject.field_names;
+          const fieldTypes = _.map(udtObject.field_types, normalizer.normalize_user_defined_type);
 
-        if (_.difference(udtKeys, fieldNames).length === 0 && _.difference(udtValues, fieldTypes).length === 0) {
-          udtCallback();
-          return;
-        }
+          if (_.difference(udtKeys, fieldNames).length === 0 && _.difference(udtValues, fieldTypes).length === 0) {
+            udtCallback();
+            return;
+          }
 
-        throw (new Error(util.format(
+          throw (new Error(util.format(
           'User defined type "%s" already exists but does not match the udt definition. ' +
           'Consider altering or droping the type.',
           udtKey,
-        )));
-      });
-    }))
-      .then(() => {
-        callback();
-      })
-      .catch((err) => {
-        callback(err);
-      });
+          )));
+        });
+      }))
+    .then(() => {
+      callback();
+    })
+    .catch((err) => {
+      callback(err);
+    });
   },
 
   _assert_user_defined_functions(callback) {
@@ -253,60 +266,60 @@ Apollo.prototype = {
     const udfBuilder = new UdfBuilder(client);
 
     Promise.mapSeries(Object.keys(options.udfs), (udfKey) => new Promise((resolve, reject) => {
-      const udfCallback = (err) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve();
-      };
+        const udfCallback = (err) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve();
+        };
 
-      udfBuilder.validate_definition(udfKey, options.udfs[udfKey]);
+        udfBuilder.validate_definition(udfKey, options.udfs[udfKey]);
 
-      udfBuilder.get_udf(udfKey, keyspace, (err, udfObject) => {
-        if (err) {
-          udfCallback(err);
-          return;
-        }
+        udfBuilder.get_udf(udfKey, keyspace, (err, udfObject) => {
+          if (err) {
+            udfCallback(err);
+            return;
+          }
 
-        if (!udfObject) {
-          udfBuilder.create_udf(udfKey, options.udfs[udfKey], udfCallback);
-          return;
-        }
+          if (!udfObject) {
+            udfBuilder.create_udf(udfKey, options.udfs[udfKey], udfCallback);
+            return;
+          }
 
-        const udfLanguage = options.udfs[udfKey].language;
-        const resultLanguage = udfObject.language;
+          const udfLanguage = options.udfs[udfKey].language;
+          const resultLanguage = udfObject.language;
 
-        const udfCode = options.udfs[udfKey].code;
-        const resultCode = udfObject.body;
+          const udfCode = options.udfs[udfKey].code;
+          const resultCode = udfObject.body;
 
-        const udfReturnType = normalizer.normalize_user_defined_type(options.udfs[udfKey].returnType);
-        const resultReturnType = normalizer.normalize_user_defined_type(udfObject.return_type);
+          const udfReturnType = normalizer.normalize_user_defined_type(options.udfs[udfKey].returnType);
+          const resultReturnType = normalizer.normalize_user_defined_type(udfObject.return_type);
 
-        const udfInputs = options.udfs[udfKey].inputs ? options.udfs[udfKey].inputs : {};
-        const udfInputKeys = Object.keys(udfInputs);
-        const udfInputValues = _.map(_.values(udfInputs), normalizer.normalize_user_defined_type);
-        const resultArgumentNames = udfObject.argument_names;
-        const resultArgumentTypes = _.map(udfObject.argument_types, normalizer.normalize_user_defined_type);
+          const udfInputs = options.udfs[udfKey].inputs ? options.udfs[udfKey].inputs : {};
+          const udfInputKeys = Object.keys(udfInputs);
+          const udfInputValues = _.map(_.values(udfInputs), normalizer.normalize_user_defined_type);
+          const resultArgumentNames = udfObject.argument_names;
+          const resultArgumentTypes = _.map(udfObject.argument_types, normalizer.normalize_user_defined_type);
 
-        if (udfLanguage === resultLanguage &&
+          if (udfLanguage === resultLanguage &&
           udfCode === resultCode &&
           udfReturnType === resultReturnType &&
           _.isEqual(udfInputKeys, resultArgumentNames) &&
           _.isEqual(udfInputValues, resultArgumentTypes)) {
-          udfCallback();
-          return;
-        }
+            udfCallback();
+            return;
+          }
 
-        udfBuilder.create_udf(udfKey, options.udfs[udfKey], udfCallback);
-      });
-    }))
-      .then(() => {
-        callback();
-      })
-      .catch((err) => {
-        callback(err);
-      });
+          udfBuilder.create_udf(udfKey, options.udfs[udfKey], udfCallback);
+        });
+      }))
+    .then(() => {
+      callback();
+    })
+    .catch((err) => {
+      callback(err);
+    });
   },
 
   _assert_user_defined_aggregates(callback) {
@@ -322,63 +335,63 @@ Apollo.prototype = {
     const udaBuilder = new UdaBuilder(client);
 
     Promise.mapSeries(Object.keys(options.udas), (udaKey) => new Promise((resolve, reject) => {
-      const udaCallback = (err) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve();
-      };
+        const udaCallback = (err) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve();
+        };
 
-      udaBuilder.validate_definition(udaKey, options.udas[udaKey]);
+        udaBuilder.validate_definition(udaKey, options.udas[udaKey]);
 
-      if (!options.udas[udaKey].initcond) {
-        options.udas[udaKey].initcond = null;
-      }
-
-      udaBuilder.get_uda(udaKey, keyspace, (err, udaObjects) => {
-        if (err) {
-          udaCallback(err);
-          return;
+        if (!options.udas[udaKey].initcond) {
+          options.udas[udaKey].initcond = null;
         }
 
-        if (!udaObjects) {
-          udaBuilder.create_uda(udaKey, options.udas[udaKey], udaCallback);
-          return;
-        }
+        udaBuilder.get_uda(udaKey, keyspace, (err, udaObjects) => {
+          if (err) {
+            udaCallback(err);
+            return;
+          }
 
-        const inputTypes = _.map(options.udas[udaKey].input_types, normalizer.normalize_user_defined_type);
-        const sfunc = options.udas[udaKey].sfunc.toLowerCase();
-        const stype = normalizer.normalize_user_defined_type(options.udas[udaKey].stype);
-        const finalfunc = options.udas[udaKey].finalfunc ? options.udas[udaKey].finalfunc.toLowerCase() : null;
-        const initcond = options.udas[udaKey].initcond ? options.udas[udaKey].initcond.replace(/[\s]/g, '') : null;
+          if (!udaObjects) {
+            udaBuilder.create_uda(udaKey, options.udas[udaKey], udaCallback);
+            return;
+          }
 
-        for (let i = 0; i < udaObjects.length; i++) {
-          const resultArgumentTypes = _.map(udaObjects[i].argument_types, normalizer.normalize_user_defined_type);
+          const inputTypes = _.map(options.udas[udaKey].input_types, normalizer.normalize_user_defined_type);
+          const sfunc = options.udas[udaKey].sfunc.toLowerCase();
+          const stype = normalizer.normalize_user_defined_type(options.udas[udaKey].stype);
+          const finalfunc = options.udas[udaKey].finalfunc ? options.udas[udaKey].finalfunc.toLowerCase() : null;
+          const initcond = options.udas[udaKey].initcond ? options.udas[udaKey].initcond.replace(/[\s]/g, '') : null;
 
-          const resultStateFunc = udaObjects[i].state_func;
-          const resultStateType = normalizer.normalize_user_defined_type(udaObjects[i].state_type);
-          const resultFinalFunc = udaObjects[i].final_func;
-          const resultInitcond = udaObjects[i].initcond ? udaObjects[i].initcond.replace(/[\s]/g, '') : null;
+          for (let i = 0; i < udaObjects.length; i++) {
+            const resultArgumentTypes = _.map(udaObjects[i].argument_types, normalizer.normalize_user_defined_type);
 
-          if (sfunc === resultStateFunc &&
+            const resultStateFunc = udaObjects[i].state_func;
+            const resultStateType = normalizer.normalize_user_defined_type(udaObjects[i].state_type);
+            const resultFinalFunc = udaObjects[i].final_func;
+            const resultInitcond = udaObjects[i].initcond ? udaObjects[i].initcond.replace(/[\s]/g, '') : null;
+
+            if (sfunc === resultStateFunc &&
             stype === resultStateType &&
             finalfunc === resultFinalFunc &&
             initcond === resultInitcond &&
             _.isEqual(inputTypes, resultArgumentTypes)) {
-            udaCallback();
-            return;
+              udaCallback();
+              return;
+            }
           }
-        }
-        udaBuilder.create_uda(udaKey, options.udas[udaKey], udaCallback);
-      });
-    }))
-      .then(() => {
-        callback();
-      })
-      .catch((err) => {
-        callback(err);
-      });
+          udaBuilder.create_uda(udaKey, options.udas[udaKey], udaCallback);
+        });
+      }))
+    .then(() => {
+      callback();
+    })
+    .catch((err) => {
+      callback(err);
+    });
   },
 
   _set_client(client) {
@@ -411,12 +424,12 @@ Apollo.prototype = {
         managementTasks.push(this.assertGremlinGraphAsync());
       }
       Promise.all(managementTasks)
-        .then(() => {
-          callback(null, this);
-        })
-        .catch((err1) => {
-          callback(err1);
-        });
+      .then(() => {
+        callback(null, this);
+      })
+      .catch((err1) => {
+        callback(err1);
+      });
     };
 
     const onUserDefinedFunctions = function f(err) {
@@ -553,12 +566,12 @@ Apollo.prototype = {
     }
 
     Promise.all(clientsToShutdown)
-      .then(() => {
-        callback();
-      })
-      .catch((err) => {
-        callback(err);
-      });
+    .then(() => {
+      callback();
+    })
+    .catch((err) => {
+      callback(err);
+    });
   },
 };
 

@@ -5,13 +5,13 @@ const ElassandraBuilder = function f(client) {
 };
 
 ElassandraBuilder.prototype = {
-  create_index(indexName, callback) {
+  create_index(keyspaceName, indexName, callback) {
     debug('creating elassandra index: %s', indexName);
     this._client.indices.create({
       index: indexName,
       body: {
         settings: {
-          keyspace: indexName,
+          keyspace: keyspaceName
         },
       },
     }, (err) => {
@@ -26,7 +26,7 @@ ElassandraBuilder.prototype = {
 
   check_index_exist(indexName, callback) {
     debug('check for elassandra index: %s', indexName);
-    this._client.indices.exists({ index: indexName }, (err, res) => {
+    this._client.indices.exists({index: indexName}, (err, res) => {
       if (err) {
         callback(err);
         return;
@@ -36,7 +36,7 @@ ElassandraBuilder.prototype = {
     });
   },
 
-  assert_index(indexName, callback) {
+  assert_index(keyspaceName, indexName, callback) {
     this.check_index_exist(indexName, (err, exist) => {
       if (err) {
         callback(err);
@@ -44,7 +44,7 @@ ElassandraBuilder.prototype = {
       }
 
       if (!exist) {
-        this.create_index(indexName, callback);
+        _this.create_index(keyspaceName, indexName, callback);
         return;
       }
 

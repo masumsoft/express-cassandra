@@ -114,11 +114,14 @@ BaseModel._sync_model_definition = function f(callback) {
 
   // backwards compatible change, dropTableOnSchemaChange will work like migration: 'drop'
   if (!migration) {
-    if (properties.dropTableOnSchemaChange) migration = 'drop';
-    else migration = 'safe';
+    if (properties.dropTableOnSchemaChange)
+      migration = 'drop';
+    else
+      migration = 'safe';
   }
   // always safe migrate if NODE_ENV==='production'
-  if (process.env.NODE_ENV === 'production') migration = 'safe';
+  if (process.env.NODE_ENV === 'production')
+    migration = 'safe';
 
   // check for existence of table on DB and if it matches this model's schema
   tableBuilder.get_table_schema((err, dbSchema) => {
@@ -156,13 +159,13 @@ BaseModel._sync_model_definition = function f(callback) {
       }
 
       Promise.all(indexingTasks)
-        .then(() => {
-          // db schema was updated, so callback with true
-          callback(null, true);
-        })
-        .catch((err2) => {
-          callback(err2);
-        });
+      .then(() => {
+        // db schema was updated, so callback with true
+        callback(null, true);
+      })
+      .catch((err2) => {
+        callback(err2);
+      });
     };
 
     if (!dbSchema) {
@@ -194,7 +197,7 @@ BaseModel._sync_model_definition = function f(callback) {
     if (migration === 'alter') {
       // check if table can be altered to match schema
       if (_.isEqual(normalizedModelSchema.key, normalizedDBSchema.key) &&
-        _.isEqual(normalizedModelSchema.clustering_order, normalizedDBSchema.clustering_order)) {
+      _.isEqual(normalizedModelSchema.clustering_order, normalizedDBSchema.clustering_order)) {
         tableBuilder.init_alter_operations(modelSchema, dbSchema, normalizedModelSchema, normalizedDBSchema, (err1) => {
           if (err1 && err1.message === 'alter_impossible') {
             tableBuilder.drop_recreate_table(modelSchema, normalizedDBSchema.materialized_views, afterDBCreate);
@@ -217,10 +220,17 @@ BaseModel._sync_es_index = function f(callback) {
   const properties = this._properties;
 
   if (properties.esclient && properties.schema.es_index_mapping) {
-    const indexName = properties.keyspace;
+
     const mappingName = properties.table_name;
+    var indexName;
+    if (properties.ESindexPerModel) {
+      indexName = properties.keyspace + '_' + mappingName;
+    } else {
+      indexName = properties.keyspace;
+    }
+
     const elassandraBuilder = new ElassandraBuilder(properties.esclient);
-    elassandraBuilder.assert_index(indexName, (err) => {
+    elassandraBuilder.assert_index(keyspaceName, indexName, (err) => {
       if (err) {
         callback(err);
         return;
@@ -288,19 +298,21 @@ BaseModel.get_find_query = function f(queryObject, options) {
   const selectClause = parser.get_select_clause(options);
 
   let query = util.format(
-    'SELECT %s %s FROM "%s" %s %s %s',
-    (options.distinct ? 'DISTINCT' : ''),
-    selectClause,
-    options.materialized_view ? options.materialized_view : this._properties.table_name,
-    whereClause.query,
-    orderbyClause,
-    limitClause,
+  'SELECT %s %s FROM "%s" %s %s %s',
+  (options.distinct ? 'DISTINCT' : ''),
+  selectClause,
+  options.materialized_view ? options.materialized_view : this._properties.table_name,
+  whereClause.query,
+  orderbyClause,
+  limitClause,
   );
 
-  if (options.allow_filtering) query += ' ALLOW FILTERING;';
-  else query += ';';
+  if (options.allow_filtering)
+    query += ' ALLOW FILTERING;';
+  else
+    query += ';';
 
-  return { query, params: whereClause.params };
+  return {query, params: whereClause.params};
 };
 
 BaseModel.get_table_name = function f() {
@@ -494,7 +506,8 @@ BaseModel.stream = function f(queryObject, options, onReadable, callback) {
     const reader = this;
     reader.readRow = () => {
       const row = reader.read();
-      if (!row) return row;
+      if (!row)
+        return row;
       if (!options.raw) {
         const ModelConstructor = self._properties.get_constructor();
         const o = new ModelConstructor(row);
@@ -699,8 +712,16 @@ BaseModel.graphQuery = function f(query, params, callback) {
 
 BaseModel.search = function f(queryObject, callback) {
   const esClient = this.get_es_client();
+
+  var indexName;
+  if (this._properties.ESindexPerModel) {
+    indexName = this._properties.keyspace + '_' + this._properties.table_name;
+  } else {
+    indexName = this._properties.keyspace;
+  }
+
   const query = _.defaults(queryObject, {
-    index: this._properties.keyspace,
+    index: indexName,
     type: this._properties.table_name,
   });
   esClient.search(query, (err, response) => {
@@ -730,7 +751,8 @@ BaseModel.find = function f(queryObject, options, callback) {
 
   // set raw true if select is used,
   // because casting to model instances may lead to problems
-  if (options.select) options.raw = true;
+  if (options.select)
+    options.raw = true;
 
   let queryParams = [];
 
@@ -745,7 +767,7 @@ BaseModel.find = function f(queryObject, options, callback) {
   }
 
   if (options.return_query) {
-    return { query, params: queryParams };
+    return {query, params: queryParams};
   }
 
   const queryOptions = normalizer.normalize_query_option(options);
@@ -819,19 +841,21 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
     return {};
   }
 
-  const { updateClauses, queryParams, errorHappened } = parser.get_update_value_expression(
-    this,
-    schema,
-    updateValues,
-    callback,
+  const {updateClauses, queryParams, errorHappened} = parser.get_update_value_expression(
+  this,
+  schema,
+  updateValues,
+  callback,
   );
 
-  if (errorHappened) return {};
+  if (errorHappened)
+    return {};
 
   let query = 'UPDATE "%s"';
   let where = '';
   let finalParams = queryParams;
-  if (options.ttl) query += util.format(' USING TTL %s', options.ttl);
+  if (options.ttl)
+    query += util.format(' USING TTL %s', options.ttl);
   query += ' SET %s %s';
   try {
     const whereClause = parser.get_where_clause(schema, queryObject);
@@ -1030,17 +1054,20 @@ BaseModel.prototype.save = function fn(options, callback) {
     errorHappened,
   } = parser.get_save_value_expression(this, schema, callback);
 
-  if (errorHappened) return {};
+  if (errorHappened)
+    return {};
 
   let query = util.format(
-    'INSERT INTO "%s" ( %s ) VALUES ( %s )',
-    properties.table_name,
-    identifiers.join(' , '),
-    values.join(' , '),
+  'INSERT INTO "%s" ( %s ) VALUES ( %s )',
+  properties.table_name,
+  identifiers.join(' , '),
+  values.join(' , '),
   );
 
-  if (options.if_not_exist) query += ' IF NOT EXISTS';
-  if (options.ttl) query += util.format(' USING TTL %s', options.ttl);
+  if (options.if_not_exist)
+    query += ' IF NOT EXISTS';
+  if (options.ttl)
+    query += util.format(' USING TTL %s', options.ttl);
 
   query += ';';
 
