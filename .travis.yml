@@ -16,7 +16,7 @@ before_install:
   - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
   - java -version
   - wget https://www.dropbox.com/s/vebuzbdql0w6eap/elassandra_janusgraph_distribution.zip?dl=1 -O elassandra_janusgraph_distribution.zip && unzip elassandra_janusgraph_distribution.zip
-  - sh ./elassandra_janusgraph_distribution/elassandra-5.5.0.5/bin/cassandra -e
-  - sleep 50
+  - sh ./elassandra_janusgraph_distribution/elassandra-5.5.0.10/bin/cassandra -e
+  - sleep 100
   - bash ./elassandra_janusgraph_distribution/janusgraph-0.2.0/bin/gremlin-server.sh ./conf/gremlin-server/gremlin-server-configuration.yaml &
-  - sleep 30
+  - sleep 50
