@@ -109,7 +109,7 @@ Apollo.prototype = {
     const indexName = this._keyspace;
 
     const elassandraBuilder = new ElassandraBuilder(esClient);
-    elassandraBuilder.assert_index(indexName, callback);
+    elassandraBuilder.assert_index(indexName, indexName, callback);
   },
 
   create_gremlin_client() {

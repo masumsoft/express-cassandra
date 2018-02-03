@@ -200,7 +200,8 @@ TableBuilder.prototype = {
 
   drop_recreate_table(modelSchema, materializedViews, callback) {
     if (this._es_builder) {
-      this._es_builder.delete_index(this._properties.keyspace, () => {
+      const indexName = `${this._properties.keyspace}_${this._properties.table_name}`;
+      this._es_builder.delete_index(indexName, () => {
         this.drop_table(materializedViews, (err1) => {
           if (err1) {
             callback(err1);
@@ -740,7 +741,8 @@ TableBuilder.prototype = {
         return;
       }
       if (droppedFields && this._es_builder) {
-        this._es_builder.delete_index(properties.keyspace, () => {
+        const indexName = `${properties.keyspace}_${properties.table_name}`;
+        this._es_builder.delete_index(indexName, () => {
           this._apply_alter_operations(alterOperations, dbSchema, normalizedModelSchema, normalizedDBSchema, callback);
         });
         return;

@@ -26,7 +26,7 @@ module.exports = () => {
     it('should count docs using elastic client without error', (done) => {
       const esClient = models.instance.MultipleOrderBy.get_es_client();
       esClient.count({
-        index: models.instance.MultipleOrderBy.get_keyspace_name(),
+        index: `${models.instance.MultipleOrderBy.get_keyspace_name()}_${models.instance.MultipleOrderBy.get_table_name()}`,
         type: models.instance.MultipleOrderBy.get_table_name(),
       }, (err, response) => {
         if (err) {

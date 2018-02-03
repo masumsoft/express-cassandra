@@ -194,7 +194,7 @@ BaseModel._sync_model_definition = function f(callback) {
     if (migration === 'alter') {
       // check if table can be altered to match schema
       if (_.isEqual(normalizedModelSchema.key, normalizedDBSchema.key) &&
-        _.isEqual(normalizedModelSchema.clustering_order, normalizedDBSchema.clustering_order)) {
+          _.isEqual(normalizedModelSchema.clustering_order, normalizedDBSchema.clustering_order)) {
         tableBuilder.init_alter_operations(modelSchema, dbSchema, normalizedModelSchema, normalizedDBSchema, (err1) => {
           if (err1 && err1.message === 'alter_impossible') {
             tableBuilder.drop_recreate_table(modelSchema, normalizedDBSchema.materialized_views, afterDBCreate);
@@ -217,10 +217,12 @@ BaseModel._sync_es_index = function f(callback) {
   const properties = this._properties;
 
   if (properties.esclient && properties.schema.es_index_mapping) {
-    const indexName = properties.keyspace;
+    const keyspaceName = properties.keyspace;
     const mappingName = properties.table_name;
+    const indexName = `${keyspaceName}_${mappingName}`;
+
     const elassandraBuilder = new ElassandraBuilder(properties.esclient);
-    elassandraBuilder.assert_index(indexName, (err) => {
+    elassandraBuilder.assert_index(keyspaceName, indexName, (err) => {
       if (err) {
         callback(err);
         return;
@@ -699,8 +701,10 @@ BaseModel.graphQuery = function f(query, params, callback) {
 
 BaseModel.search = function f(queryObject, callback) {
   const esClient = this.get_es_client();
+  const indexName = `${this._properties.keyspace}_${this._properties.table_name}`;
+
   const query = _.defaults(queryObject, {
-    index: this._properties.keyspace,
+    index: indexName,
     type: this._properties.table_name,
   });
   esClient.search(query, (err, response) => {

@@ -126,9 +126,13 @@ You could also use the `get_es_client` method to get the elasticsearch client in
 
 ```
 const esClient = models.instance.User.get_es_client();
+const modelKeyspaceName = models.instance.MultipleOrderBy.get_keyspace_name();
+const modelTableName = models.instance.User.get_table_name();
+const modelIndexName = modelKeyspaceName + '_' + modelTableName;
+
 esClient.count({
-    index: models.instance.User.get_keyspace_name(),
-    type: models.instance.User.get_table_name(),
+    index: modelIndexName,
+    type: modelTableName,
 }, function(err, response) {
     if (err) throw err;
 
