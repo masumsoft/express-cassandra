@@ -9,7 +9,12 @@ const arraySort = (a, b) => {
   return 0;
 };
 
-const normalizeTypeDef = (typeDef) => typeDef.replace(/[\s]/g, '').replace(/varchar/g, 'text').replace(/frozen/ig, 'frozen');
+const normalizeTypeDef = (typeDef) => {
+  const formattedTypeDef = typeDef.replace(/[\s]/g, '').replace(/varchar/g, 'text').replace(/frozen/ig, 'frozen');
+  const frozenMatch = formattedTypeDef.match(/frozen</g);
+  if (frozenMatch && frozenMatch.length) return formattedTypeDef.replace(/frozen</g, '').slice(0, -1 * frozenMatch.length);
+  return formattedTypeDef;
+};
 
 const normalizer = {
   normalize_replication_option(replicationOptions) {
@@ -46,11 +51,7 @@ const normalizer = {
   },
 
   normalize_user_defined_type(fieldType) {
-    let normalizedFieldType = normalizeTypeDef(fieldType);
-    if (normalizedFieldType.includes('<') && !normalizedFieldType.startsWith('frozen<')) {
-      normalizedFieldType = util.format('frozen<%s>', normalizedFieldType);
-    }
-    return normalizedFieldType;
+    return normalizeTypeDef(fieldType);
   },
 
   normalize_primary_key(outputSchema) {
@@ -97,7 +98,7 @@ const normalizer = {
 
       if (['map', 'list', 'set', 'frozen'].includes(outputSchema.fields[fieldName].type)) {
         if (modelSchema.typeMaps && modelSchema.typeMaps[fieldName]) {
-          outputSchema.fields[fieldName].typeDef = modelSchema.typeMaps[fieldName];
+          outputSchema.fields[fieldName].typeDef = normalizeTypeDef(modelSchema.typeMaps[fieldName]);
         } else {
           outputSchema.fields[fieldName].typeDef = normalizeTypeDef(outputSchema.fields[fieldName].typeDef);
         }
