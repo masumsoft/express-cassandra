@@ -704,11 +704,11 @@ parser.get_select_clause = function f(options) {
         } else if (selection.length === 2) {
           selectionChunk = util.format('%s("%s")', selection[0], selection[1]);
         } else {
-          selectionChunk = util.format('%s(%s)', selection[0], selection.splice(1).join(','));
+          selectionChunk = util.format('%s(%s)', selection[0], `"${selection.splice(1).join('","')}"`);
         }
-        selectArray.push(util.format('%s AS %s', selectionChunk, selectionEndChunk[1]));
+        selectArray.push(util.format('%s AS "%s"', selectionChunk, selectionEndChunk[1]));
       } else if (selection.length >= 3) {
-        selectArray.push(util.format('%s(%s)', selection[0], selection.splice(1).join(',')));
+        selectArray.push(util.format('%s(%s)', selection[0], `"${selection.splice(1).join('","')}"`));
       }
     }
     selectClause = selectArray.join(',');

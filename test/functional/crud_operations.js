@@ -254,7 +254,7 @@ module.exports = () => {
     it('should find a row with only selected columns', (done) => {
       models.instance.Person.findOne(
         { userID: 1234 },
-        { select: ['fLog(points) as "flogPoints"', 'sum(age)', 'average(age)', 'udfSum(points, age)', 'udfSum(points, age) as udfsum'] },
+        { select: ['fLog(points) as flogPoints', 'sum(age)', 'average(age)', 'udfSum(points, age)', 'udfSum(points, age) as udfsum'] },
         (err, user) => {
           if (err) done(err);
           user.flogPoints.should.approximately(4.16, 0.01);
