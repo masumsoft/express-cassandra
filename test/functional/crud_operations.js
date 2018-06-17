@@ -35,7 +35,7 @@ module.exports = () => {
       alex = new models.instance.Person({
         userID: 1234,
         Name: 'Mahafuzur',
-        age: -32,
+        ageString: '-32',
         timeId: models.timeuuid(),
         info: { hello: 'world' },
         phones: ['123456', '234567'],

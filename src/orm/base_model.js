@@ -71,7 +71,16 @@ const BaseModel = function f(instanceValues) {
     };
 
     Object.defineProperty(this, propertyName, descriptor);
-    if (!field.virtual) {
+    if (field.virtual && typeof instanceValues[propertyName] !== 'undefined') {
+      this[propertyName] = instanceValues[propertyName];
+    }
+  }
+
+  for (let fieldsKeys = Object.keys(fields), i = 0, len = fieldsKeys.length; i < len; i++) {
+    const propertyName = fieldsKeys[i];
+    const field = fields[fieldsKeys[i]];
+
+    if (!field.virtual && typeof instanceValues[propertyName] !== 'undefined') {
       this[propertyName] = instanceValues[propertyName];
     }
   }
