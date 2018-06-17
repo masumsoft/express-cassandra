@@ -93,6 +93,10 @@ module.exports = {
     info: { type: 'map', typeDef: '<varchar,varchar>' },
     phones: { type: 'list', typeDef: '<varchar>' },
     emails: { type: 'set', typeDef: '<varchar>' },
+    phones_udt: {
+      type: 'frozen',
+      typeDef: '<set<phone>>',
+    },
     address: {
       type: 'frozen',
       typeDef: '<"Address">',
