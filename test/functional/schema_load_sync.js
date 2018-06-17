@@ -43,6 +43,15 @@ const config = {
           input: 'double',
         },
       },
+      udfSum: {
+        language: 'java',
+        code: 'return Double.valueOf(a.doubleValue() + b.doubleValue());',
+        returnType: 'double',
+        inputs: {
+          a: 'double',
+          b: 'int',
+        },
+      },
       avgState: {
         language: 'java',
         code: 'if (val !=null) {' +

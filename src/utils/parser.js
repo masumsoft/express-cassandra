@@ -690,19 +690,25 @@ parser.get_select_clause = function f(options) {
     const selectArray = [];
     for (let i = 0; i < options.select.length; i++) {
       // separate the aggregate function and the column name if select is an aggregate function
-      const selection = options.select[i].split(/[( )]/g).filter((e) => (e));
+      const selection = options.select[i].split(/[(, )]/g).filter((e) => (e));
       if (selection.length === 1) {
-        selectArray.push(util.format('"%s"', selection[0]));
-      } else if (selection.length === 2 || selection.length === 4) {
-        let functionClause = util.format('%s("%s")', selection[0], selection[1]);
-        if (selection[2]) functionClause += util.format(' %s', selection[2]);
-        if (selection[3]) functionClause += util.format(' %s', selection[3]);
-
-        selectArray.push(functionClause);
-      } else if (selection.length === 3) {
-        selectArray.push(util.format('"%s" %s %s', selection[0], selection[1], selection[2]));
-      } else {
-        selectArray.push('*');
+        if (selection[0] === '*') selectArray.push('*');
+        else selectArray.push(util.format('"%s"', selection[0]));
+      } else if (selection.length === 2) {
+        selectArray.push(util.format('%s("%s")', selection[0], selection[1]));
+      } else if (selection.length >= 3 && selection[selection.length - 2].toLowerCase() === 'as') {
+        const selectionEndChunk = selection.splice(selection.length - 2);
+        let selectionChunk = '';
+        if (selection.length === 1) {
+          selectionChunk = util.format('"%s"', selection[0]);
+        } else if (selection.length === 2) {
+          selectionChunk = util.format('%s("%s")', selection[0], selection[1]);
+        } else {
+          selectionChunk = util.format('%s(%s)', selection[0], selection.splice(1).join(','));
+        }
+        selectArray.push(util.format('%s AS %s', selectionChunk, selectionEndChunk[1]));
+      } else if (selection.length >= 3) {
+        selectArray.push(util.format('%s(%s)', selection[0], selection.splice(1).join(',')));
       }
     }
     selectClause = selectArray.join(',');

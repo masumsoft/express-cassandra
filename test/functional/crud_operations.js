@@ -254,12 +254,14 @@ module.exports = () => {
     it('should find a row with only selected columns', (done) => {
       models.instance.Person.findOne(
         { userID: 1234 },
-        { select: ['fLog(points)', 'sum(age)', 'average(age)'] },
+        { select: ['fLog(points) as "flogPoints"', 'sum(age)', 'average(age)', 'udfSum(points, age)', 'udfSum(points, age) as udfsum'] },
         (err, user) => {
           if (err) done(err);
-          user['express_cassandra_tests_kspc1.flog(points)'].should.approximately(4.16, 0.01);
+          user.flogPoints.should.approximately(4.16, 0.01);
           user['system.sum(age)'].should.equal(32);
           user['express_cassandra_tests_kspc1.average(age)'].should.equal(32);
+          user['express_cassandra_tests_kspc1.udfsum(points, age)'].should.approximately(96.0, 0.01);
+          user.udfsum.should.approximately(96.0, 0.01);
           done();
         },
       );
