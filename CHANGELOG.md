@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.2.1] - 2018-06-17
+### Fixed
+- Frozen set collections that uses UDTs are not normalized properly and throws schemamismatch error
+
 ## [2.2.0] - 2018-02-03
 ### Changed
 - Separate index per table for elassandra instead of a single index for the whole keyspace. This fixes conflicts where the same fieldname with different datatypes exists in different tables. The index names are now of the format: keyspaceName_tableName
@@ -476,7 +480,8 @@ save function callback instead of raising exceptions
 - Support for schema validators
 - Support for auto loading of model schema from directory
 
-[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.2.0...master
+[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.2.1...master
+[2.2.1]: https://github.com/masumsoft/express-cassandra/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/masumsoft/express-cassandra/compare/v2.1.1...v2.2.0
 [2.1.1]: https://github.com/masumsoft/express-cassandra/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/masumsoft/express-cassandra/compare/v2.0.0...v2.1.0
