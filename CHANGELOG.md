@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.2.2] - 2018-06-17
+### Fixed
+- UDF and UDA with multiple parameters not parsed correctly and behaves like select *
+- Virtual fields that set value of another field does not work while creating model instance
+
 ## [2.2.1] - 2018-06-17
 ### Fixed
 - Frozen set collections that uses UDTs are not normalized properly and throws schemamismatch error
@@ -480,7 +485,8 @@ save function callback instead of raising exceptions
 - Support for schema validators
 - Support for auto loading of model schema from directory
 
-[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.2.1...master
+[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.2.2...master
+[2.2.2]: https://github.com/masumsoft/express-cassandra/compare/v2.2.1...v2.2.2
 [2.2.1]: https://github.com/masumsoft/express-cassandra/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/masumsoft/express-cassandra/compare/v2.1.1...v2.2.0
 [2.1.1]: https://github.com/masumsoft/express-cassandra/compare/v2.1.0...v2.1.1

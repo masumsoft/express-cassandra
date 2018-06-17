@@ -17,7 +17,7 @@ validators.is_array = (obj) => (check.array(obj));
 validators.is_object = (obj) => (check.object(obj));
 validators.is_long = (obj) => ((obj instanceof cql.types.Long));
 validators.is_decimal = (obj) => ((obj instanceof cql.types.BigDecimal));
-validators.is_integer = (obj) => (check.intNumber(obj));
+validators.is_integer = (obj) => (check.integer(obj));
 validators.is_var_int = (obj) => ((obj instanceof cql.types.Integer));
 validators.is_boolean = (obj) => ((obj === true || obj === false));
 validators.is_number = (obj) => (check.number(obj));
