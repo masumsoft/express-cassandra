@@ -127,11 +127,15 @@ module.exports = {
     createdAt: { type: 'timestamp', default: { $db_function: 'toTimestamp(now())' } },
   },
   key: [['userID'], 'age'],
-  indexes: ['Name', 'phones', 'emails', 'keys(info)', 'entries(info)', 'values(info)', 'full(frozenMap)'],
+  indexes: ['Name', 'phones', 'emails', 'keys(info)', 'entries(info)', 'values(info)', 'full(frozenMap)', 'created_at', '__v'],
   materialized_views: {
     mat_view_composite: {
       select: ['*'],
       key: [['userID', 'age'], 'active'],
+    },
+    mat_view_composite_options: {
+      select: ['userID', 'age', 'created_at', 'updatedAt', '__v'],
+      key: [['userID', 'age'], 'created_at'],
     },
     mat_view_composite_filters: {
       select: ['*'],

@@ -7,6 +7,27 @@ const schemer = {
   validate_table_name(tableName) {
     return (typeof tableName === 'string' && /^[a-zA-Z]+[a-zA-Z0-9_]*/.test(tableName));
   },
+  has_field(modelSchema, fieldName) {
+    const optionFieldNames = [];
+    if (modelSchema.options) {
+      if (modelSchema.options.timestamps) {
+        const timestampOptions = {
+          createdAt: modelSchema.options.timestamps.createdAt || 'createdAt',
+          updatedAt: modelSchema.options.timestamps.updatedAt || 'updatedAt',
+        };
+        optionFieldNames.push(timestampOptions.createdAt);
+        optionFieldNames.push(timestampOptions.updatedAt);
+      }
+
+      if (modelSchema.options.versions) {
+        const versionOptions = {
+          key: modelSchema.options.versions.key || '__v',
+        };
+        optionFieldNames.push(versionOptions.key);
+      }
+    }
+    return _.has(modelSchema.fields, fieldName) || optionFieldNames.includes(fieldName);
+  },
   validate_field(modelSchema, fieldObject, fieldName) {
     if (!fieldObject) {
       throw (new Error(util.format('Schema field "%s" is not properly defined', fieldName)));
@@ -30,10 +51,10 @@ const schemer = {
 
   validate_primary_key(modelSchema) {
     if (typeof (modelSchema.key[0]) === 'string') {
-      if (!_.has(modelSchema.fields, modelSchema.key[0])) {
+      if (!this.has_field(modelSchema, modelSchema.key[0])) {
         throw (new Error('Partition Key must also be a valid field name'));
       }
-      if (modelSchema.fields[modelSchema.key[0]].virtual) {
+      if (modelSchema.fields[modelSchema.key[0]] && modelSchema.fields[modelSchema.key[0]].virtual) {
         throw (new Error("Partition Key must also be a db field name, can't be a virtual field name"));
       }
     } else if (_.isArray(modelSchema.key[0])) {
@@ -41,10 +62,10 @@ const schemer = {
         throw (new Error("Partition Key array can't be empty"));
       }
       modelSchema.key[0].forEach((partitionKeyField) => {
-        if ((typeof (partitionKeyField) !== 'string') || !_.has(modelSchema.fields, partitionKeyField)) {
+        if ((typeof (partitionKeyField) !== 'string') || !this.has_field(modelSchema, partitionKeyField)) {
           throw (new Error('Partition Key array must contain only valid field names'));
         }
-        if (modelSchema.fields[partitionKeyField].virtual) {
+        if (modelSchema.fields[partitionKeyField] && modelSchema.fields[partitionKeyField].virtual) {
           throw (new Error("Partition Key array must contain only db field names, can't contain virtual field names"));
         }
       });
@@ -54,10 +75,10 @@ const schemer = {
 
     modelSchema.key.forEach((primaryKeyField, primaryKeyIndex) => {
       if (primaryKeyIndex > 0) {
-        if ((typeof (primaryKeyField) !== 'string') || !_.has(modelSchema.fields, primaryKeyField)) {
+        if ((typeof (primaryKeyField) !== 'string') || !this.has_field(modelSchema, primaryKeyField)) {
           throw (new Error('Clustering Keys must be valid field names'));
         }
-        if (modelSchema.fields[primaryKeyField].virtual) {
+        if (modelSchema.fields[primaryKeyField] && modelSchema.fields[primaryKeyField].virtual) {
           throw (new Error("Clustering Keys must be db field names, can't be virtual field names"));
         }
       }
@@ -94,7 +115,7 @@ const schemer = {
 
     materializedViewObject.select.forEach((materializedViewSelectField) => {
       if ((typeof (materializedViewSelectField) !== 'string')
-            || !(_.has(modelSchema.fields, materializedViewSelectField)
+            || !(this.has_field(modelSchema, materializedViewSelectField)
             || materializedViewSelectField === '*')) {
         throw (new Error(util.format(
           'the select attribute under materialized_view %s must be an array of field name strings or ["*"]',
@@ -114,10 +135,11 @@ const schemer = {
 
     // validate materialized_view primary key
     if (typeof (materializedViewObject.key[0]) === 'string') {
-      if (!_.has(modelSchema.fields, materializedViewObject.key[0])) {
+      if (!this.has_field(modelSchema, materializedViewObject.key[0])) {
         throw (new Error(util.format('materialized_view %s: partition key string must match a valid field name', materializedViewName)));
       }
-      if (modelSchema.fields[materializedViewObject.key[0]].virtual) {
+      if (modelSchema.fields[materializedViewObject.key[0]]
+        && modelSchema.fields[materializedViewObject.key[0]].virtual) {
         throw (new Error(util.format(
           'materialized_view %s: partition key must match a db field name, cannot be a virtual field name',
           materializedViewName,
@@ -129,13 +151,14 @@ const schemer = {
       }
       materializedViewObject.key[0].forEach((materializedViewPartitionKeyField) => {
         if ((typeof (materializedViewPartitionKeyField) !== 'string')
-            || !_.has(modelSchema.fields, materializedViewPartitionKeyField)) {
+            || !this.has_field(modelSchema, materializedViewPartitionKeyField)) {
           throw (new Error(util.format(
             'materialized_view %s: partition key array must contain only valid field names',
             materializedViewName,
           )));
         }
-        if (modelSchema.fields[materializedViewPartitionKeyField].virtual) {
+        if (modelSchema.fields[materializedViewPartitionKeyField]
+          && modelSchema.fields[materializedViewPartitionKeyField].virtual) {
           throw (new Error(util.format(
             'materialized_view %s: partition key array must contain only db field names, ' +
             'cannot contain virtual field names',
@@ -153,10 +176,11 @@ const schemer = {
     materializedViewObject.key.forEach((materializedViewPrimaryKeyField, materializedViewPrimaryKeyIndex) => {
       if (materializedViewPrimaryKeyIndex > 0) {
         if ((typeof (materializedViewPrimaryKeyField) !== 'string')
-            || !_.has(modelSchema.fields, materializedViewPrimaryKeyField)) {
+            || !this.has_field(modelSchema, materializedViewPrimaryKeyField)) {
           throw (new Error(util.format('materialized_view %s: clustering keys must be valid field names', materializedViewName)));
         }
-        if (modelSchema.fields[materializedViewPrimaryKeyField].virtual) {
+        if (modelSchema.fields[materializedViewPrimaryKeyField]
+          && modelSchema.fields[materializedViewPrimaryKeyField].virtual) {
           throw (new Error(util.format(
             'materialized_view %s: clustering keys must be db field names, cannot contain virtual fields',
             materializedViewName,
@@ -198,17 +222,17 @@ const schemer = {
       if (!['entries', 'keys', 'values', 'full'].includes(indexNameList[0])) {
         throw (new Error(util.format('index "%s" is not defined properly', indexDef)));
       }
-      if (!_.has(modelSchema.fields, indexNameList[1])) {
+      if (!this.has_field(modelSchema, indexNameList[1])) {
         throw (new Error(util.format('"%s" is not a valid field name, indexes must be defined on field names', indexNameList[1])));
       }
-      if (modelSchema.fields[indexNameList[1]].virtual) {
+      if (modelSchema.fields[indexNameList[1]] && modelSchema.fields[indexNameList[1]].virtual) {
         throw (new Error("indexes must be an array of db field names, can't contain virtual fields"));
       }
     } else {
-      if (!_.has(modelSchema.fields, indexNameList[0])) {
+      if (!this.has_field(modelSchema, indexNameList[0])) {
         throw (new Error(util.format('"%s" is not a valid field, indexes must be defined on field names', indexNameList[0])));
       }
-      if (modelSchema.fields[indexNameList[0]].virtual) {
+      if (modelSchema.fields[indexNameList[0]] && modelSchema.fields[indexNameList[0]].virtual) {
         throw (new Error("indexes must be an array of db field names, can't contain virtual fields"));
       }
     }
@@ -218,10 +242,10 @@ const schemer = {
     if (!_.isPlainObject(customIndex)) {
       throw (new Error('custom_index must be an object with proper indexing attributes'));
     }
-    if ((typeof (customIndex.on) !== 'string') || !_.has(modelSchema.fields, customIndex.on)) {
+    if ((typeof (customIndex.on) !== 'string') || !this.has_field(modelSchema, customIndex.on)) {
       throw (new Error("custom_index must have an 'on' attribute with string value and value must be a valid field name"));
     }
-    if (modelSchema.fields[customIndex.on].virtual) {
+    if (modelSchema.fields[customIndex.on] && modelSchema.fields[customIndex.on].virtual) {
       throw (new Error("custom_index 'on' attribute must be a db field name, can't contain virtual fields"));
     }
     if (typeof (customIndex.using) !== 'string') {
