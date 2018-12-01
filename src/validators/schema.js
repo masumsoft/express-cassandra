@@ -34,18 +34,18 @@ const schemer = {
     }
     const fieldtype = this.get_field_type(modelSchema, fieldName);
     if (!_.has(datatypes, fieldtype)) {
-      throw (new Error(util.format('Invalid field type "%s" for field: %s', fieldObject.type, fieldName)));
+      throw (new Error(util.format('Invalid field type "%s" for field: %s', fieldtype, fieldName)));
     }
-    if (['map', 'list', 'set', 'frozen'].includes(fieldObject.type)) {
+    if (['map', 'list', 'set', 'frozen'].includes(fieldtype)) {
       if (!fieldObject.typeDef) {
-        throw (new Error(util.format('Missing typeDef for field type "%s" on field: %s', fieldObject.type, fieldName)));
+        throw (new Error(util.format('Missing typeDef for field type "%s" on field: %s', fieldtype, fieldName)));
       }
       if (typeof fieldObject.typeDef !== 'string') {
-        throw (new Error(util.format('Invalid typeDef for field type "%s" on field: %s', fieldObject.type, fieldName)));
+        throw (new Error(util.format('Invalid typeDef for field type "%s" on field: %s', fieldtype, fieldName)));
       }
     }
     if (!(this.is_field_default_value_valid(modelSchema, fieldName))) {
-      throw (new Error(util.format('Invalid defult value for field: %s(%s)', fieldName, fieldObject.type)));
+      throw (new Error(util.format('Invalid defult value for field: %s(%s)', fieldName, fieldtype)));
     }
   },
 
