@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.2.4] - 2018-10-04
+### Fixed
+- Field type validation message display undefined value when invalid type is used
+
+### Changed
+- Upgraded locked package dependencies to resolve security warning
+
 ## [2.2.3] - 2018-07-10
 ### Fixed
 - Auto timestamp and version fields are not working properly if used in index and materialized views
@@ -489,7 +496,8 @@ save function callback instead of raising exceptions
 - Support for schema validators
 - Support for auto loading of model schema from directory
 
-[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.2.3...master
+[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.2.4...master
+[2.2.4]: https://github.com/masumsoft/express-cassandra/compare/v2.2.3...v2.2.4
 [2.2.3]: https://github.com/masumsoft/express-cassandra/compare/v2.2.2...v2.2.3
 [2.2.2]: https://github.com/masumsoft/express-cassandra/compare/v2.2.1...v2.2.2
 [2.2.1]: https://github.com/masumsoft/express-cassandra/compare/v2.2.0...v2.2.1
