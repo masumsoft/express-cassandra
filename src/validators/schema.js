@@ -45,7 +45,7 @@ const schemer = {
       }
     }
     if (!(this.is_field_default_value_valid(modelSchema, fieldName))) {
-      throw (new Error(util.format('Invalid defult value for field: %s(%s)', fieldName, fieldtype)));
+      throw (new Error(util.format('Invalid default value for field: %s(%s)', fieldName, fieldtype)));
     }
   },
 
