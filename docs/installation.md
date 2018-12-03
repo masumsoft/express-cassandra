@@ -14,7 +14,7 @@ For elassandra version 5.5 or above
 
 For janusgraph version 0.2.0 or above
 
-    npm install express-cassandra gremlin
+    npm install express-cassandra gremlin@2.6.0
 
 For older cassandra 2.x (no longer supported)
 
