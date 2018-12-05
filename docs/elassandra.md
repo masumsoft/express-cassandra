@@ -2,7 +2,7 @@
 
 ## Configure Auto Index Management
 
-If you are a user of [elassandra](https://github.com/strapdata/elassandra), then express-cassandra provides built in index management functionality for you. If enabled, express-cassandra will automatically create and manage an index with the same name as your keyspace and create type mapping for your tables accroding to an `es_index_mapping` defined in your table model schema. To enable auto index management, just set `manageESIndex: true` in the ormOptions like the following:
+If you are a user of [elassandra](https://github.com/strapdata/elassandra), then express-cassandra provides built in index management functionality for you. If enabled, express-cassandra will automatically create and manage an index with the same name as your keyspace and create type mapping for your tables according to an `es_index_mapping` defined in your table model schema. To enable auto index management, make sure to use the `NetworkTopologyStrategy` as the replication strategy and set `manageESIndex: true` in the `ormOptions` like the following:
 
 ```
 {
@@ -11,13 +11,19 @@ If you are a user of [elassandra](https://github.com/strapdata/elassandra), then
     },
     ormOptions: {
         // omitted other options for clarity
-        migration: 'alter',
+        defaultReplicationStrategy: {
+            class: 'NetworkTopologyStrategy',
+            DC1: 1
+        },
+	migration: 'alter',
         manageESIndex: true,
     }
 }
 ```
 
-Note that you can optionally provide connection options for elasticsearch in the clientOptions like the following. If omitted, then the cassandra `contactPoints` are used as default host addresses with `sniffOnStart: true` as default configuration for elasticsearch client.
+Elassandra does not work with the `SimpleStrategy` replication class. You can still have a single Elassandra node. The `DC1` parameter is the **case sensitive** name of the _Data Center_ as defined in your `elassandra/conf/cassandra-rackdc.properties` file. You may also have to edit your `elassandra/conf/cassandra-topology.properties` file to match the rack data center declarations. If you did not edit those files, the default is `DC1`.
+
+Note that you can optionally provide connection options for elasticsearch in the `clientOptions` like the following. If omitted, then the cassandra `contactPoints` are used as default host addresses with `sniffOnStart: true` as default configuration for the elasticsearch client.
 
 ```
 {
@@ -31,6 +37,10 @@ Note that you can optionally provide connection options for elasticsearch in the
     },
     ormOptions: {
         // omitted other options for clarity
+        defaultReplicationStrategy: {
+            class: 'NetworkTopologyStrategy',
+            DC1: 1
+        },
         migration: 'alter',
         manageESIndex: true,
     }
@@ -122,7 +132,7 @@ models.instance.User.search({
 });
 ```
 
-You could also use the `get_es_client` method to get the elasticsearch client instance and do any operations that the [elasticsearch js client](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/api-reference.html) supports. For example you could count the total number of users like the following:
+You could also use the `get_es_client()` method to get the elasticsearch client instance and do any operations that the [elasticsearch js client](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/api-reference.html) supports. For example you could count the total number of users like the following:
 
 ```
 const esClient = models.instance.User.get_es_client();
