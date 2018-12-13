@@ -248,7 +248,7 @@ john.save(function(err){
 
 ## Built-in Promise Support
 
-Express-cassandra has built-in promise support powered by [bluebird](http://bluebirdjs.com/). All the orm functions has an `Async` suffixed pair function that can be used for promise based async operations instead of using callback. For example, if you want to use promises in the above two insert and find operations, you could do the following:
+Express-cassandra has built-in promise support powered by [bluebird](http://bluebirdjs.com/). All the orm functions have an `Async` suffixed pair function that can be used for promise based async operations instead of using callback. For example, if you want to use promises in the above two insert and find operations, you could do the following:
 
 Insert data using promise (note the Async suffix in function name):
 
