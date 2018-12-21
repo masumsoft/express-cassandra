@@ -391,7 +391,7 @@ const schemer = {
     if (_.isPlainObject(fieldObject)) {
       return fieldObject.type;
     }
-    throw (new Error('Type of field "' + fieldName + '" not defined properly'));
+    throw (new Error(`Type of field "${fieldName}" not defined properly`));
   },
 
   is_required_field(modelSchema, fieldName) {
