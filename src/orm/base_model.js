@@ -297,14 +297,16 @@ BaseModel.get_find_query = function f(queryObject, options) {
   const limitClause = parser.get_limit_clause(queryObject);
   const whereClause = parser.get_where_clause(this._properties.schema, queryObject);
   const selectClause = parser.get_select_clause(options);
+  const groupbyClause = parser.get_groupby_clause(options);
 
   let query = util.format(
-    'SELECT %s %s FROM "%s" %s %s %s',
+    'SELECT %s %s FROM "%s" %s %s %s %s',
     (options.distinct ? 'DISTINCT' : ''),
     selectClause,
     options.materialized_view ? options.materialized_view : this._properties.table_name,
     whereClause.query,
     orderbyClause,
+    groupbyClause,
     limitClause,
   );
 

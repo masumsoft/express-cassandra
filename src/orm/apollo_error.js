@@ -67,6 +67,9 @@ const AERROR_TYPES = {
   'model.find.invalidorder': {
     msg: 'Invalid $orderby query, $orderby must be an object',
   },
+  'model.find.invalidgroup': {
+    msg: 'Invalid $groupby query, $groupby must be an array',
+  },
   'model.find.multiorder': {
     msg: 'Invalid $orderby query: only one clause per object is allowed',
   },

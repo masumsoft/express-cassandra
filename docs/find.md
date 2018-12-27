@@ -53,7 +53,9 @@ var query = {
     complete_name: { '$like': 'J%' },
     // order results by age in ascending order.
     // also allowed $desc and complex order like $orderby: {'$asc' : ['k1','k2'] }
-    $orderby:{ '$asc' :'age' },
+    $orderby: { '$asc' :'age' },
+    // group results by a certain field or list of fields
+    $groupby: [ 'age' ],
     //limit the result set to 10 rows
     $limit: 10
 }

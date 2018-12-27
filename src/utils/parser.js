@@ -672,6 +672,24 @@ parser.get_orderby_clause = function f(queryObject) {
   return orderKeys.length ? util.format('ORDER BY %s', orderKeys.join(', ')) : ' ';
 };
 
+parser.get_groupby_clause = function f(queryObject) {
+  let groupbyKeys = [];
+
+  Object.keys(queryObject).forEach((k) => {
+    const queryItem = queryObject[k];
+
+    if (k.toLowerCase() === '$groupby') {
+      if (!(queryItem instanceof Array)) {
+        throw (buildError('model.find.invalidgroup'));
+      }
+
+      groupbyKeys = groupbyKeys.concat(queryItem);
+    }
+  });
+
+  return groupbyKeys.length ? util.format('GROUP BY %s', groupbyKeys.join(', ')) : ' ';
+};
+
 parser.get_limit_clause = function f(queryObject) {
   let limit = null;
   Object.keys(queryObject).forEach((k) => {
