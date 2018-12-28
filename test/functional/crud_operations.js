@@ -804,19 +804,19 @@ module.exports = () => {
       job1 = new models.instance.SampleGroupBy({
         project_id: 1,
         job_id: 1,
-        combination_id: 123,
+        combinationId: 123,
       });
 
       job2 = new models.instance.SampleGroupBy({
         project_id: 1,
         job_id: 1,
-        combination_id: 321,
+        combinationId: 321,
       });
 
       job3 = new models.instance.SampleGroupBy({
         project_id: 1,
         job_id: 2,
-        combination_id: 456,
+        combinationId: 456,
       });
 
       job1.saveAsync()
@@ -846,6 +846,45 @@ module.exports = () => {
           j1.jcount.toString().should.equal('1');
           j2.job_id.should.equal(1);
           j2.jcount.toString().should.equal('2');
+        })
+        .then(() => done())
+        .catch((err) => done(err));
+    });
+
+    it('should handle empty $groupby array', (done) => {
+      models.instance.SampleGroupBy.findAsync({ project_id: 1 }, {
+        select: ['job_id'],
+        $groupby: [],
+      })
+        .then((res) => {
+          res.length.should.equal(3);
+
+          const [j1, j2, j3] = res;
+
+          j1.job_id.should.equal(2);
+          j2.job_id.should.equal(1);
+          j3.job_id.should.equal(1);
+        })
+        .then(() => done())
+        .catch((err) => done(err));
+    });
+
+    it('should handle multiple $groupby keys (including uppercased keys)', (done) => {
+      models.instance.SampleGroupBy.findAsync({ project_id: 1 }, {
+        select: ['job_id', 'COUNT(job_id) as jcount'],
+        $groupby: ['job_id', 'combinationId'],
+      })
+        .then((res) => {
+          res.length.should.equal(3);
+
+          const [j1, j2, j3] = res;
+
+          j1.job_id.should.equal(2);
+          j1.jcount.toString().should.equal('1');
+          j2.job_id.should.equal(1);
+          j2.jcount.toString().should.equal('1');
+          j3.job_id.should.equal(1);
+          j3.jcount.toString().should.equal('1');
         })
         .then(() => done())
         .catch((err) => done(err));
