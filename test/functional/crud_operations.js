@@ -15,6 +15,7 @@ module.exports = () => {
         .then(() => models.instance.Event.truncateAsync())
         .then(() => models.instance.Simple.truncateAsync())
         .then(() => models.instance.MultipleOrderBy.truncateAsync())
+        .then(() => models.instance.SampleGroupBy.truncateAsync())
         .then(() => {
           done();
         })
@@ -791,6 +792,63 @@ module.exports = () => {
         .catch((err) => {
           done(err);
         });
+    });
+  });
+
+  describe('#find with $groupby', () => {
+    let job1;
+    let job2;
+    let job3;
+
+    before((done) => {
+      job1 = new models.instance.SampleGroupBy({
+        project_id: 1,
+        job_id: 1,
+        combination_id: 123,
+      });
+
+      job2 = new models.instance.SampleGroupBy({
+        project_id: 1,
+        job_id: 1,
+        combination_id: 321,
+      });
+
+      job3 = new models.instance.SampleGroupBy({
+        project_id: 1,
+        job_id: 2,
+        combination_id: 456,
+      });
+
+      job1.saveAsync()
+        .then(() => job2.saveAsync())
+        .then(() => job3.saveAsync())
+        .then(() => done())
+        .catch((err) => done(err));
+    });
+
+    after((done) => {
+      models.instance.SampleGroupBy.truncateAsync()
+        .then(() => done())
+        .catch((err) => done(err));
+    });
+
+    it('should group results', (done) => {
+      models.instance.SampleGroupBy.findAsync({ project_id: 1 }, {
+        select: ['job_id', 'COUNT(job_id) as jcount'],
+        $groupby: ['job_id'],
+      })
+        .then((res) => {
+          res.length.should.equal(2);
+
+          const [j1, j2] = res;
+
+          j1.job_id.should.equal(2);
+          j1.jcount.toString().should.equal('1');
+          j2.job_id.should.equal(1);
+          j2.jcount.toString().should.equal('2');
+        })
+        .then(() => done())
+        .catch((err) => done(err));
     });
   });
 };
