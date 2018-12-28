@@ -687,6 +687,8 @@ parser.get_groupby_clause = function f(queryObject) {
     }
   });
 
+  groupbyKeys = groupbyKeys.map((key) => `"${key}"`);
+
   return groupbyKeys.length ? util.format('GROUP BY %s', groupbyKeys.join(', ')) : ' ';
 };
 
