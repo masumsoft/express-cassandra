@@ -3,6 +3,7 @@
 [![Npm Version](https://badge.fury.io/js/express-cassandra.svg)](https://www.npmjs.com/package/express-cassandra)
 [![Documentation Status](https://readthedocs.org/projects/express-cassandra/badge/?version=latest)](http://express-cassandra.readthedocs.io/en/latest/?badge=latest)
 [![Dependencies Status](https://david-dm.org/masumsoft/express-cassandra/status.svg)](https://david-dm.org/masumsoft/express-cassandra)
+[![Mentioned in Awesome Cassandra](https://awesome.re/mentioned-badge.svg)](https://anant.github.io/awesome-cassandra/)
 
 # Overview
 
