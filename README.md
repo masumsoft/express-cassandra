@@ -50,11 +50,11 @@ For datastax enterprise version 5.x
 
     npm install express-cassandra dse-driver@1.2.0
 
-For elassandra version 5.5 or above
+For elassandra version 5.5.x
 
     npm install express-cassandra elasticsearch
 
-For janusgraph version 0.2.0 or above
+For janusgraph version 0.2.x
 
     npm install express-cassandra gremlin@2.6.0
 

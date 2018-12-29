@@ -6,12 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.3.0] - 2018-12-29
+### Added
+- Support for group by queries
+
+### Fixed
+- Improved error message to contain which field has an invalid type
+- Improved documentation with usage example of NetworkTopologyStrategy
+
 ## [2.2.4] - 2018-10-04
 ### Fixed
 - Field type validation message display undefined value when invalid type is used
 
-### Changed
-- Upgraded locked package dependencies to resolve security warning
+### Security
+- Upgraded locked package dependencies to resolve vulnerability in a dependent package
 
 ## [2.2.3] - 2018-07-10
 ### Fixed
@@ -496,7 +504,8 @@ save function callback instead of raising exceptions
 - Support for schema validators
 - Support for auto loading of model schema from directory
 
-[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.2.4...master
+[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.3.0...master
+[2.3.0]: https://github.com/masumsoft/express-cassandra/compare/v2.2.4...v2.3.0
 [2.2.4]: https://github.com/masumsoft/express-cassandra/compare/v2.2.3...v2.2.4
 [2.2.3]: https://github.com/masumsoft/express-cassandra/compare/v2.2.2...v2.2.3
 [2.2.2]: https://github.com/masumsoft/express-cassandra/compare/v2.2.1...v2.2.2
