@@ -815,7 +815,7 @@ BaseModel.findOne = function f(queryObject, options, callback) {
   });
 };
 
-BaseModel.update = function f(queryObject, updateValues, options, callback) {
+BaseModel.update = async function f(queryObject, updateValues, options, callback) {
   if (arguments.length === 3 && typeof options === 'function') {
     callback = options;
     options = {};
@@ -829,7 +829,7 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
 
   options = _.defaultsDeep(options, defaults);
 
-  if (typeof schema.before_update === 'function' && schema.before_update(queryObject, updateValues, options) === false) {
+  if (typeof schema.before_update === 'function' && await schema.before_update(queryObject, updateValues, options) === false) {
     parser.callback_or_throw(buildError('model.update.before.error'), callback);
     return {};
   }
@@ -875,8 +875,8 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
     const returnObj = {
       query,
       params: finalParams,
-      after_hook: () => {
-        if (typeof schema.after_update === 'function' && schema.after_update(queryObject, updateValues, options) === false) {
+      after_hook: async () => {
+        if (typeof schema.after_update === 'function' && await schema.after_update(queryObject, updateValues, options) === false) {
           return buildError('model.update.after.error');
         }
         return true;
@@ -887,20 +887,20 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
 
   const queryOptions = normalizer.normalize_query_option(options);
 
-  this._execute_table_query(query, finalParams, queryOptions, (err, results) => {
+  this._execute_table_query(query, finalParams, queryOptions, async (err, results) => {
     if (typeof callback === 'function') {
       if (err) {
         callback(buildError('model.update.dberror', err));
         return;
       }
-      if (typeof schema.after_update === 'function' && schema.after_update(queryObject, updateValues, options) === false) {
+      if (typeof schema.after_update === 'function' && await schema.after_update(queryObject, updateValues, options) === false) {
         callback(buildError('model.update.after.error'));
         return;
       }
       callback(null, results);
     } else if (err) {
       throw (buildError('model.update.dberror', err));
-    } else if (typeof schema.after_update === 'function' && schema.after_update(queryObject, updateValues, options) === false) {
+    } else if (typeof schema.after_update === 'function' && await schema.after_update(queryObject, updateValues, options) === false) {
       throw (buildError('model.update.after.error'));
     }
   });
@@ -908,7 +908,7 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
   return {};
 };
 
-BaseModel.delete = function f(queryObject, options, callback) {
+BaseModel.delete = async function f(queryObject, options, callback) {
   if (arguments.length === 2 && typeof options === 'function') {
     callback = options;
     options = {};
@@ -922,7 +922,7 @@ BaseModel.delete = function f(queryObject, options, callback) {
 
   options = _.defaultsDeep(options, defaults);
 
-  if (typeof schema.before_delete === 'function' && schema.before_delete(queryObject, options) === false) {
+  if (typeof schema.before_delete === 'function' && await schema.before_delete(queryObject, options) === false) {
     parser.callback_or_throw(buildError('model.delete.before.error'), callback);
     return {};
   }
@@ -946,8 +946,8 @@ BaseModel.delete = function f(queryObject, options, callback) {
     const returnObj = {
       query,
       params: queryParams,
-      after_hook: () => {
-        if (typeof schema.after_delete === 'function' && schema.after_delete(queryObject, options) === false) {
+      after_hook: async () => {
+        if (typeof schema.after_delete === 'function' && await schema.after_delete(queryObject, options) === false) {
           return buildError('model.delete.after.error');
         }
         return true;
@@ -958,20 +958,20 @@ BaseModel.delete = function f(queryObject, options, callback) {
 
   const queryOptions = normalizer.normalize_query_option(options);
 
-  this._execute_table_query(query, queryParams, queryOptions, (err, results) => {
+  this._execute_table_query(query, queryParams, queryOptions, async (err, results) => {
     if (typeof callback === 'function') {
       if (err) {
         callback(buildError('model.delete.dberror', err));
         return;
       }
-      if (typeof schema.after_delete === 'function' && schema.after_delete(queryObject, options) === false) {
+      if (typeof schema.after_delete === 'function' && await schema.after_delete(queryObject, options) === false) {
         callback(buildError('model.delete.after.error'));
         return;
       }
       callback(null, results);
     } else if (err) {
       throw (buildError('model.delete.dberror', err));
-    } else if (typeof schema.after_delete === 'function' && schema.after_delete(queryObject, options) === false) {
+    } else if (typeof schema.after_delete === 'function' && await schema.after_delete(queryObject, options) === false) {
       throw (buildError('model.delete.after.error'));
     }
   });
@@ -1018,7 +1018,7 @@ BaseModel.prototype.validate = function f(propertyName, value) {
   return schemer.get_validation_message(this._validators[propertyName] || [], value);
 };
 
-BaseModel.prototype.save = function fn(options, callback) {
+BaseModel.prototype.save = async function fn(options, callback) {
   if (arguments.length === 1 && typeof options === 'function') {
     callback = options;
     options = {};
@@ -1033,7 +1033,7 @@ BaseModel.prototype.save = function fn(options, callback) {
 
   options = _.defaultsDeep(options, defaults);
 
-  if (typeof schema.before_save === 'function' && schema.before_save(this, options) === false) {
+  if (typeof schema.before_save === 'function' && await schema.before_save(this, options) === false) {
     parser.callback_or_throw(buildError('model.save.before.error'), callback);
     return {};
   }
@@ -1063,8 +1063,8 @@ BaseModel.prototype.save = function fn(options, callback) {
     const returnObj = {
       query,
       params: queryParams,
-      after_hook: () => {
-        if (typeof schema.after_save === 'function' && schema.after_save(this, options) === false) {
+      after_hook: async () => {
+        if (typeof schema.after_save === 'function' && await schema.after_save(this, options) === false) {
           return buildError('model.save.after.error');
         }
         return true;
@@ -1075,7 +1075,7 @@ BaseModel.prototype.save = function fn(options, callback) {
 
   const queryOptions = normalizer.normalize_query_option(options);
 
-  this.constructor._execute_table_query(query, queryParams, queryOptions, (err, result) => {
+  this.constructor._execute_table_query(query, queryParams, queryOptions, async (err, result) => {
     if (typeof callback === 'function') {
       if (err) {
         callback(buildError('model.save.dberror', err));
@@ -1084,14 +1084,14 @@ BaseModel.prototype.save = function fn(options, callback) {
       if (!options.if_not_exist || (result.rows && result.rows[0] && result.rows[0]['[applied]'])) {
         this._modified = {};
       }
-      if (typeof schema.after_save === 'function' && schema.after_save(this, options) === false) {
+      if (typeof schema.after_save === 'function' && await schema.after_save(this, options) === false) {
         callback(buildError('model.save.after.error'));
         return;
       }
       callback(null, result);
     } else if (err) {
       throw (buildError('model.save.dberror', err));
-    } else if (typeof schema.after_save === 'function' && schema.after_save(this, options) === false) {
+    } else if (typeof schema.after_save === 'function' && await schema.after_save(this, options) === false) {
       throw (buildError('model.save.after.error'));
     }
   });
