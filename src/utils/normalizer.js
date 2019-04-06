@@ -160,7 +160,10 @@ const normalizer = {
 
       if (!outputMView.where_clause) {
         outputMView.where_clause = parser.get_mview_where_clause(outputSchema, outputMView);
+      } else {
+        outputMView.where_clause = outputMView.where_clause.replace(/IS NOT null/g, 'IS NOT NULL');
       }
+      
       if (_.isPlainObject(outputMView.filters)) {
         delete outputMView.filters;
       }
