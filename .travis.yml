@@ -14,6 +14,8 @@ addons:
     repo_token: 205921b25cd059b92e7234ee98533a35f08c81c5debd68dad3e6d468258c0489
 
 before_install:
+  - sudo update-java-alternatives -s java-1.8.0-openjdk-amd64
+  - export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
   - java -version
   - wget https://www.dropbox.com/s/vebuzbdql0w6eap/elassandra_janusgraph_distribution.zip?dl=1 -O elassandra_janusgraph_distribution.zip && unzip elassandra_janusgraph_distribution.zip
   - sh ./elassandra_janusgraph_distribution/elassandra-5.5.0.10/bin/cassandra -e
