@@ -9,11 +9,12 @@ node_js:
 addons:
   apt:
     packages:
-      - openjdk-8-jre
+      - openjdk-8-jdk
   code_climate:
     repo_token: 205921b25cd059b92e7234ee98533a35f08c81c5debd68dad3e6d468258c0489
 
 before_install:
+  - update-java-alternatives -l
   - sudo update-java-alternatives -s java-1.8.0-openjdk-amd64
   - export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
   - java -version
