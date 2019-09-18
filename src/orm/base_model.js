@@ -844,10 +844,14 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
   if (errorHappened) return {};
 
   let query = 'UPDATE "%s"';
-  let where = '';
   let finalParams = queryParams;
-  if (options.ttl) query += util.format(' USING TTL %s', options.ttl);
+  if (_.isNumber(options.ttl)) {
+    query += ' USING TTL ?';
+    finalParams = [options.ttl].concat(finalParams);
+  }
   query += ' SET %s %s';
+
+  let where = '';
   try {
     const whereClause = parser.get_where_clause(schema, queryObject);
     where = whereClause.query;
@@ -1055,14 +1059,19 @@ BaseModel.prototype.save = function fn(options, callback) {
   );
 
   if (options.if_not_exist) query += ' IF NOT EXISTS';
-  if (options.ttl) query += util.format(' USING TTL %s', options.ttl);
+
+  let finalParams = queryParams;
+  if (_.isNumber(options.ttl)) {
+    query += ' USING TTL ?';
+    finalParams = finalParams.concat([options.ttl]);
+  }
 
   query += ';';
 
   if (options.return_query) {
     const returnObj = {
       query,
-      params: queryParams,
+      params: finalParams,
       after_hook: () => {
         if (typeof schema.after_save === 'function' && schema.after_save(this, options) === false) {
           return buildError('model.save.after.error');
@@ -1075,7 +1084,7 @@ BaseModel.prototype.save = function fn(options, callback) {
 
   const queryOptions = normalizer.normalize_query_option(options);
 
-  this.constructor._execute_table_query(query, queryParams, queryOptions, (err, result) => {
+  this.constructor._execute_table_query(query, finalParams, queryOptions, (err, result) => {
     if (typeof callback === 'function') {
       if (err) {
         callback(buildError('model.save.dberror', err));

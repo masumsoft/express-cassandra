@@ -740,9 +740,120 @@ module.exports = () => {
     });
   });
 
+  describe('#save with ttl', () => {
+    it('should save item successfully with ttl', (done) => {
+      const item = new models.instance.Person({ userID: 1235, age: 35, points: 64.0 });
+      item.saveAsync({ ttl: 5 })
+        .then(() => {
+          done();
+        })
+        .catch((err) => {
+          done(err);
+        });
+    });
+    it('should wait for 3 seconds for first ttl check', function f(done) {
+      this.timeout(5000);
+      this.slow(4000);
+      setTimeout(() => {
+        done();
+      }, 3000);
+    });
+    it('should find item present before expiry time', (done) => {
+      models.instance.Person.find({ userID: 1235 }, (err, people) => {
+        if (err) done(err);
+        people.length.should.equal(1);
+        done();
+      });
+    });
+    it('should wait for another 2 seconds for second ttl check', function f(done) {
+      this.timeout(5000);
+      this.slow(4000);
+      setTimeout(() => {
+        done();
+      }, 2000);
+    });
+    it('should find item deleted after expiry time', (done) => {
+      models.instance.Person.find({ userID: 1235 }, (err, people) => {
+        if (err) done(err);
+        people.length.should.equal(0);
+        done();
+      });
+    });
+  });
+
+  describe('#update with ttl', () => {
+    it('should update item successfully with ttl', (done) => {
+      models.instance.Person.update(
+        { userID: 1235, age: 35 },
+        { points: 65.0 },
+        { ttl: 5 },
+        (err1) => {
+          if (err1) done(err1);
+          done();
+        },
+      );
+    });
+    it('should wait for 3 seconds for first ttl check', function f(done) {
+      this.timeout(5000);
+      this.slow(4000);
+      setTimeout(() => {
+        done();
+      }, 3000);
+    });
+    it('should find item present before expiry time', (done) => {
+      models.instance.Person.find({ userID: 1235 }, (err, people) => {
+        if (err) done(err);
+        people.length.should.equal(1);
+        done();
+      });
+    });
+    it('should wait for another 2 seconds for second ttl check', function f(done) {
+      this.timeout(5000);
+      this.slow(4000);
+      setTimeout(() => {
+        done();
+      }, 2000);
+    });
+    it('should find item deleted after expiry time', (done) => {
+      models.instance.Person.find({ userID: 1235 }, (err, people) => {
+        if (err) done(err);
+        people.length.should.equal(0);
+        done();
+      });
+    });
+    it('should delete effect of ttl by setting ttl to 0', (done) => {
+      models.instance.Person.updateAsync(
+        { userID: 1235, age: 35 },
+        { points: 65.0 },
+        { ttl: 3 },
+      )
+        .then(() => models.instance.Person.updateAsync({ userID: 1235, age: 35 }, {}, { ttl: 0 }))
+        .then(() => {
+          done();
+        })
+        .catch((err) => {
+          done(err);
+        });
+    });
+    it('should wait for 3 seconds for row to expire', function f(done) {
+      this.timeout(5000);
+      this.slow(4000);
+      setTimeout(() => {
+        done();
+      }, 3000);
+    });
+    it('should find item present even after expiry time', (done) => {
+      models.instance.Person.find({ userID: 1235 }, (err, people) => {
+        if (err) done(err);
+        people.length.should.equal(1);
+        done();
+      });
+    });
+  });
+
   describe('#delete', () => {
     it('should cleanup the db without errors', (done) => {
-      models.instance.Person.deleteAsync({ userID: 1234, age: 32 })
+      models.instance.Person.deleteAsync({ userID: 1235, age: 35 })
         .then(() => {
           done();
         })
@@ -754,7 +865,7 @@ module.exports = () => {
 
   describe('#find after delete', () => {
     it('should find all data as deleted', (done) => {
-      models.instance.Person.find({ userID: 1234 }, (err, people) => {
+      models.instance.Person.find({ userID: 1235 }, (err, people) => {
         if (err) done(err);
         people.length.should.equal(0);
         done();
