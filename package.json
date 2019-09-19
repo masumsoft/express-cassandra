@@ -1,6 +1,6 @@
 {
   "name": "express-cassandra",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "dependencies": {
     "JSONStream": "^1.3.1",
     "async": "^1.5.2",
@@ -11,7 +11,7 @@
     "check-types": "^7.4.0",
     "debug": "^3.1.0",
     "deep-diff": "^0.3.4",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.15",
     "object-hash": "1.1.4",
     "readdirp": "^2.1.0",
     "readline-sync": "^1.4.4",
@@ -46,7 +46,7 @@
   "scripts": {
     "test": "npm run build --silent && npm run mocha --silent && npm run cover --silent && npm run lint --silent && npm run codeclimate --silent",
     "build": "echo-cli 'building babel sources, please wait...' && babel src -d lib",
-    "prepublish": "npm run build --silent",
+    "prepare": "npm run build --silent",
     "mocha": "echo-cli 'starting mocha test runner...' && mocha --require babel-core/register --bail",
     "lint": "echo-cli 'checking for eslint errors...' && eslint src && eslint test",
     "cover": "echo-cli 'building coverage data, please wait...' && nyc --reporter=lcov --reporter=text-summary --require babel-register mocha --reporter mocha-silent-reporter",
