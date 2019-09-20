@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.3.2] - 2019-09-20
+
+### Fixed
+- schema mismatch for materialized views with multiple filters
+- generated query clauses contained extra spaces
+
 ## [2.3.1] - 2019-09-20
 
 ### Fixed
@@ -512,7 +518,8 @@ save function callback instead of raising exceptions
 - Support for schema validators
 - Support for auto loading of model schema from directory
 
-[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.3.1...master
+[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.3.2...master
+[2.3.2]: https://github.com/masumsoft/express-cassandra/compare/v2.3.1...v2.3.2
 [2.3.1]: https://github.com/masumsoft/express-cassandra/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/masumsoft/express-cassandra/compare/v2.2.4...v2.3.0
 [2.2.4]: https://github.com/masumsoft/express-cassandra/compare/v2.2.3...v2.2.4
