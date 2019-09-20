@@ -635,7 +635,7 @@ parser.get_mview_where_clause = function f(schema, viewSchema) {
       whereClause = whereClause.replace(fieldName, unquotedFieldName);
     }
   });
-  return whereClause;
+  return whereClause.trim();
 };
 
 parser.get_orderby_clause = function f(queryObject) {
@@ -669,7 +669,7 @@ parser.get_orderby_clause = function f(queryObject) {
       }
     }
   });
-  return orderKeys.length ? util.format('ORDER BY %s', orderKeys.join(', ')) : ' ';
+  return orderKeys.length ? util.format('ORDER BY %s', orderKeys.join(', ')) : '';
 };
 
 parser.get_groupby_clause = function f(queryObject) {
@@ -689,7 +689,7 @@ parser.get_groupby_clause = function f(queryObject) {
 
   groupbyKeys = groupbyKeys.map((key) => `"${key}"`);
 
-  return groupbyKeys.length ? util.format('GROUP BY %s', groupbyKeys.join(', ')) : ' ';
+  return groupbyKeys.length ? util.format('GROUP BY %s', groupbyKeys.join(', ')) : '';
 };
 
 parser.get_limit_clause = function f(queryObject) {
@@ -701,7 +701,7 @@ parser.get_limit_clause = function f(queryObject) {
       limit = queryItem;
     }
   });
-  return limit ? util.format('LIMIT %s', limit) : ' ';
+  return limit ? util.format('LIMIT %s', limit) : '';
 };
 
 parser.get_select_clause = function f(options) {
@@ -733,7 +733,7 @@ parser.get_select_clause = function f(options) {
     }
     selectClause = selectArray.join(',');
   }
-  return selectClause;
+  return selectClause.trim();
 };
 
 module.exports = parser;

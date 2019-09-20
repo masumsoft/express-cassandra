@@ -159,7 +159,7 @@ const normalizer = {
       outputMView.select.sort(arraySort);
 
       if (!outputMView.where_clause) {
-        outputMView.where_clause = parser.get_mview_where_clause(outputSchema, outputMView);
+        outputMView.where_clause = parser.get_mview_where_clause(outputSchema, outputMView).trim();
       }
       if (_.isPlainObject(outputMView.filters)) {
         delete outputMView.filters;

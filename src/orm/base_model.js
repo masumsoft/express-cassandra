@@ -300,18 +300,19 @@ BaseModel.get_find_query = function f(queryObject, options) {
   const groupbyClause = parser.get_groupby_clause(options);
 
   let query = util.format(
-    'SELECT %s %s FROM "%s" %s %s %s %s',
-    (options.distinct ? 'DISTINCT' : ''),
+    'SELECT %s%s FROM "%s"',
+    (options.distinct ? 'DISTINCT ' : ''),
     selectClause,
     options.materialized_view ? options.materialized_view : this._properties.table_name,
-    whereClause.query,
-    orderbyClause,
-    groupbyClause,
-    limitClause,
   );
 
-  if (options.allow_filtering) query += ' ALLOW FILTERING;';
-  else query += ';';
+  if (whereClause.query) query += util.format(' %s', whereClause.query);
+  if (orderbyClause) query += util.format(' %s', orderbyClause);
+  if (groupbyClause) query += util.format(' %s', groupbyClause);
+  if (limitClause) query += util.format(' %s', limitClause);
+  if (options.allow_filtering) query += ' ALLOW FILTERING';
+
+  query += ';';
 
   return { query, params: whereClause.params };
 };
