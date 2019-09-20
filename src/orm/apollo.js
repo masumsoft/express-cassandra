@@ -117,27 +117,37 @@ Apollo.prototype = {
       throw (new Error('Configured to use janus graph server, but gremlin module was not found, try npm install gremlin'));
     }
 
-    const contactPoints = this._connection.contactPoints;
-    const defaultHosts = [];
-    contactPoints.forEach((host) => {
-      defaultHosts.push({ host });
-    });
+    const defaultHosts = this._connection.contactPoints;
 
     const gremlinConfig = _.defaults(this._connection.gremlin, {
       host: defaultHosts[0],
       port: 8182,
+      storage: {
+        backend: 'cassandrathrift',
+        hostname: defaultHosts[0],
+        port: 9160,
+      },
+      index: {
+        search: {
+          backend: 'elasticsearch',
+          hostname: defaultHosts[0],
+          port: 9200,
+        },
+      },
       options: {},
     });
     this._gremlin_client = gremlin.createClient(gremlinConfig.port, gremlinConfig.host, gremlinConfig.options);
+    this._gremlin_config = gremlinConfig;
     return this._gremlin_client;
   },
 
   _assert_gremlin_graph(callback) {
     const gremlinClient = this.create_gremlin_client();
+    const gremlinConfig = this._gremlin_config;
     const keyspaceName = this._keyspace;
     const graphName = `${keyspaceName}_graph`;
 
-    const graphBuilder = new JanusGraphBuilder(gremlinClient);
+    const graphBuilder = new JanusGraphBuilder(gremlinClient, gremlinConfig);
     graphBuilder.assert_graph(graphName, callback);
   },
 

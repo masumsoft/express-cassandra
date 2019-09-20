@@ -1,8 +1,9 @@
 const _ = require('lodash');
 const debug = require('debug')('express-cassandra');
 
-const JanusGraphBuilder = function f(client) {
+const JanusGraphBuilder = function f(client, config) {
   this._client = client;
+  this._config = config;
 };
 
 JanusGraphBuilder.prototype = {
@@ -10,21 +11,23 @@ JanusGraphBuilder.prototype = {
     debug('creating janus graph: %s', graphName);
     const script = `
       Map<String, Object> map = new HashMap<String, Object>();
-      map.put("storage.backend", "cassandrathrift");
-      map.put("storage.hostname", cassandraHosts);
-      map.put("storage.port", cassandraPort);
-      map.put("index.search.backend", "elasticsearch");
-      map.put("index.search.hostname", elasticHosts);
-      map.put("index.search.port", elasticPort);
+      map.put("storage.backend", storageBackend);
+      map.put("storage.hostname", storageHostname);
+      map.put("storage.port", storagePort);
+      map.put("index.search.backend", indexBackend);
+      map.put("index.search.hostname", indexHostname);
+      map.put("index.search.port", indexPort);
       map.put("graph.graphname", graphName);
       ConfiguredGraphFactory.createConfiguration(new MapConfiguration(map));
       ConfiguredGraphFactory.open(graphName).vertices().size();
     `;
     const bindings = {
-      cassandraHosts: '127.0.0.1',
-      cassandraPort: 9160,
-      elasticHosts: '127.0.0.1',
-      elasticPort: 9200,
+      storageBackend: this._config.storage.backend,
+      storageHostname: this._config.storage.hostname,
+      storagePort: this._config.storage.port,
+      indexBackend: this._config.index.search.backend,
+      indexHostname: this._config.index.search.hostname,
+      indexPort: this._config.index.search.port,
       graphName,
     };
     this._client.execute(script, bindings, (err, results) => {

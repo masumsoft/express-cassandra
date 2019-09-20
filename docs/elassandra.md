@@ -1,4 +1,4 @@
-# Elassandra Support (elassandra 5.5 or above)
+# Elassandra Support (elassandra 5.5.x)
 
 ## Configure Auto Index Management
 

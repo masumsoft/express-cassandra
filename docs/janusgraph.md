@@ -1,4 +1,4 @@
-# JanusGraph Support (janusgraph 0.2.0 or above)
+# JanusGraph Support (janusgraph 0.2.x)
 
 ## Configure Auto Graph Management
 
@@ -26,8 +26,20 @@ You can optionally provide connection options for gremlin server in the clientOp
     clientOptions: {
         // omitted other options for clarity
         gremlin: {
-            host: 'localhost',
+            host: '127.0.0.1',
             port: 8182,
+            storage: {
+                backend: 'cassandrathrift',
+                hostname: '127.0.0.1',
+                port: 9160,
+            },
+            index: {
+                search: {
+                    backend: 'elasticsearch',
+                    hostname: '127.0.0.1',
+                    port: 9200,
+                },
+            },
             options: {
                 user: '...',
                 password: '...',
