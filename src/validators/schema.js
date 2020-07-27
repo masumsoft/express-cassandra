@@ -402,7 +402,10 @@ const schemer = {
   },
 
   is_primary_key_field(modelSchema, fieldName) {
-    if (modelSchema.key.includes(fieldName) || modelSchema.key[0].includes(fieldName)) {
+    if (modelSchema.key.includes(fieldName)) {
+      return true;
+    }
+    if (modelSchema.key[0] instanceof Array && modelSchema.key[0].includes(fieldName)) {
       return true;
     }
     return false;
