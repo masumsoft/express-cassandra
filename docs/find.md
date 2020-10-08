@@ -56,7 +56,7 @@ var query = {
     $orderby: { '$asc' :'age' },
     // group results by a certain field or list of fields
     $groupby: [ 'age' ],
-    //limit the result set to 10 rows
+    //limit the result set to 10 rows, $per_partition_limit is also supported
     $limit: 10
 }
 
