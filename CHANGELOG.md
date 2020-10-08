@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.5.0] - 2020-10-08
+
+### Added
+- Added support for per partition limit operator
+
+### Security
+- Upgraded package dependencies to resolve vulnerability in a dependent package
+
 ## [2.4.0] - 2020-07-27
 
 ### Changed
@@ -529,7 +537,8 @@ save function callback instead of raising exceptions
 - Support for schema validators
 - Support for auto loading of model schema from directory
 
-[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.4.0...master
+[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.5.0...master
+[2.5.0]: https://github.com/masumsoft/express-cassandra/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/masumsoft/express-cassandra/compare/v2.3.2...v2.4.0
 [2.3.2]: https://github.com/masumsoft/express-cassandra/compare/v2.3.1...v2.3.2
 [2.3.1]: https://github.com/masumsoft/express-cassandra/compare/v2.3.0...v2.3.1
