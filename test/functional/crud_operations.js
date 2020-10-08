@@ -289,6 +289,26 @@ module.exports = () => {
     });
   });
 
+  describe('#find with $limit operator', () => {
+    it('should find data with limit without errors', (done) => {
+      models.instance.Person.find({ $limit: 1 }, (err, people) => {
+        if (err) done(err);
+        people.length.should.equal(1);
+        done();
+      });
+    });
+  });
+
+  describe('#find with $per_partition_limit operator', () => {
+    it('should find data with per partition limit without error', (done) => {
+      models.instance.Person.find({ $per_partition_limit: 1 }, (err, people) => {
+        if (err) done(err);
+        people.length.should.equal(1);
+        done();
+      });
+    });
+  });
+
   describe('#find with $token operator', () => {
     it('should find data as saved without errors', (done) => {
       models.instance.Person.find({ userID: { $token: { $gt: 1235, $lte: 1234 } }, $limit: 1 }, (err, people) => {

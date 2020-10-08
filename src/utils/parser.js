@@ -693,15 +693,18 @@ parser.get_groupby_clause = function f(queryObject) {
 };
 
 parser.get_limit_clause = function f(queryObject) {
-  let limit = null;
+  let limitClause = '';
   Object.keys(queryObject).forEach((k) => {
     const queryItem = queryObject[k];
-    if (k.toLowerCase() === '$limit') {
+    if (k.toLowerCase() === '$limit' || k.toLowerCase() === '$per_partition_limit') {
       if (typeof queryItem !== 'number') throw (buildError('model.find.limittype'));
-      limit = queryItem;
+      limitClause = util.format('LIMIT %s', queryItem);
+    }
+    if (k.toLowerCase() === '$per_partition_limit') {
+      limitClause = util.format('PER PARTITION %s', limitClause);
     }
   });
-  return limit ? util.format('LIMIT %s', limit) : '';
+  return limitClause;
 };
 
 parser.get_select_clause = function f(options) {
