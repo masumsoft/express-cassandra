@@ -1,12 +1,8 @@
 # Installation
 
-For apache cassandra version 3.x
+For apache cassandra version 3.x or datastax enterprise
 
     npm install express-cassandra
-
-For datastax enterprise version 5.x
-
-    npm install express-cassandra dse-driver@1.2.0
 
 For elassandra version 5.5.x
 

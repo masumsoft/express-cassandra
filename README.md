@@ -36,19 +36,13 @@ If you are using janusgraph, then you can easily manage your graphs and graph in
 * optional support for query debug and progress logs
 * most of the bleeding edge cassandra features are supported
 
-This module uses datastax [cassandra-driver](https://github.com/datastax/nodejs-driver) by default or uses the [dse-driver](https://github.com/datastax/nodejs-driver-dse) if already installed.
-
-If you are using apache cassandra, then the module should work just fine. Datastax enterprise users can use this module, but needs to install the dse-driver separately in your app.
+This module internally uses [cassandra-driver](https://github.com/datastax/nodejs-driver).
 
 # Installation
 
-For apache cassandra version 3.x
+For apache cassandra version 3.x or datastax enterprise
 
     npm install express-cassandra
-
-For datastax enterprise version 5.x
-
-    npm install express-cassandra dse-driver@1.2.0
 
 For elassandra version 5.5.x
 

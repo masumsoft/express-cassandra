@@ -103,7 +103,7 @@ MyModel.syncDB(function(err, result) {
 
 > clientOptions
 
-Any of the `clientOptions` supported by the cassandra nodejs driver can be used. Possible options are documented in the [cassandra driver docs](http://docs.datastax.com/en/developer/nodejs-driver/3.3/api/type.ClientOptions/).
+Any of the `clientOptions` supported by the cassandra nodejs driver can be used. Possible options are documented in the [cassandra driver docs](http://docs.datastax.com/en/developer/nodejs-driver/4.6/api/type.ClientOptions/).
 
 
 > ormOptions
@@ -186,7 +186,7 @@ clientOptions: {
 }
 ```
 
-If you are using datastax enterprise then please use the auth provider `DsePlainTextAuthProvider` from dse-driver instead.
+If you are using datastax enterprise then please use the auth provider `DsePlainTextAuthProvider` from cassandra-driver instead.
 
 ## Let's Insert Some Data into PersonModel
 

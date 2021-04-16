@@ -62,7 +62,7 @@ models.instance.Person.execute_batch(queries, function(err){
 
 ## Get the client driver instance
 
-You can get the client driver instance from cassandra nodejs-driver using the `get_cql_client` method. This will provide you a cql driver instance with which you can do anything you could possibly do with the cassandra-driver for apache cassandra or datastax dse-driver for datastax enterprise, depending on which driver you are using.
+You can get the client driver instance from cassandra nodejs-driver using the `get_cql_client` method. This will provide you a cql driver instance with which you can do anything you could possibly do with the cassandra-driver.
 
 ```js
 models.instance.Person.get_cql_client(function(err, client){
@@ -70,7 +70,7 @@ models.instance.Person.get_cql_client(function(err, client){
 });
 ```
 
-You can also use datastax enterprise graph by using the [dse-driver](http://docs.datastax.com/en/developer/nodejs-driver-dse/1.3/#graph) client instance. You need to provide the graph options in the `clientOptions` described before in usage section like the following:
+You can also use datastax enterprise graph by using the [cassandra-driver](https://docs.datastax.com/en/developer/nodejs-driver/4.6/features/graph-support/) client instance. You need to provide the graph options in the `clientOptions` described before in usage section like the following:
 
 ```js
 clientOptions: {
@@ -93,7 +93,7 @@ models.instance.Person.get_cql_client(function(err, client){
 });
 ```
 
-Details of graph operations can be found in [dse-driver docs](http://docs.datastax.com/en/developer/nodejs-driver-dse/1.3/#graph) and in [datastax enterprise docs](http://docs.datastax.com/en/latest-dse/datastax_enterprise/graph/graphTOC.html).
+Details of graph operations can be found in [cassandra-driver docs](https://docs.datastax.com/en/developer/nodejs-driver/4.6/features/graph-support/) and in [datastax enterprise docs](http://docs.datastax.com/en/latest-dse/datastax_enterprise/graph/graphTOC.html).
 
 ## Debug Logging Queries
 
