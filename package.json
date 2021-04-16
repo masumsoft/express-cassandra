@@ -6,7 +6,7 @@
     "async": "^1.5.2",
     "babel-polyfill": "^6.26.0",
     "bluebird": "^3.4.6",
-    "cassandra-driver": "^3.3.0",
+    "cassandra-driver": "^4.6.2",
     "chai": "^4.1.2",
     "check-types": "^7.4.0",
     "debug": "^3.1.0",
@@ -33,10 +33,10 @@
     "gremlin": "^2.6.0",
     "istanbul": "^0.4.5",
     "mocha": "^5.2.0",
-    "mocha-logger": "^1.0.5",
+    "mocha-logger": "^1.0.7",
     "mocha-silent-reporter": "^1.0.0",
     "nyc": "^11.2.1",
-    "vows": "^0.8.1"
+    "vows": "^0.8.3"
   },
   "optionalDependencies": {},
   "author": {

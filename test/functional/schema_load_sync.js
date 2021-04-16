@@ -8,6 +8,7 @@ let client;
 const config = {
   clientOptions: {
     contactPoints: ['127.0.0.1'],
+    localDataCenter: 'dc1',
     keyspace: 'express_cassandra_tests_kspc1',
     queryOptions: { consistency: models.consistencies.one },
   },
@@ -171,6 +172,7 @@ module.exports = () => {
       client = models.createClient({
         clientOptions: {
           contactPoints: ['127.0.0.1'],
+          localDataCenter: 'dc1',
           keyspace: 'express_cassandra_tests_kspc1',
           queryOptions: { consistency: models.consistencies.one },
         },
