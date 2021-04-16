@@ -31,6 +31,7 @@ models.setDirectory( __dirname + '/models').bind(
     {
         clientOptions: {
             contactPoints: ['127.0.0.1'],
+            localDataCenter: 'dc1',
             protocolOptions: { port: 9042 },
             keyspace: 'mykeyspace',
             queryOptions: {consistency: models.consistencies.one}
@@ -63,6 +64,7 @@ var ExpressCassandra = require('express-cassandra');
 var models = ExpressCassandra.createClient({
     clientOptions: {
         contactPoints: ['127.0.0.1'],
+        localDataCenter: 'dc1',
         protocolOptions: { port: 9042 },
         keyspace: 'mykeyspace',
         queryOptions: {consistency: ExpressCassandra.consistencies.one}
@@ -179,6 +181,7 @@ For connecting to cassandra using authentication, you can use the nodejs-driver 
 ```js
 clientOptions: {
     contactPoints: ['127.0.0.1'],
+    localDataCenter: 'dc1',
     protocolOptions: { port: 9042 },
     keyspace: 'mykeyspace',
     queryOptions: {consistency: models.consistencies.one},
