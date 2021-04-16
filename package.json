@@ -33,7 +33,7 @@
     "gremlin": "^2.6.0",
     "istanbul": "^0.4.5",
     "mocha": "^5.2.0",
-    "mocha-logger": "^1.0.7",
+    "mocha-logger": "1.0.5",
     "mocha-silent-reporter": "^1.0.0",
     "nyc": "^11.2.1",
     "vows": "^0.8.3"
