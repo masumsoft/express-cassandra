@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.6.0] - 2021-04-16
+
+### Changed
+- Upgrade cassandra-driver from 3.3 to 4.6 - [driver upgrade guide](https://docs.datastax.com/en/developer/nodejs-driver/4.6/upgrade-guide/)
+
+### Fixed
+- Allow filtering error in cloud cassandra deployments
+
 ## [2.5.0] - 2020-10-08
 
 ### Added
@@ -537,7 +545,8 @@ save function callback instead of raising exceptions
 - Support for schema validators
 - Support for auto loading of model schema from directory
 
-[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.5.0...master
+[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.6.0...master
+[2.6.0]: https://github.com/masumsoft/express-cassandra/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/masumsoft/express-cassandra/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/masumsoft/express-cassandra/compare/v2.3.2...v2.4.0
 [2.3.2]: https://github.com/masumsoft/express-cassandra/compare/v2.3.1...v2.3.2
