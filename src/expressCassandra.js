@@ -25,47 +25,90 @@ const debug = require('debug')('express-cassandra');
 const exporter = require('./utils/exporter');
 const importer = require('./utils/importer');
 
-const CassandraClient = function f(options) {
-  this.modelInstance = {};
-  this.orm = new ORM(options.clientOptions, options.ormOptions);
-  this.orm = Promise.promisifyAll(this.orm);
-};
+function _translateFileNameToModelName(fileName) {
+  return fileName.slice(0, fileName.lastIndexOf('.')).replace('Model', '');
+}
 
-CassandraClient.createClient = (options) => (new CassandraClient(options));
-
-CassandraClient.setDirectory = (directory) => {
-  CassandraClient.directory = directory;
-  return CassandraClient;
-};
-
-CassandraClient.syncModelFileToDB = (file, callback) => {
+function syncModelFileToDB(file, callback) {
   if (!file.name.includes('Model')) {
     callback();
     return;
   }
 
-  const modelName = CassandraClient._translateFileNameToModelName(file.name);
+  const modelName = this._translateFileNameToModelName(file.name);
 
   if (modelName) {
-    const fileLocation = path.join(CassandraClient.directory, file.path);
+    const fileLocation = path.join(this.directory, file.path);
     // eslint-disable-next-line import/no-dynamic-require
     const modelSchema = require(fileLocation);
-    CassandraClient.modelInstance[modelName] = CassandraClient.orm.addModel(modelName.toLowerCase(), modelSchema);
-    CassandraClient.modelInstance[modelName].syncDB(callback);
-    CassandraClient.modelInstance[modelName] = Promise.promisifyAll(CassandraClient.modelInstance[modelName]);
+    this.modelInstance[modelName] = this.orm.addModel(modelName.toLowerCase(), modelSchema);
+    this.modelInstance[modelName].syncDB(callback);
+    this.modelInstance[modelName] = Promise.promisifyAll(this.modelInstance[modelName]);
     return;
   }
 
   callback();
+}
+
+function setDirectory(directory) {
+  this.directory = directory;
+  return this;
+}
+
+const CassandraClient = function f(options) {
+  this.modelInstance = {};
+  this.orm = new ORM(options.clientOptions, options.ormOptions);
+  this.orm = Promise.promisifyAll(this.orm);
+  this.directory = null;
+  this.setDirectory = setDirectory.bind(this);
+  this.syncModelFileToDB = syncModelFileToDB.bind(this);
+  this._translateFileNameToModelName = _translateFileNameToModelName.bind(this);
+  Object.defineProperties(this, {
+    consistencies: {
+      get() {
+        return cql.types.consistencies;
+      },
+    },
+    datatypes: {
+      get() {
+        return cql.types;
+      },
+    },
+    driver: {
+      get() {
+        return cql;
+      },
+    },
+    instance: {
+      get() {
+        return this.modelInstance;
+      },
+    },
+    close: {
+      get() {
+        return this.orm.close;
+      },
+    },
+    closeAsync: {
+      get() {
+        return Promise.promisify(this.orm.close);
+      },
+    },
+  });
 };
 
+CassandraClient.setDirectory = setDirectory;
+CassandraClient.syncModelFileToDB = syncModelFileToDB;
+CassandraClient._translateFileNameToModelName = _translateFileNameToModelName;
+
+CassandraClient.createClient = (options) => (new CassandraClient(options));
+
 CassandraClient.bind = (options, cb) => {
-  CassandraClient.modelInstance = {};
-  CassandraClient.orm = new ORM(options.clientOptions, options.ormOptions);
-  CassandraClient.orm = Promise.promisifyAll(CassandraClient.orm);
-  CassandraClient.orm.initAsync()
+  const instance = CassandraClient.createClient(options);
+  instance.setDirectory(CassandraClient.directory);
+  instance.orm.initAsync()
     .then(() => readdirpAsync({
-      root: CassandraClient.directory,
+      root: instance.directory,
       fileFilter: [
         '*.js', '*.javascript', '*.jsx', '*.coffee', '*.coffeescript', '*.iced',
         '*.script', '*.ts', '*.tsx', '*.typescript', '*.cjsx', '*.co', '*.json',
@@ -74,15 +117,17 @@ CassandraClient.bind = (options, cb) => {
     }))
     .then((fileList) => {
       const syncModelTasks = [];
-      const syncModelFileToDBAsync = Promise.promisify(CassandraClient.syncModelFileToDB);
+      const syncModelFileToDBAsync = Promise.promisify(instance.syncModelFileToDB);
       fileList = fileList.files;
       fileList.forEach((file) => {
         syncModelTasks.push(syncModelFileToDBAsync(file));
       });
+      CassandraClient.modelInstance = instance.modelInstance;
+      CassandraClient.orm = instance.orm;
       return Promise.all(syncModelTasks);
     })
     .then(() => {
-      if (cb) cb();
+      if (cb) cb(null, instance);
     })
     .catch((err) => {
       if (cb && _.isArray(err) && err.length > 0) cb(err[0]);
@@ -268,10 +313,6 @@ CassandraClient.doBatch = function f(queries, options, callback) {
 };
 
 CassandraClient.doBatchAsync = Promise.promisify(CassandraClient.doBatch);
-
-CassandraClient._translateFileNameToModelName = (fileName) => (
-  fileName.slice(0, fileName.lastIndexOf('.')).replace('Model', '')
-);
 
 Object.defineProperties(CassandraClient, {
   consistencies: {
