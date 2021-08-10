@@ -17,6 +17,11 @@ If you are using elassandra, then saved data in cassandra automatically syncs wi
 
 If you are using janusgraph, then you can easily manage your graphs and graph indexes. Creating vertices and edges become simple function calls. You can then do any graph query the tinkerpop3 [gremlin query language](http://docs.janusgraph.org/latest/gremlin.html) supports.
 
+## Our Sponsors: ##
+<table><tr>
+<td align="center" width="300" ><a href="https://astra.dev/3shh4EF"><img src="https://www.datastax.com/sites/default/files/2021-07/astra-negative-square.png" width="90" height="90" alt="Astra DB" /><br />Astra DB</a><br/>Use Node/Express with DataStax Astra DB - built on Apache Cassandra.</td>
+</tr></table>
+
 ## Supported Features
 
 * supports the latest cassandra 3.x releases
