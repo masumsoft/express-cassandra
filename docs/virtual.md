@@ -4,7 +4,7 @@ Your model could have some fields which are not saved on database. You can defin
 
 ```js
 
-module.exports = {
+export default {
     "fields": {
         "id"     : { "type": "uuid", "default": {"$db_function": "uuid()"} },
         "name"   : { "type": "varchar", "default": "no name provided"},

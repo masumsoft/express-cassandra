@@ -4,7 +4,7 @@ Every time you set a property for an instance of your model, an internal type va
 
 ```js
 
-module.exports = {
+export default {
     //... other properties hidden for clarity
     age: {
         type : "int",
@@ -19,7 +19,7 @@ You can also provide a message for validation error in this way
 
 ```js
 
-module.exports = {
+export default {
     //... other properties hidden for clarity
     age: {
         type : "int",
@@ -36,7 +36,7 @@ then the error will have your message. Message can also be a function; in that c
 
 ```js
 
-module.exports = {
+export default {
     //... other properties hidden for clarity
     age: {
         type : "int",
@@ -56,7 +56,7 @@ If you need to exclude defaults from being checked you can pass an extra flag:
 
 ```js
 
-module.exports = {
+export default {
     //... other properties hidden for clarity
     email: {
         type : "text",
@@ -74,7 +74,7 @@ If a field value is not set and no default value is provided, then the validator
 
 ```js
 
-module.exports = {
+export default {
     //... other properties hidden for clarity
     email: {
         type : "text",
@@ -90,7 +90,7 @@ module.exports = {
 You may also add multiple validators with a different validation message for each. Following is an example of using multiple validators:
 
 ```
-module.exports = {
+export default {
   //... other properties hidden for clarity
   age: {
     type: "int",

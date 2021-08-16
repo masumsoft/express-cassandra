@@ -24,7 +24,7 @@ Cassandra collection data types (`map`, `list` & `set`) are supported in model s
 
 ```js
 
-module.exports = {
+export default {
 
     "fields": {
 

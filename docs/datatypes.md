@@ -63,7 +63,7 @@ When saving or retrieving the value of a column, the value is typed according to
 For example, you have a User model schema like the following:
 
 ```js
-module.exports = {
+export default {
     "fields": {
         "user_id": "bigint",
         "user_name": "text"

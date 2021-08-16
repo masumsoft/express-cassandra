@@ -1,6 +1,6 @@
 const util = require('util');
 
-module.exports = {
+const personSchema = {
   fields: {
     userID: { type: 'int' },
     uniId: { type: 'uuid', default: { $db_function: 'uuid()' } },
@@ -218,3 +218,6 @@ module.exports = {
     versions: true,
   },
 };
+
+export default personSchema;
+

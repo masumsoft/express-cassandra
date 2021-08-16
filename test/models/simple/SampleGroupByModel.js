@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   fields: {
     project_id: 'int',
     job_id: 'int',

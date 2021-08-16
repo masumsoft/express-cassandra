@@ -55,7 +55,7 @@ To keep all your cassandra table fields synced into the elasticsearch index, use
 
 ```
 // User model
-module.exports = {
+export default {
   fields: {
     id: 'varchar',
     name: 'text',
@@ -72,7 +72,7 @@ By default, all text columns are mapped with `"index":"not_analyzed"`. To overwr
 
 ```
 // User model
-module.exports = {
+export default {
   fields: {
     id: 'varchar',
     name: 'text',

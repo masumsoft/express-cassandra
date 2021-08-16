@@ -2,7 +2,7 @@
 
 ```js
 
-module.exports = {
+export default {
     fields: {
         id: {
             type: "uuid",

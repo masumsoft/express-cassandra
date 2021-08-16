@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   fields: {
     user_id: 'varchar',
     status: 'varchar',

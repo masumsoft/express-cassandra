@@ -109,7 +109,7 @@ If your model key looks like this:
 
 ```js
 
-module.exports = {
+export default {
     fields: {
         //fields are not shown for clarity
     },

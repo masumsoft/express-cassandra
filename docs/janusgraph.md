@@ -62,7 +62,7 @@ To create a graph mapping for your schema, use the `graph_mapping` option from j
 
 ```
 // User model
-module.exports = {
+export default {
   fields: {
     id: 'int',
     name: 'text',

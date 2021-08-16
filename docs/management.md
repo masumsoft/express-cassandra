@@ -145,7 +145,7 @@ models.instance.Person.truncate(function(err){
 When you perform a save/update/delete operation, a hook function helps you to tap into it in order to change data or perform other operations. Following are the available hook functions you can define in your schema:
 
 ```js
-module.exports = {
+export default {
     fields: {
         ...
     },

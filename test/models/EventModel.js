@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   fields: {
     email: { type: 'text' },
     id: { type: 'timeuuid' },

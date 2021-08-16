@@ -6,7 +6,7 @@
 
 ```js
 
-module.exports = {
+export default {
     fields:{
         name    : "text",
         surname : "text",
