@@ -515,6 +515,7 @@ TableBuilder.prototype = {
       )) && !viewName.includes("idx_index"),
     );
 
+    
     const addedMaterializedViews = {};
     addedMaterializedViewsNames.forEach((viewName) => {
       addedMaterializedViews[viewName] = normalizedModelSchema.materialized_views[viewName];
