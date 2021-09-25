@@ -512,7 +512,7 @@ TableBuilder.prototype = {
       (viewName) => (!_.isEqual(
         normalizedDBSchema.materialized_views[viewName],
         normalizedModelSchema.materialized_views[viewName],
-      )),
+      )) && !viewName.includes("idx_index"),
     );
 
     const addedMaterializedViews = {};
