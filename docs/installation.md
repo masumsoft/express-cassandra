@@ -1,6 +1,6 @@
 # Installation
 
-For apache cassandra version 3.x or datastax enterprise
+For apache cassandra version 4.x, 3.x or datastax enterprise
 
     npm install express-cassandra
 

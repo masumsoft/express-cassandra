@@ -1,8 +1,8 @@
-[![Build Status](https://travis-ci.org/masumsoft/express-cassandra.svg)](https://travis-ci.org/masumsoft/express-cassandra)
+[![Build Status](https://app.travis-ci.com/masumsoft/express-cassandra.svg?branch=master)](https://app.travis-ci.com/masumsoft/express-cassandra)
 [![Download Stats](https://img.shields.io/npm/dm/express-cassandra.svg)](https://www.npmjs.com/package/express-cassandra)
 [![Npm Version](https://badge.fury.io/js/express-cassandra.svg)](https://www.npmjs.com/package/express-cassandra)
 [![Documentation Status](https://readthedocs.org/projects/express-cassandra/badge/?version=latest)](http://express-cassandra.readthedocs.io/en/latest/?badge=latest)
-[![Dependencies Status](https://david-dm.org/masumsoft/express-cassandra/status.svg)](https://david-dm.org/masumsoft/express-cassandra)
+[![Dependency Status](https://img.shields.io/librariesio/github/masumsoft/express-cassandra)](https://github.com/masumsoft/express-cassandra/network/dependencies)
 [![Mentioned in Awesome Cassandra](https://awesome.re/mentioned-badge.svg)](https://anant.github.io/awesome-cassandra/)
 
 # Overview
