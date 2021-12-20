@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.7.0] - 2021-12-20
+
+### Added
+- Support confirmation for cassandra 4.x
+- Support for ES6 based model definition
+- Node 14 now officially supported
+
+### Changed
+- Removed support for Node version 6
+
+### Security
+- Upgraded package dependencies to resolve vulnerability in dependent packages
+
 ## [2.6.0] - 2021-04-16
 
 ### Changed
@@ -545,7 +558,8 @@ save function callback instead of raising exceptions
 - Support for schema validators
 - Support for auto loading of model schema from directory
 
-[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.6.0...master
+[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.7.0...master
+[2.7.0]: https://github.com/masumsoft/express-cassandra/compare/v2.6.0...v2.7.0
 [2.6.0]: https://github.com/masumsoft/express-cassandra/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/masumsoft/express-cassandra/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/masumsoft/express-cassandra/compare/v2.3.2...v2.4.0
