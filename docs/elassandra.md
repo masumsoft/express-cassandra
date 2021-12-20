@@ -13,7 +13,7 @@ If you are a user of [elassandra](https://github.com/strapdata/elassandra), then
         // omitted other options for clarity
         defaultReplicationStrategy: {
             class: 'NetworkTopologyStrategy',
-            DC1: 1
+            datacenter1: 1
         },
 	migration: 'alter',
         manageESIndex: true
@@ -21,7 +21,7 @@ If you are a user of [elassandra](https://github.com/strapdata/elassandra), then
 }
 ```
 
-Elassandra does not work with the `SimpleStrategy` replication class. You can still have a single Elassandra node. The `DC1` parameter is the **case sensitive** name of the _Data Center_ as defined in your `elassandra/conf/cassandra-rackdc.properties` file. You may also have to edit your `elassandra/conf/cassandra-topology.properties` file to match the rack data center declarations. If you did not edit those files, the default is `DC1`. These parameters are used with the [CREATE KEYSPACE](https://docs.datastax.com/en/cql/3.3/cql/cql_reference/cqlCreateKeyspace.html) CQL command.
+Elassandra does not work with the `SimpleStrategy` replication class. You can still have a single Elassandra node. The `datacenter1` parameter is the **case sensitive** name of the _Data Center_ as defined in your `elassandra/conf/cassandra-rackdc.properties` file. You may also have to edit your `elassandra/conf/cassandra-topology.properties` file to match the rack data center declarations. If you did not edit those files, the default is `datacenter1`. These parameters are used with the [CREATE KEYSPACE](https://docs.datastax.com/en/cql/3.3/cql/cql_reference/cqlCreateKeyspace.html) CQL command.
 
 Note that you can optionally provide connection options for elasticsearch in the `clientOptions` like the following. If omitted, then the cassandra `contactPoints` are used as default host addresses with `sniffOnStart: true` as default configuration for the elasticsearch client.
 
@@ -39,7 +39,7 @@ Note that you can optionally provide connection options for elasticsearch in the
         // omitted other options for clarity
         defaultReplicationStrategy: {
             class: 'NetworkTopologyStrategy',
-            DC1: 1
+            datacenter1: 1
         },
         migration: 'alter',
         manageESIndex: true

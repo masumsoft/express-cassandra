@@ -12,7 +12,7 @@ If you are using janusgraph, then you can easily manage your graphs and graph in
 
 ## Supported Features
 
-* supports the latest cassandra 3.x releases
+* supports the latest cassandra 4.x and older stable 3.x releases
 * support for elassandra index management and search queries
 * support for janusgraph graph management and tinkerpop3 gremlin queries
 * compatible with datastax enterprise solr search and dse graph

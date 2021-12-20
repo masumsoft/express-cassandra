@@ -24,7 +24,7 @@ If you are using janusgraph, then you can easily manage your graphs and graph in
 
 ## Supported Features
 
-* supports the latest cassandra 3.x releases
+* supports the latest cassandra 4.x and older stable 3.x releases
 * support for elassandra index management and search queries
 * support for janusgraph graph management and tinkerpop3 gremlin queries
 * compatible with datastax enterprise solr search and dse graph
@@ -45,7 +45,7 @@ This module internally uses [cassandra-driver](https://github.com/datastax/nodej
 
 # Installation
 
-For apache cassandra version 3.x or datastax enterprise
+For apache cassandra version 4.x, 3.x or datastax enterprise
 
     npm install express-cassandra
 
@@ -61,7 +61,7 @@ For older cassandra 2.x (no longer supported)
 
     npm install express-cassandra@0.5.4
 
-Please note that if you use the legacy cassandra 2.x compliant version then please use the corresponding README.md file for that version. The following documentation is for version 3.x and datastax enterprise 5.x only. The materialized view support and several other part of the documentation is strictly applicable for cassandra 3.x / dse 5.x and will not work in earlier versions of cassandra.
+Please note that if you use the legacy cassandra 2.x compliant version then please use the corresponding README.md file for that version. The following documentation is for version 4.x, 3.x and datastax enterprise 6.x/5.x only. The materialized view support and several other part of the documentation is strictly applicable for cassandra 4.x/3.x or dse 6.x/5.x and will not work in earlier versions of cassandra.
 
 # Documentation
 
@@ -79,7 +79,7 @@ A detailed overview on how to contribute can be found in the [contributing guide
 
 # Acknowledgement
 
-* Express-cassandra started off from a highly modified version of [apollo-cassandra](https://github.com/3logic/apollo-cassandra) module. Afterwards major refactoring and new development went on to support missing features of cassandra 3.x and additional functionalities.
+* Express-cassandra started off from a highly modified version of [apollo-cassandra](https://github.com/3logic/apollo-cassandra) module. Afterwards major refactoring and new development went on to support missing features of cassandra 3.x and beyond with support for additional functionalities.
 
 * Apache Cassandra, Apache Lucene, Apache, Lucene, Solr, TinkerPop, and Cassandra are trademarks of the Apache Software Foundation or its subsidiaries in Canada, the United States and/or other countries.
 

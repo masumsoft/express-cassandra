@@ -74,10 +74,7 @@ You can also use datastax enterprise graph by using the [cassandra-driver](https
 
 ```js
 clientOptions: {
-    contactPoints: ['127.0.0.1'],
-    localDataCenter: 'dc1',
-    keyspace: 'mykeyspace',
-    queryOptions: {consistency: models.consistencies.one},
+    // omitted other options for clarity
     graphOptions: { name: 'demo' }
 },
 ```

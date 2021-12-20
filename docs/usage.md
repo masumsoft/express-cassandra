@@ -31,10 +31,11 @@ models.setDirectory( __dirname + '/models').bind(
     {
         clientOptions: {
             contactPoints: ['127.0.0.1'],
-            localDataCenter: 'dc1',
+            localDataCenter: 'datacenter1',
             protocolOptions: { port: 9042 },
             keyspace: 'mykeyspace',
-            queryOptions: {consistency: models.consistencies.one}
+            queryOptions: {consistency: models.consistencies.one},
+            socketOptions: { readTimeout: 60000 },
         },
         ormOptions: {
             defaultReplicationStrategy : {
@@ -64,10 +65,11 @@ var ExpressCassandra = require('express-cassandra');
 var models = ExpressCassandra.createClient({
     clientOptions: {
         contactPoints: ['127.0.0.1'],
-        localDataCenter: 'dc1',
+        localDataCenter: 'datacenter1',
         protocolOptions: { port: 9042 },
         keyspace: 'mykeyspace',
-        queryOptions: {consistency: ExpressCassandra.consistencies.one}
+        queryOptions: {consistency: ExpressCassandra.consistencies.one},
+        socketOptions: { readTimeout: 60000 },
     },
     ormOptions: {
         defaultReplicationStrategy : {
@@ -181,10 +183,11 @@ For connecting to cassandra using authentication, you can use the nodejs-driver 
 ```js
 clientOptions: {
     contactPoints: ['127.0.0.1'],
-    localDataCenter: 'dc1',
+    localDataCenter: 'datacenter1',
     protocolOptions: { port: 9042 },
     keyspace: 'mykeyspace',
     queryOptions: {consistency: models.consistencies.one},
+    socketOptions: { readTimeout: 60000 },
     authProvider: new models.driver.auth.PlainTextAuthProvider('my_user', 'my_password')
 }
 ```
