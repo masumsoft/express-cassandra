@@ -8,14 +8,15 @@ let client;
 const config = {
   clientOptions: {
     contactPoints: ['127.0.0.1'],
-    localDataCenter: 'dc1',
+    localDataCenter: 'datacenter1',
     keyspace: 'express_cassandra_tests_kspc1',
     queryOptions: { consistency: models.consistencies.one },
+    socketOptions: { readTimeout: 60000 },
   },
   ormOptions: {
     defaultReplicationStrategy: {
       class: 'NetworkTopologyStrategy',
-      dc1: 1,
+      datacenter1: 1,
     },
     migration: 'alter',
     manageESIndex: true,
@@ -172,14 +173,15 @@ module.exports = () => {
       client = models.createClient({
         clientOptions: {
           contactPoints: ['127.0.0.1'],
-          localDataCenter: 'dc1',
+          localDataCenter: 'datacenter1',
           keyspace: 'express_cassandra_tests_kspc1',
           queryOptions: { consistency: models.consistencies.one },
+          socketOptions: { readTimeout: 60000 },
         },
         ormOptions: {
           defaultReplicationStrategy: {
             class: 'NetworkTopologyStrategy',
-            dc1: 1,
+            datacenter1: 1,
           },
           dropTableOnSchemaChange: true,
           createKeyspace: false,
@@ -201,7 +203,9 @@ module.exports = () => {
       client.close();
     });
 
-    it('should load a schema from an object and syncDB', (done) => {
+    it('should load a schema from an object and syncDB', function f(done) {
+      this.timeout(20000);
+      this.slow(10000);
       const myTempModel = client.loadSchema('TempSchema', {
         fields: {
           firstname: 'text',

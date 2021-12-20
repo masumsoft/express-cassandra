@@ -229,8 +229,8 @@ module.exports = (eventID) => {
 
   describe('#benchmark orm batch operations', () => {
     it('should truncate table', function f(done) {
-      this.timeout(5000);
-      this.slow(1000);
+      this.timeout(20000);
+      this.slow(10000);
       models.instance.Insert.truncateAsync()
         .then(() => {
           done();
@@ -263,8 +263,8 @@ module.exports = (eventID) => {
     });
 
     it('should truncate table', function f(done) {
-      this.timeout(5000);
-      this.slow(1000);
+      this.timeout(20000);
+      this.slow(10000);
       models.instance.Insert.truncateAsync()
         .then(() => {
           done();

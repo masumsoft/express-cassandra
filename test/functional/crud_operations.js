@@ -8,8 +8,8 @@ const should = chai.should();
 module.exports = () => {
   describe('#truncate table', () => {
     it('should truncate all data in the models', function f(done) {
-      this.timeout(10000);
-      this.slow(5000);
+      this.timeout(60000);
+      this.slow(20000);
       models.instance.Person.truncateAsync()
         .then(() => models.instance.Counter.truncateAsync())
         .then(() => models.instance.Event.truncateAsync())
@@ -957,7 +957,9 @@ module.exports = () => {
         .catch((err) => done(err));
     });
 
-    after((done) => {
+    after(function f(done) {
+      this.timeout(20000);
+      this.slow(10000);
       models.instance.SampleGroupBy.truncateAsync()
         .then(() => done())
         .catch((err) => done(err));
