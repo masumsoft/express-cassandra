@@ -17,9 +17,7 @@ const personSchema = {
     },
     age: {
       type: 'int',
-      rule: {
-        validator: (value) => (value > 0),
-      },
+      rule: (value) => (value > 0),
     },
     ageString: {
       type: 'text',

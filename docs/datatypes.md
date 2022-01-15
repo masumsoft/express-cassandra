@@ -35,10 +35,10 @@ When saving or retrieving the value of a column, the value is typed according to
 | Cassandra Field Types  |  Javascript Types                 |
 |------------------------|-----------------------------------|
 |     ascii              |     String                        |
-|     bigint             |     [models.datatypes.Long](https://google.github.io/closure-library/api/goog.math.Long.html)|
+|     bigint             |     [models.datatypes.Long](https://docs.datastax.com/en/developer/nodejs-driver/4.6/api/module.types/class.Long/)|
 |     blob               |     [Buffer](https://nodejs.org/api/buffer.html)|
 |     boolean            |     Boolean                       |
-|     counter            |     [models.datatypes.Long](https://google.github.io/closure-library/api/goog.math.Long.html)|
+|     counter            |     [models.datatypes.Long](https://docs.datastax.com/en/developer/nodejs-driver/4.6/api/module.types/class.Long/)|
 |     date               |     [models.datatypes.LocalDate](http://docs.datastax.com/en/developer/nodejs-driver/4.6/api/module.types/class.LocalDate/)|
 |     decimal            |     [models.datatypes.BigDecimal](http://docs.datastax.com/en/developer/nodejs-driver/4.6/api/module.types/class.BigDecimal/)|
 |     double             |     Number                        |

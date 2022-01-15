@@ -357,12 +357,14 @@ const schemer = {
     const validators = [];
     const fieldtype = this.get_field_type(modelSchema, fieldname);
     const typeFieldValidator = datatypes.generic_type_validator(fieldtype);
+    const field = modelSchema.fields[fieldname];
 
     if (typeFieldValidator) {
-      validators.push(typeFieldValidator);
+      if (!(field.rule && field.rule.type_validation === false)) {
+        validators.push(typeFieldValidator);
+      }
     }
 
-    const field = modelSchema.fields[fieldname];
     if (typeof field.rule !== 'undefined') {
       if (typeof field.rule === 'function') {
         field.rule = {

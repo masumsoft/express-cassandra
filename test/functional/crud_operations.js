@@ -11,6 +11,7 @@ module.exports = () => {
       this.timeout(60000);
       this.slow(20000);
       models.instance.Person.truncateAsync()
+        .then(() => models.instance.Validation.truncateAsync())
         .then(() => models.instance.Counter.truncateAsync())
         .then(() => models.instance.Event.truncateAsync())
         .then(() => models.instance.Simple.truncateAsync())
@@ -95,22 +96,12 @@ module.exports = () => {
       });
     });
 
-    it('should throw unset error due to required field', (done) => {
+    it('should save data without errors', (done) => {
       alex.age = 32;
+      alex.points = 64.0;
       alex.isModified().should.equal(true);
       alex.isModified('userID').should.equal(true);
       alex.isModified('address').should.equal(true);
-      alex.save((err1) => {
-        if (err1) {
-          err1.name.should.equal('apollo.model.save.unsetrequired');
-          return done();
-        }
-        return done(new Error('required rule is not working properly'));
-      });
-    });
-
-    it('should save data without errors', (done) => {
-      alex.points = 64.0;
       alex.saveAsync()
         .then(() => {
           done();
@@ -132,6 +123,45 @@ module.exports = () => {
         alex.isModified('Name').should.equal(true);
         done();
       });
+    });
+
+    let bob;
+    it('should throw unset error due to required field without validator', function f(done) {
+      this.timeout(5000);
+      this.slow(1000);
+      bob = new models.instance.Validation({
+        id: 'd8160520-5f6d-11eb-af42-0a1f69b793a6',
+      });
+      bob.save((err4) => {
+        if (err4) {
+          err4.name.should.equal('apollo.model.save.unsetrequired');
+          return done();
+        }
+        return done(new Error('required rule is not working properly'));
+      });
+    });
+
+    it('should throw error due to rule validator with no type validation', (done) => {
+      bob.name = 'bob';
+      bob.age = '0';
+      bob.save((err5) => {
+        if (err5) {
+          err5.name.should.equal('apollo.model.validator.invalidvalue');
+          return done();
+        }
+        return done(new Error('validation rule is not working properly'));
+      });
+    });
+
+    it('should save data without errors for no type validation', (done) => {
+      bob.age = '30';
+      bob.saveAsync()
+        .then(() => {
+          done();
+        })
+        .catch((err6) => {
+          done(err6);
+        });
     });
   });
 
@@ -888,6 +918,18 @@ module.exports = () => {
       models.instance.Person.find({ userID: 1235 }, (err, people) => {
         if (err) done(err);
         people.length.should.equal(0);
+        done();
+      });
+    });
+  });
+
+  describe('#find data for no type validation fields', () => {
+    it('should find data as expected for fields with no type validation rule', (done) => {
+      models.instance.Validation.findOne({ id: 'd8160520-5f6d-11eb-af42-0a1f69b793a6' }, (err, data) => {
+        if (err) done(err);
+        data.id.toString().should.equal('d8160520-5f6d-11eb-af42-0a1f69b793a6');
+        data.name.should.equal('bob');
+        data.age.should.equal(30);
         done();
       });
     });
