@@ -38,7 +38,7 @@ Driver.prototype = {
       prepare: true,
     };
 
-    options = _.defaultsDeep(options, defaults);
+    options = _.defaultsDeep({}, options, defaults);
 
     this.ensure_init((err) => {
       if (err) {
@@ -66,7 +66,7 @@ Driver.prototype = {
       prepare: true,
     };
 
-    options = _.defaultsDeep(options, defaults);
+    options = _.defaultsDeep({}, options, defaults);
 
     this.ensure_init((err) => {
       if (err) {

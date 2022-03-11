@@ -159,7 +159,7 @@ CassandraClient.import = function f(fixtureDirectory, options, callback) {
     batchSize: 1,
   };
 
-  options = _.defaultsDeep(options, defaults);
+  options = _.defaultsDeep({}, options, defaults);
 
   const systemClient = this.orm.get_system_client();
   const keyspace = this.orm.get_keyspace_name();
@@ -217,7 +217,7 @@ CassandraClient.prototype.doBatch = function f(queries, options, callback) {
     prepare: true,
   };
 
-  options = _.defaultsDeep(options, defaults);
+  options = _.defaultsDeep({}, options, defaults);
 
   const randomModel = this.modelInstance[Object.keys(this.modelInstance)[0]];
   const beforeHooks = [];
@@ -263,7 +263,7 @@ CassandraClient.doBatch = function f(queries, options, callback) {
     prepare: true,
   };
 
-  options = _.defaultsDeep(options, defaults);
+  options = _.defaultsDeep({}, options, defaults);
 
   CassandraClient.prototype.doBatch.call(CassandraClient, queries, options, callback);
 };

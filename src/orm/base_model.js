@@ -273,7 +273,7 @@ BaseModel._execute_table_query = function f(query, params, options, callback) {
     prepare: true,
   };
 
-  options = _.defaultsDeep(options, defaults);
+  options = _.defaultsDeep({}, options, defaults);
 
   const doExecuteQuery = function f1(doquery, docallback) {
     this.execute_query(doquery, params, options, docallback);
@@ -434,7 +434,7 @@ BaseModel.eachRow = function f(queryObject, options, onReadable, callback) {
     prepare: true,
   };
 
-  options = _.defaultsDeep(options, defaults);
+  options = _.defaultsDeep({}, options, defaults);
 
   options.return_query = true;
   const selectQuery = this.find(queryObject, options);
@@ -495,7 +495,7 @@ BaseModel.stream = function f(queryObject, options, onReadable, callback) {
     prepare: true,
   };
 
-  options = _.defaultsDeep(options, defaults);
+  options = _.defaultsDeep({}, options, defaults);
 
   options.return_query = true;
   const selectQuery = this.find(queryObject, options);
@@ -560,7 +560,7 @@ BaseModel.createVertex = function f(vertexProperties, callback) {
     script += `vertex.property('${property}', ${property});`;
   });
   script += 'vertex';
-  const bindings = _.defaults(vertexProperties, {
+  const bindings = _.defaults({}, vertexProperties, {
     __graphName,
     __vertexLabel,
   });
@@ -594,7 +594,7 @@ BaseModel.updateVertex = function f(__vertexId, vertexProperties, callback) {
     script += `vertex.property('${property}', ${property});`;
   });
   script += 'vertex';
-  const bindings = _.defaults(vertexProperties, {
+  const bindings = _.defaults({}, vertexProperties, {
     __graphName,
     __vertexId,
   });
@@ -635,7 +635,7 @@ BaseModel.createEdge = function f(__edgeLabel, __fromVertexId, __toVertexId, edg
     script += `edge.property('${property}', ${property});`;
   });
   script += 'edge';
-  const bindings = _.defaults(edgeProperties, {
+  const bindings = _.defaults({}, edgeProperties, {
     __graphName,
     __fromVertexId,
     __toVertexId,
@@ -671,7 +671,7 @@ BaseModel.updateEdge = function f(__edgeId, edgeProperties, callback) {
     script += `edge.property('${property}', ${property});`;
   });
   script += 'edge';
-  const bindings = _.defaults(edgeProperties, {
+  const bindings = _.defaults({}, edgeProperties, {
     __graphName,
     __edgeId,
   });
@@ -704,7 +704,7 @@ BaseModel.graphQuery = function f(query, params, callback) {
     vertices = g.V().hasLabel(__vertexLabel);
   `;
   script += query;
-  const bindings = _.defaults(params, {
+  const bindings = _.defaults({}, params, {
     __graphName,
     __vertexLabel,
   });
@@ -715,7 +715,7 @@ BaseModel.search = function f(queryObject, callback) {
   const esClient = this.get_es_client();
   const indexName = `${this._properties.keyspace}_${this._properties.table_name}`;
 
-  const query = _.defaults(queryObject, {
+  const query = _.defaults({}, queryObject, {
     index: indexName,
     type: this._properties.table_name,
   });
@@ -742,7 +742,7 @@ BaseModel.find = function f(queryObject, options, callback) {
     prepare: true,
   };
 
-  options = _.defaultsDeep(options, defaults);
+  options = _.defaultsDeep({}, options, defaults);
 
   // set raw true if select is used,
   // because casting to model instances may lead to problems
@@ -828,7 +828,7 @@ BaseModel.update = function f(queryObject, updateValues, options, callback) {
     prepare: true,
   };
 
-  options = _.defaultsDeep(options, defaults);
+  options = _.defaultsDeep({}, options, defaults);
 
   if (typeof schema.before_update === 'function' && schema.before_update(queryObject, updateValues, options) === false) {
     parser.callback_or_throw(buildError('model.update.before.error'), callback);
@@ -925,7 +925,7 @@ BaseModel.delete = function f(queryObject, options, callback) {
     prepare: true,
   };
 
-  options = _.defaultsDeep(options, defaults);
+  options = _.defaultsDeep({}, options, defaults);
 
   if (typeof schema.before_delete === 'function' && schema.before_delete(queryObject, options) === false) {
     parser.callback_or_throw(buildError('model.delete.before.error'), callback);
@@ -1036,7 +1036,7 @@ BaseModel.prototype.save = function fn(options, callback) {
     prepare: true,
   };
 
-  options = _.defaultsDeep(options, defaults);
+  options = _.defaultsDeep({}, options, defaults);
 
   if (typeof schema.before_save === 'function' && schema.before_save(this, options) === false) {
     parser.callback_or_throw(buildError('model.save.before.error'), callback);
