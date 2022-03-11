@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.8.0] - 2022-03-12
+
+### Added
+- Option to disable built-in type validation
+
+### Fixed
+- Avoid mutating passed options objects
+
+### Security
+- Upgraded package dependencies to resolve vulnerability in dependent packages
+
 ## [2.7.0] - 2021-12-20
 
 ### Added
@@ -558,7 +569,8 @@ save function callback instead of raising exceptions
 - Support for schema validators
 - Support for auto loading of model schema from directory
 
-[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.7.0...master
+[Unreleased]: https://github.com/masumsoft/express-cassandra/compare/v2.8.0...master
+[2.8.0]: https://github.com/masumsoft/express-cassandra/compare/v2.7.0...v2.8.0
 [2.7.0]: https://github.com/masumsoft/express-cassandra/compare/v2.6.0...v2.7.0
 [2.6.0]: https://github.com/masumsoft/express-cassandra/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/masumsoft/express-cassandra/compare/v2.4.0...v2.5.0
