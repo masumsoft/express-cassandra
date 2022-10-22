@@ -70,7 +70,8 @@ CassandraClient.bind = (options, cb) => {
       fileFilter: [
         '*.js', '*.javascript', '*.jsx', '*.coffee', '*.coffeescript', '*.iced',
         '*.script', '*.ts', '*.tsx', '*.typescript', '*.cjsx', '*.co', '*.json',
-        '*.json5', '*.litcoffee', '*.liticed', '*.ls', '*.node', '*.toml', '*.wisp',
+        '*.json5', '*.litcoffee', '*.liticed', '*.ls', '*.node', '*.toml',
+        '*.wisp', '*.cjs',
       ],
     }))
     .then((fileList) => {
