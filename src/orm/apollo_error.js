@@ -166,9 +166,9 @@ const buildError = function f(...args) {
   const name = argsarray.length ? argsarray.shift() : '_none_given_';
 
   const errorTemplate = AERROR_TYPES[name] || AERROR_TYPES.unspecified;
-  const errorMsg = argsarray.length ?
-    util.format.apply(this, [errorTemplate.msg].concat(argsarray)) :
-    errorTemplate.msg;
+  const errorMsg = argsarray.length
+    ? util.format.apply(this, [errorTemplate.msg].concat(argsarray))
+    : errorTemplate.msg;
 
   const error = new Error(errorMsg);
   error.name = (ERR_NAME_PREFIX ? util.format('%s.', ERR_NAME_PREFIX) : '') + name;

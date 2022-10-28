@@ -459,7 +459,8 @@ module.exports = () => {
     it('should stream data from materialized_view without errors', (done) => {
       models.instance.Person.streamAsync(
         { userID: 1234, age: 32, active: true },
-        { materialized_view: 'mat_view_composite' }, (reader) => {
+        { materialized_view: 'mat_view_composite' },
+        (reader) => {
           let row = reader.readRow();
           while (row) {
             row.Name.should.equal('Mahafuzur');
@@ -491,7 +492,8 @@ module.exports = () => {
     it('should stream data using eachRow from materialized view without errors', (done) => {
       models.instance.Person.eachRowAsync(
         { userID: 1234, age: 32, active: true },
-        { fetchSize: 100, materialized_view: 'mat_view_composite' }, (n, row) => {
+        { fetchSize: 100, materialized_view: 'mat_view_composite' },
+        (n, row) => {
           row.Name.should.equal('Mahafuzur');
         },
       )

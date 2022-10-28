@@ -92,7 +92,8 @@ module.exports = (eventID) => {
     it('should find modifications reflected in materialized view', (done) => {
       models.instance.Event.find(
         { id: eventID, $orderby: { $asc: 'email' } },
-        { materialized_view: 'event_by_id', raw: true }, (err, events) => {
+        { materialized_view: 'event_by_id', raw: true },
+        (err, events) => {
           if (err) done(err);
           events.length.should.equal(2);
           events[0].body.should.equal('hello1 updated again');

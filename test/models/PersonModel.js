@@ -218,4 +218,3 @@ const personSchema = {
 };
 
 export default personSchema;
-

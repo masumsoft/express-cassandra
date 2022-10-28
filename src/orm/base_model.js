@@ -12,7 +12,7 @@ try {
 
 const cql = Promise.promisifyAll(dseDriver || require('cassandra-driver'));
 
-const buildError = require('./apollo_error.js');
+const buildError = require('./apollo_error');
 const schemer = require('../validators/schema');
 const normalizer = require('../utils/normalizer');
 const parser = require('../utils/parser');
@@ -202,8 +202,8 @@ BaseModel._sync_model_definition = function f(callback) {
 
     if (migration === 'alter') {
       // check if table can be altered to match schema
-      if (_.isEqual(normalizedModelSchema.key, normalizedDBSchema.key) &&
-          _.isEqual(normalizedModelSchema.clustering_order, normalizedDBSchema.clustering_order)) {
+      if (_.isEqual(normalizedModelSchema.key, normalizedDBSchema.key)
+          && _.isEqual(normalizedModelSchema.clustering_order, normalizedDBSchema.clustering_order)) {
         tableBuilder.init_alter_operations(modelSchema, dbSchema, normalizedModelSchema, normalizedDBSchema, (err1) => {
           if (err1 && err1.message === 'alter_impossible') {
             tableBuilder.drop_recreate_table(modelSchema, normalizedDBSchema.materialized_views, afterDBCreate);

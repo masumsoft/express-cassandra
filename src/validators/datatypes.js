@@ -58,7 +58,6 @@ const TYPE_MAP = {
   frozen: { validator: validators.is_frozen },
 };
 
-
 TYPE_MAP.generic_type_validator = function f(fieldtype) {
   if (!this[fieldtype]) return null;
 

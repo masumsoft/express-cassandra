@@ -126,8 +126,8 @@ const schemer = {
       if (modelSchema.fields[materializedViewSelectField]
           && modelSchema.fields[materializedViewSelectField].virtual) {
         throw (new Error(util.format(
-          'the select attribute under %s of materialized_views must be an array of db field names, ' +
-          'cannot contain any virtual field name',
+          'the select attribute under %s of materialized_views must be an array of db field names, '
+          + 'cannot contain any virtual field name',
           materializedViewName,
         )));
       }
@@ -160,8 +160,8 @@ const schemer = {
         if (modelSchema.fields[materializedViewPartitionKeyField]
           && modelSchema.fields[materializedViewPartitionKeyField].virtual) {
           throw (new Error(util.format(
-            'materialized_view %s: partition key array must contain only db field names, ' +
-            'cannot contain virtual field names',
+            'materialized_view %s: partition key array must contain only db field names, '
+            + 'cannot contain virtual field names',
             materializedViewName,
           )));
         }
@@ -252,8 +252,8 @@ const schemer = {
       throw (new Error("custom_index must have a 'using' attribute with string value"));
     }
     if (!_.isPlainObject(customIndex.options)) {
-      throw (new Error('custom_index must have an "options" attribute and it must be an object, ' +
-        'pass blank {} object if no options are required'));
+      throw (new Error('custom_index must have an "options" attribute and it must be an object, '
+        + 'pass blank {} object if no options are required'));
     }
   },
 

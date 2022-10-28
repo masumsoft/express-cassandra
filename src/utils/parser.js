@@ -12,7 +12,7 @@ try {
 
 const cql = Promise.promisifyAll(dseDriver || require('cassandra-driver'));
 
-const buildError = require('../orm/apollo_error.js');
+const buildError = require('../orm/apollo_error');
 const datatypes = require('../validators/datatypes');
 const schemer = require('../validators/schema');
 
@@ -216,7 +216,8 @@ parser.get_update_value_expression = function f(instance, schema, updateValues, 
       fieldValue = instance._get_default_value(fieldName);
       if (fieldValue === undefined) {
         return parser.unset_not_allowed('update', schema, fieldName, callback);
-      } else if (!schema.fields[fieldName].rule || !schema.fields[fieldName].rule.ignore_default) {
+      }
+      if (!schema.fields[fieldName].rule || !schema.fields[fieldName].rule.ignore_default) {
         // did set a default value, ignore default is not set
         if (instance.validate(fieldName, fieldValue) !== true) {
           parser.callback_or_throw(buildError('model.update.invaliddefaultvalue', fieldValue, fieldName, fieldType), callback);
@@ -271,7 +272,8 @@ parser.get_save_value_expression = function fn(instance, schema, callback) {
       fieldValue = instance._get_default_value(fieldName);
       if (fieldValue === undefined) {
         return parser.unset_not_allowed('save', schema, fieldName, callback);
-      } else if (!schema.fields[fieldName].rule || !schema.fields[fieldName].rule.ignore_default) {
+      }
+      if (!schema.fields[fieldName].rule || !schema.fields[fieldName].rule.ignore_default) {
         // did set a default value, ignore default is not set
         if (instance.validate(fieldName, fieldValue) !== true) {
           parser.callback_or_throw(buildError('model.save.invaliddefaultvalue', fieldValue, fieldName, fieldType), callback);
@@ -335,13 +337,17 @@ parser.extract_query_relations = function f(fieldName, relationKey, relationValu
     if (_.isPlainObject(dbVal) && dbVal.query_segment) {
       queryRelations.push(util.format(
         whereTemplate,
-        fieldNameLocal, operator, dbVal.query_segment,
+        fieldNameLocal,
+        operator,
+        dbVal.query_segment,
       ));
       queryParams.push(dbVal.parameter);
     } else {
       queryRelations.push(util.format(
         whereTemplate,
-        fieldNameLocal, operator, dbVal,
+        fieldNameLocal,
+        operator,
+        dbVal,
       ));
     }
   };
@@ -368,7 +374,9 @@ parser.extract_query_relations = function f(fieldName, relationKey, relationValu
       }
       queryRelations.push(util.format(
         whereTemplate,
-        tokenKeys.join('","'), operator, tokenRelationValue.toString(),
+        tokenKeys.join('","'),
+        operator,
+        tokenRelationValue.toString(),
       ));
     } else {
       buildQueryRelations(fieldName, tokenRelationValue);
@@ -391,7 +399,10 @@ parser.extract_query_relations = function f(fieldName, relationKey, relationValu
         Object.keys(relationValue).forEach((key) => {
           queryRelations.push(util.format(
             '"%s"[%s] %s %s',
-            fieldName, '?', '=', '?',
+            fieldName,
+            '?',
+            '=',
+            '?',
           ));
           queryParams.push(key);
           queryParams.push(relationValue[key]);
@@ -399,7 +410,9 @@ parser.extract_query_relations = function f(fieldName, relationKey, relationValu
       } else {
         queryRelations.push(util.format(
           whereTemplate,
-          fieldName, operator, '?',
+          fieldName,
+          operator,
+          '?',
         ));
         queryParams.push(relationValue);
       }
@@ -413,7 +426,9 @@ parser.extract_query_relations = function f(fieldName, relationKey, relationValu
     }
     queryRelations.push(util.format(
       whereTemplate,
-      fieldName, operator, '?',
+      fieldName,
+      operator,
+      '?',
     ));
     queryParams.push(relationValue);
   } else {
@@ -434,7 +449,8 @@ parser._parse_query_object = function f(schema, queryObject) {
         if (typeof queryObject[fieldName].index === 'string' && typeof queryObject[fieldName].query === 'string') {
           queryRelations.push(util.format(
             "expr(%s,'%s')",
-            queryObject[fieldName].index, queryObject[fieldName].query.replace(/'/g, "''"),
+            queryObject[fieldName].index,
+            queryObject[fieldName].query.replace(/'/g, "''"),
           ));
         } else {
           throw (buildError('model.find.invalidexpr'));
@@ -660,7 +676,8 @@ parser.get_orderby_clause = function f(queryObject) {
           for (let j = 0; j < orderFields.length; j++) {
             orderKeys.push(util.format(
               '"%s" %s',
-              orderFields[j], cqlOrderDirection[orderItemKeys[i]],
+              orderFields[j],
+              cqlOrderDirection[orderItemKeys[i]],
             ));
           }
         } else {

@@ -31,7 +31,7 @@ const cql = Promise.promisifyAll(dseDriver || require('cassandra-driver'));
 const BaseModel = require('./base_model');
 const schemer = require('../validators/schema');
 const normalizer = require('../utils/normalizer');
-const buildError = require('./apollo_error.js');
+const buildError = require('./apollo_error');
 
 const KeyspaceBuilder = require('../builders/keyspace');
 const UdtBuilder = require('../builders/udt');
@@ -236,8 +236,8 @@ Apollo.prototype = {
         }
 
         throw (new Error(util.format(
-          'User defined type "%s" already exists but does not match the udt definition. ' +
-          'Consider altering or droping the type.',
+          'User defined type "%s" already exists but does not match the udt definition. '
+          + 'Consider altering or droping the type.',
           udtKey,
         )));
       });
@@ -299,11 +299,11 @@ Apollo.prototype = {
         const resultArgumentNames = udfObject.argument_names;
         const resultArgumentTypes = _.map(udfObject.argument_types, normalizer.normalize_user_defined_type);
 
-        if (udfLanguage === resultLanguage &&
-          udfCode === resultCode &&
-          udfReturnType === resultReturnType &&
-          _.isEqual(udfInputKeys, resultArgumentNames) &&
-          _.isEqual(udfInputValues, resultArgumentTypes)) {
+        if (udfLanguage === resultLanguage
+          && udfCode === resultCode
+          && udfReturnType === resultReturnType
+          && _.isEqual(udfInputKeys, resultArgumentNames)
+          && _.isEqual(udfInputValues, resultArgumentTypes)) {
           udfCallback();
           return;
         }
@@ -371,11 +371,11 @@ Apollo.prototype = {
           const resultFinalFunc = udaObjects[i].final_func;
           const resultInitcond = udaObjects[i].initcond ? udaObjects[i].initcond.replace(/[\s]/g, '') : null;
 
-          if (sfunc === resultStateFunc &&
-            stype === resultStateType &&
-            finalfunc === resultFinalFunc &&
-            initcond === resultInitcond &&
-            _.isEqual(inputTypes, resultArgumentTypes)) {
+          if (sfunc === resultStateFunc
+            && stype === resultStateType
+            && finalfunc === resultFinalFunc
+            && initcond === resultInitcond
+            && _.isEqual(inputTypes, resultArgumentTypes)) {
             udaCallback();
             return;
           }

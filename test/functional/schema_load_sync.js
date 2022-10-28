@@ -54,11 +54,11 @@ const config = {
       },
       avgState: {
         language: 'java',
-        code: 'if (val !=null) {' +
-                'state.setInt(0, state.getInt(0)+1);' +
-                'state.setLong(1,state.getLong(1)+val.intValue());' +
-              '}' +
-              'return state;',
+        code: 'if (val !=null) {'
+                + 'state.setInt(0, state.getInt(0)+1);'
+                + 'state.setLong(1,state.getLong(1)+val.intValue());'
+              + '}'
+              + 'return state;',
         returnType: 'tuple<int, bigint>',
         inputs: {
           state: 'tuple<int, bigint>',
@@ -67,11 +67,11 @@ const config = {
       },
       avgFinal: {
         language: 'java',
-        code: 'double r = 0;' +
-              'if (state.getInt(0) == 0) return null;' +
-              'r = state.getLong(1);' +
-              'r/= state.getInt(0);' +
-              'return Double.valueOf(r);',
+        code: 'double r = 0;'
+              + 'if (state.getInt(0) == 0) return null;'
+              + 'r = state.getLong(1);'
+              + 'r/= state.getInt(0);'
+              + 'return Double.valueOf(r);',
         returnType: 'double',
         inputs: {
           state: 'tuple<int,bigint>',
@@ -79,8 +79,8 @@ const config = {
       },
       maxI: {
         language: 'java',
-        code: 'if (current == null) return candidate;' +
-              'else return Math.max(current, candidate);',
+        code: 'if (current == null) return candidate;'
+              + 'else return Math.max(current, candidate);',
         returnType: 'int',
         inputs: {
           current: 'int',
@@ -89,11 +89,11 @@ const config = {
       },
       state_group_and_count: {
         language: 'java',
-        code: 'Integer count = (Integer) state.get(type);' +
-              'if (count == null) count = 1;' +
-              'else count++;' +
-              'state.put(type, count);' +
-              'return state;',
+        code: 'Integer count = (Integer) state.get(type);'
+              + 'if (count == null) count = 1;'
+              + 'else count++;'
+              + 'state.put(type, count);'
+              + 'return state;',
         returnType: 'map<text, int>',
         inputs: {
           state: 'map<text, int>',
@@ -102,11 +102,11 @@ const config = {
       },
       state_group_and_total: {
         language: 'java',
-        code: 'Integer count = (Integer) state.get(type);' +
-              'if (count == null) count = amount;' +
-              'else count = count + amount;' +
-              'state.put(type, count);' +
-              'return state;',
+        code: 'Integer count = (Integer) state.get(type);'
+              + 'if (count == null) count = amount;'
+              + 'else count = count + amount;'
+              + 'state.put(type, count);'
+              + 'return state;',
         returnType: 'map<text, int>',
         inputs: {
           state: 'map<text, int>',

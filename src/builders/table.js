@@ -5,7 +5,7 @@ const objectHash = require('object-hash');
 const readlineSync = require('readline-sync');
 const deepDiff = require('deep-diff').diff;
 
-const buildError = require('../orm/apollo_error.js');
+const buildError = require('../orm/apollo_error');
 const schemer = require('../validators/schema');
 const parser = require('../utils/parser');
 const normalizer = require('../utils/normalizer');
