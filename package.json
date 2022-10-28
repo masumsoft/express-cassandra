@@ -41,7 +41,7 @@
   "optionalDependencies": {},
   "author": {
     "name": "Mahafuzur Rahman",
-    "url": "https://www.codinglogs.com"
+    "url": "https://findfoo.com"
   },
   "scripts": {
     "test": "npm run build --silent && npm run mocha --silent && npm run cover --silent && npm run lint --silent && npm run codeclimate --silent",
