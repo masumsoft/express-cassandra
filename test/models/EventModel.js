@@ -18,7 +18,7 @@ export default {
   clustering_order: { id: 'desc' },
   materialized_views: {
     event_by_id: {
-      select: ['body'],
+      select: ['id', 'email', 'body'],
       key: ['id', 'email'],
       clustering_order: { email: 'desc' },
     },
