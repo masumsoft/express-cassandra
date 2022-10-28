@@ -19,8 +19,6 @@ const config = {
       datacenter1: 1,
     },
     migration: 'alter',
-    manageESIndex: true,
-    manageGraphs: true,
     disableTTYConfirmation: true,
     udts: {
       phone: {
