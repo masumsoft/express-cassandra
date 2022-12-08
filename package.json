@@ -32,8 +32,8 @@
     "eslint-plugin-import": "^2.8.0",
     "gremlin": "^2.6.0",
     "istanbul": "^0.4.5",
-    "mocha": "^5.2.0",
-    "mocha-logger": "1.0.7",
+    "mocha": "^10.1.0",
+    "mocha-logger": "1.0.8",
     "mocha-silent-reporter": "^1.0.0",
     "nyc": "^15.1.0",
     "vows": "^0.8.3"
