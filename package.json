@@ -25,7 +25,7 @@
     "babel-register": "^6.26.0",
     "codeclimate-test-reporter": "^0.5.0",
     "cross-env": "^5.0.5",
-    "echo-cli": "^1.0.8",
+    "echo-cli": "^2.0.0",
     "eslint": "^8.26.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.8.0",
