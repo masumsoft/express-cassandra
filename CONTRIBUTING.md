@@ -35,10 +35,10 @@ If you have a question about express-cassandra (not a bug report) or having trou
 - Write tests and make sure they pass (tests are in the [test](https://github.com/masumsoft/express-cassandra/tree/master/test) directory).
 - Open a terminal and navigate to the root of the project
 - Execute `npm install` to install the necessary dependencies
-- Download the preconfigured [elassandra+janusgraph](https://www.dropbox.com/s/vebuzbdql0w6eap/elassandra_janusgraph_distribution.zip?dl=1) for running tests. Some of the test cases require configuration changes in cassandra, elassandra and janusgraph. [Elassandra](http://www.elassandra.io/) and [JanusGraph](http://janusgraph.org/) is required for test cases that are related to supporting them.
-- Start the elassandra instance
-- Start the janusgraph instance
+- Run an instance of cassandra or scylladb with `materialized_views_enabled`, `sasi_indexes_enabled` and `user_defined_functions_enabled` configurations set to `true`
 - Now execute `npm test` to run the tests (we're using [mocha](http://mochajs.org/))
+
+> To test elassandra and janusgraph related functionalities, download the preconfigured [elassandra+janusgraph](https://www.dropbox.com/s/vebuzbdql0w6eap/elassandra_janusgraph_distribution.zip?dl=1) for running tests. Some of the test cases require configuration changes in cassandra, elassandra and janusgraph. [Elassandra](http://www.elassandra.io/) and [JanusGraph](http://janusgraph.org/) is required for test cases that are related to supporting them.
 
 ### Writing Documentation
 

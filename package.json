@@ -41,7 +41,7 @@
   "optionalDependencies": {},
   "author": {
     "name": "Mahafuzur Rahman",
-    "url": "https://findfoo.com"
+    "url": "http://express-cassandra.readthedocs.io"
   },
   "scripts": {
     "test": "npm run build --silent && npm run mocha --silent && npm run cover --silent && npm run lint --silent && npm run codeclimate --silent",
@@ -53,7 +53,7 @@
     "codeclimate": "codeclimate-test-reporter < coverage/lcov.info || true"
   },
   "license": "LGPL-3.0",
-  "description": "Cassandra Object Models (ORM/ODM/OGM) for NodeJS with Elassandra & JanusGraph Support",
+  "description": "Cassandra Object Models (ORM/ODM/OGM) for NodeJS with support for Apache Cassandra, ScyllaDB, Datastax Enterprise, Elassandra & JanusGraph.",
   "repository": {
     "type": "git",
     "url": "git://github.com/masumsoft/express-cassandra.git"
@@ -67,6 +67,8 @@
   "keywords": [
     "cassandra",
     "apache-cassandra",
+    "scylla",
+    "scylladb",
     "datastax",
     "dse",
     "elassandra",
