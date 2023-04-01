@@ -93,7 +93,7 @@ TableBuilder.prototype = {
           callback(err1);
           return;
         }
-        this.get_mviews((err2, viewSchema) => {
+        this.get_mviews(indexSchema, (err2, viewSchema) => {
           if (err2) {
             callback(err2);
             return;
@@ -347,7 +347,7 @@ TableBuilder.prototype = {
     });
   },
 
-  get_mviews(callback) {
+  get_mviews(indexSchema, callback) {
     const properties = this._properties;
     const keyspaceName = properties.keyspace;
     const tableName = properties.table_name;
@@ -360,10 +360,16 @@ TableBuilder.prototype = {
         return;
       }
 
+      let indexViewNames = [];
+      if (indexSchema.index_names) {
+        const indexNames = Object.values(indexSchema.index_names);
+        indexViewNames = indexNames.map((v) => `${v}_index`);
+      }
+
       for (let r = 0; r < resultViews.rows.length; r++) {
         const row = resultViews.rows[r];
 
-        if (row.view_name && row.base_table_name === tableName) {
+        if (row.view_name && row.base_table_name === tableName && !indexViewNames.includes(row.view_name)) {
           if (!dbSchema.materialized_views) dbSchema.materialized_views = {};
           dbSchema.materialized_views[row.view_name] = {
             where_clause: row.where_clause,
