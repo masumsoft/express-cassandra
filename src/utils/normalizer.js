@@ -160,6 +160,9 @@ const normalizer = {
 
       if (!outputMView.where_clause) {
         outputMView.where_clause = parser.get_mview_where_clause(outputSchema, outputMView).trim();
+      } else {
+        // some versions of cassandra/scylla return IS NOT null instead of IS NOT NULL
+        outputMView.where_clause = outputMView.where_clause.replace(/IS NOT null/g, 'IS NOT NULL');
       }
       if (_.isPlainObject(outputMView.filters)) {
         delete outputMView.filters;
