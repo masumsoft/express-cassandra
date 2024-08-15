@@ -1,6 +1,6 @@
 {
   "name": "express-cassandra",
-  "version": "2.9.0",
+  "version": "2.9.1",
   "dependencies": {
     "async": "^2.6.4",
     "babel-polyfill": "^6.26.0",
