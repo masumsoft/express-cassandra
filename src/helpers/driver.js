@@ -96,7 +96,7 @@ Driver.prototype = {
         return;
       }
       debug('executing stream query: %s with params: %j', query, params);
-      this._properties.cql.stream(query, params, options).on('readable', onReadable).on('end', callback);
+      this._properties.cql.stream(query, params, options).on('readable', onReadable).on('end', callback).on('error', callback);
     });
   },
 };
